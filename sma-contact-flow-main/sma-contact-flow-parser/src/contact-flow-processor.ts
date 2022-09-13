@@ -316,17 +316,17 @@ function getAudioParameters(action: any) {
         let  uriObj:string[];
         let key:string;
         
-        if (action.Parameters.SourceType !== null) {
+        if (action.Parameters.Media.SourceType !== null) {
             console.log("Parameters SourceType Exists");
             uri = action.Parameters.Media.Uri;
             console.log("Uri Value"+uri);
             uriObj=uri.split("/");
             console.log("UriObj Value"+uriObj);
-            bucketName = uriObj[1];
+            bucketName = uriObj[2];
             console.log("BucketName"+bucketName);
-            key=uriObj[2];
+            key=uriObj[3];
             console.log("key Value"+key);
-            type = action.Parameters.SourceType;
+            type = action.Parameters.Media.SourceType;
             console.log("Type Value"+type);
         }
       
