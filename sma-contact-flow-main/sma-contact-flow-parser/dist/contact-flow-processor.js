@@ -278,10 +278,11 @@ function processFlowActionMessageParticipant(smaEvent, action) {
         let smaAction = {
             Type: "Speak",
             Parameters: {
-                "CallId": legA.CallId,
-                "text": text,
-                "type": type,
-                "VoiceId": "Joanna"
+                Engine: 'neural',
+                CallId: legA.CallId,
+                Text: text,
+                TextType: type,
+                VoiceId: "Joanna",
             }
         };
         return {

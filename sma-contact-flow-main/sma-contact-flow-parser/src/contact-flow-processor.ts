@@ -263,10 +263,11 @@ async function processFlowActionMessageParticipant(smaEvent: any, action: any) {
         Type: "Speak",
            
         Parameters: {
-            "CallId": legA.CallId,
-            "text":text,
-            "type":type,
-            "VoiceId":"Joanna"
+                 Engine: 'neural',
+                CallId: legA.CallId,
+                Text: text,
+                TextType: type,
+                VoiceId: "Joanna",
             
         }
     };

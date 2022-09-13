@@ -28,9 +28,10 @@ export declare function processFlow(smaEvent: any, amazonConnectInstanceID: stri
     Actions: {
         Type: string;
         Parameters: {
+            Engine: string;
             CallId: any;
-            text: string;
-            type: string;
+            Text: string;
+            TextType: string;
             VoiceId: string;
         };
     }[];
