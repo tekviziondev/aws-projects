@@ -341,13 +341,11 @@ function getAudioParameters(action: any) {
 }
 
 function getWaitTimeParameter(action: any){
-    let rv=null;
+    let rv:string;
     if (action.TimeLimitSeconds !== null ) {
         let seconds: number;
         const timeLimitSeconds: number = Number.parseInt(action.Parameters.TimeLimitSeconds);
-        rv = {
-            seconds:timeLimitSeconds*1000
-        } 
+        rv = String(timeLimitSeconds*1000)
     }   
     console.log(rv);
     return rv;
