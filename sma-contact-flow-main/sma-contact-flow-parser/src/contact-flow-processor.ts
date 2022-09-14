@@ -42,10 +42,14 @@ async function processFlowActionFailure(smaEvent: any, action: any, contactFlow:
     switch (action.Type) {
         case 'GetParticipantInput':
             return await processFlowActionGetParticipantInput(smaEvent, action);
-            case 'MessageParticipant':
-                return await processFlowActionMessageParticipant(smaEvent, action);
-                case 'DisconnectParticipant':
-                    return await processFlowActionDisconnectParticipant(smaEvent, action);
+        case 'MessageParticipant':
+            return await processFlowActionMessageParticipant(smaEvent, action);
+        case 'DisconnectParticipant':
+            return await processFlowActionDisconnectParticipant(smaEvent, action);
+        case 'Wait':
+            return await processFlowActionWait(smaEvent, action);
+        case 'UpdateContactMediaStreamingBehavior':
+            return await processFlowActionUpdateContactRecordingBehavior(smaEvent, action)
         default:
             return null;
     }
@@ -55,15 +59,17 @@ async function processFlowActionSuccess(smaEvent: any, action: any, contactFlow:
     console.log("ProcessFlowActionSuccess:"+action);
     switch (action.Type) {
         case 'GetParticipantInput':
-            return await processFlowActionGetParticipantInput(smaEvent, action);
-            case 'MessageParticipant':
-                return await processFlowActionMessageParticipant(smaEvent, action);
-                case 'DisconnectParticipant':
-                    return await processFlowActionDisconnectParticipant(smaEvent, action);
-                case 'Wait':
-                    return await processFlowActionWait(smaEvent, action);
+              return await processFlowActionGetParticipantInput(smaEvent, action);
+        case 'MessageParticipant':
+              return await processFlowActionMessageParticipant(smaEvent, action);
+        case 'DisconnectParticipant':
+              return await processFlowActionDisconnectParticipant(smaEvent, action);
+        case 'Wait':
+              return await processFlowActionWait(smaEvent, action);
+        case 'UpdateContactMediaStreamingBehavior':
+              return await processFlowActionUpdateContactRecordingBehavior(smaEvent, action)
         default:
-            return null;
+              return null;
     }
 }
 
@@ -72,13 +78,15 @@ async function processFlowAction(smaEvent: any, action: any) {
     switch (action.Type) {
         case 'GetParticipantInput':
             return await processFlowActionGetParticipantInput(smaEvent, action);
-            case 'MessageParticipant':
-                return await processFlowActionMessageParticipant(smaEvent, action);
-                case 'DisconnectParticipant':
-                    return await processFlowActionDisconnectParticipant(smaEvent, action);
-                case 'Wait':
-                    return await processFlowActionWait(smaEvent, action);
-        default:
+       case 'MessageParticipant':
+            return await processFlowActionMessageParticipant(smaEvent, action);
+       case 'DisconnectParticipant':
+            return await processFlowActionDisconnectParticipant(smaEvent, action);
+       case 'Wait':
+            return await processFlowActionWait(smaEvent, action);
+       case 'UpdateContactMediaStreamingBehavior':
+            return await processFlowActionUpdateContactRecordingBehavior(smaEvent, action)
+       default:
             return null;
     }
 }
@@ -237,6 +245,47 @@ async function processFlowActionWait(smaEvent:any, action:any){
     return {
         "SchemaVersion": "1.0",
         "Actions": [
+            smaAction,smaAction
+        ],
+        "TransactionAttributes": {
+            "currentFlowBlock": action
+        }
+    }
+}
+async function processFlowActionUpdateContactRecordingBehavior(smaEvent:any, action:any){
+    const legA = getLegACallDetails(smaEvent);
+    if(action.Parameters.RecordingBehavior.RecordedParticipants.length<1){
+        let smaAction={
+            Type: "StopCallRecording",
+            Parameters: {
+                "CallId": legA.CallId 
+            }
+        };
+        return {
+            "SchemaVersion": "1.0",
+            "Actions": [
+                smaAction
+            ],
+            "TransactionAttributes": {
+                "currentFlowBlock": action
+            }
+        }
+    }
+    let smaAction={
+        Type: "StartCallRecording",
+        Parameters:{
+            "CallId": legA.CallId,
+            "Track":legA.Direction
+        },
+        Destination:{
+         "Type": "S3",                                       
+         "Location":"CallRecordings"
+        }
+        
+    }
+    return {
+        "SchemaVersion": "1.0",
+        "Actions": [
             smaAction
         ],
         "TransactionAttributes": {
@@ -244,8 +293,6 @@ async function processFlowActionWait(smaEvent:any, action:any){
         }
     }
 }
-
-
 
 async function processFlowActionMessageParticipant(smaEvent: any, action: any) {
     if(action.Parameters.Media!=null){
