@@ -22,7 +22,7 @@ function processFlow(smaEvent, amazonConnectInstanceID, amazonConnectFlowID, buc
         if (transactionAttributes && transactionAttributes.currentFlowBlock) {
             console.log("InvocationEventType:" + smaEvent.InvocationEventType);
             if (smaEvent.InvocationEventType === 'ACTION_SUCCESSFUL') {
-                return yield processFlowActionSuccess(smaEvent, transactionAttributes.currentFlowBlock, contactFlow);
+                return yield processFlowActionGetParticipantInputSuccess(smaEvent, transactionAttributes.currentFlowBlock, contactFlow);
             }
             else {
                 return yield processFlowActionFailure(smaEvent, transactionAttributes.currentFlowBlock, contactFlow);
@@ -43,7 +43,7 @@ function processRootFlowBlock(smaEvent, contactFlow, transactionAttributes) {
             if (actions !== null && actions.length > 0) {
                 const currentAction = findActionByID(actions, contactFlow.StartAction);
                 if (currentAction !== null) {
-                    return yield processFlowAction(smaEvent, currentAction);
+                    return yield processFlowAction(smaEvent, currentAction, actions);
                 }
             }
         }
@@ -75,13 +75,13 @@ function processFlowActionSuccess(smaEvent, action, contactFlow) {
             case 'DisconnectParticipant':
                 return yield processFlowActionDisconnectParticipant(smaEvent, action);
             case 'Wait':
-                return yield processFlowActionWait(smaEvent, action);
+                return yield processFlowActionWait(smaEvent, action, contactFlow);
             default:
                 return null;
         }
     });
 }
-function processFlowAction(smaEvent, action) {
+function processFlowAction(smaEvent, action, actions) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log("ProcessFlowAction:" + action);
         switch (action.Type) {
@@ -92,7 +92,9 @@ function processFlowAction(smaEvent, action) {
             case 'DisconnectParticipant':
                 return yield processFlowActionDisconnectParticipant(smaEvent, action);
             case 'Wait':
-                return yield processFlowActionWait(smaEvent, action);
+                return yield processFlowActionWait(smaEvent, action, actions);
+            case 'UpdateContactRecordingBehavior':
+                return yield processFlowActionUpdateContactRecordingBehavior(smaEvent, action);
             default:
                 return null;
         }
@@ -205,7 +207,7 @@ function processFlowActionGetParticipantInputSuccess(smaEvent, action, contactFl
             smaEvent.CallDetails.TransactionAttributes = updateConnectContextStore(transactionAttributes, "StoredCustomerInput", smaEvent.ActionData.ReceivedDigits);
         }
         const nextAction = findActionByID(contactFlow.Actions, action.Transitions.NextAction);
-        return yield processFlowAction(smaEvent, nextAction);
+        return yield processFlowAction(smaEvent, nextAction, contactFlow.Actions);
     });
 }
 function processFlowActionGetParticipantInputFailure(smaEvent, action, contactFlow) {
@@ -242,7 +244,7 @@ function processFlowActionDisconnectParticipant(smaEvent, action) {
         };
     });
 }
-function processFlowActionWait(smaEvent, action) {
+function processFlowActionWait(smaEvent, action, actions) {
     return __awaiter(this, void 0, void 0, function* () {
         const legA = getLegACallDetails(smaEvent);
         let smaAction = {
@@ -251,13 +253,17 @@ function processFlowActionWait(smaEvent, action) {
                 "DurationInMilliseconds": getWaitTimeParameter(action)
             }
         };
+        const nextAction = findActionByID(actions, action.Transitions.NextAction);
+        console.log("Next Action identifier:" + action.Transitions.NextAction.identifier);
+        let smaAction1 = yield (yield processFlowAction(smaEvent, nextAction, actions)).Actions[0];
+        console.log("Next Action Data:" + smaAction1);
         return {
             "SchemaVersion": "1.0",
             "Actions": [
-                smaAction
+                smaAction, smaAction1
             ],
             "TransactionAttributes": {
-                "currentFlowBlock": action
+                "currentFlowBlock": nextAction
             }
         };
     });
@@ -324,7 +330,7 @@ function getAudioParameters(action) {
     let uri;
     let uriObj;
     let key;
-    if (action.Parameters.Media.SourceType !== null) {
+    if (action.Parameters.SourceType !== null) {
         console.log("Parameters SourceType Exists");
         uri = action.Parameters.Media.Uri;
         console.log("Uri Value" + uri);
@@ -346,19 +352,59 @@ function getAudioParameters(action) {
     return rv;
 }
 function getWaitTimeParameter(action) {
-    let rv = null;
+    let rv;
     if (action.TimeLimitSeconds !== null) {
         let seconds;
         const timeLimitSeconds = Number.parseInt(action.Parameters.TimeLimitSeconds);
-        rv = {
-            seconds: timeLimitSeconds * 1000
-        };
+        rv = String(timeLimitSeconds * 1000);
     }
     console.log(rv);
     return rv;
 }
 function findActionByID(actions, identifier) {
     return actions.find((action) => action.Identifier === identifier);
+}
+function processFlowActionUpdateContactRecordingBehavior(smaEvent, action) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const legA = getLegACallDetails(smaEvent);
+        if (action.Parameters.RecordingBehavior.RecordedParticipants.length < 1) {
+            let smaAction = {
+                Type: "StopCallRecording",
+                Parameters: {
+                    "CallId": legA.CallId
+                }
+            };
+            return {
+                "SchemaVersion": "1.0",
+                "Actions": [
+                    smaAction
+                ],
+                "TransactionAttributes": {
+                    "currentFlowBlock": action
+                }
+            };
+        }
+        let smaAction = {
+            Type: "StartCallRecording",
+            Parameters: {
+                "CallId": legA.CallId,
+                "Track": "BOTH",
+                Destination: {
+                    "Type": "S3",
+                    "Location": "CallRecordings"
+                }
+            }
+        };
+        return {
+            "SchemaVersion": "1.0",
+            "Actions": [
+                smaAction
+            ],
+            "TransactionAttributes": {
+                "currentFlowBlock": action
+            }
+        };
+    });
 }
 function getLegACallDetails(event) {
     let rv = null;

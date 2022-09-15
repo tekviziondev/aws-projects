@@ -11,7 +11,7 @@ export async function processFlow(smaEvent: any, amazonConnectInstanceID: string
     if (transactionAttributes && transactionAttributes.currentFlowBlock) {
         console.log("InvocationEventType:"+smaEvent.InvocationEventType);
         if (smaEvent.InvocationEventType === 'ACTION_SUCCESSFUL') {
-            return await processFlowActionSuccess(smaEvent, transactionAttributes.currentFlowBlock, contactFlow);
+            return await processFlowActionGetParticipantInputSuccess(smaEvent, transactionAttributes.currentFlowBlock, contactFlow);
         }
         else {
             return await processFlowActionFailure(smaEvent, transactionAttributes.currentFlowBlock, contactFlow);
@@ -31,7 +31,7 @@ async function processRootFlowBlock(smaEvent: any, contactFlow: any, transaction
         if (actions !== null && actions.length > 0) {
             const currentAction = findActionByID(actions, contactFlow.StartAction);
             if (currentAction !== null) {
-                return await processFlowAction(smaEvent, currentAction);
+                return await processFlowAction(smaEvent, currentAction,actions);
             }
         }
     }
@@ -42,14 +42,10 @@ async function processFlowActionFailure(smaEvent: any, action: any, contactFlow:
     switch (action.Type) {
         case 'GetParticipantInput':
             return await processFlowActionGetParticipantInput(smaEvent, action);
-        case 'MessageParticipant':
-            return await processFlowActionMessageParticipant(smaEvent, action);
-        case 'DisconnectParticipant':
-            return await processFlowActionDisconnectParticipant(smaEvent, action);
-        case 'Wait':
-            return await processFlowActionWait(smaEvent, action);
-        case 'UpdateContactMediaStreamingBehavior':
-            return await processFlowActionUpdateContactRecordingBehavior(smaEvent, action)
+            case 'MessageParticipant':
+                return await processFlowActionMessageParticipant(smaEvent, action);
+                case 'DisconnectParticipant':
+                    return await processFlowActionDisconnectParticipant(smaEvent, action);
         default:
             return null;
     }
@@ -59,34 +55,32 @@ async function processFlowActionSuccess(smaEvent: any, action: any, contactFlow:
     console.log("ProcessFlowActionSuccess:"+action);
     switch (action.Type) {
         case 'GetParticipantInput':
-              return await processFlowActionGetParticipantInput(smaEvent, action);
-        case 'MessageParticipant':
-              return await processFlowActionMessageParticipant(smaEvent, action);
-        case 'DisconnectParticipant':
-              return await processFlowActionDisconnectParticipant(smaEvent, action);
-        case 'Wait':
-              return await processFlowActionWait(smaEvent, action);
-        case 'UpdateContactMediaStreamingBehavior':
-              return await processFlowActionUpdateContactRecordingBehavior(smaEvent, action)
+            return await processFlowActionGetParticipantInput(smaEvent, action);
+            case 'MessageParticipant':
+                return await processFlowActionMessageParticipant(smaEvent, action);
+                case 'DisconnectParticipant':
+                    return await processFlowActionDisconnectParticipant(smaEvent, action);
+                case 'Wait':
+                    return await processFlowActionWait(smaEvent, action,contactFlow);
         default:
-              return null;
+            return null;
     }
 }
 
-async function processFlowAction(smaEvent: any, action: any) {
+async function processFlowAction(smaEvent: any, action: any,actions:any) {
     console.log("ProcessFlowAction:"+action);
     switch (action.Type) {
         case 'GetParticipantInput':
             return await processFlowActionGetParticipantInput(smaEvent, action);
-       case 'MessageParticipant':
-            return await processFlowActionMessageParticipant(smaEvent, action);
-       case 'DisconnectParticipant':
-            return await processFlowActionDisconnectParticipant(smaEvent, action);
-       case 'Wait':
-            return await processFlowActionWait(smaEvent, action);
-       case 'UpdateContactMediaStreamingBehavior':
+            case 'MessageParticipant':
+                return await processFlowActionMessageParticipant(smaEvent, action);
+                case 'DisconnectParticipant':
+                    return await processFlowActionDisconnectParticipant(smaEvent, action);
+                case 'Wait':
+                    return await processFlowActionWait(smaEvent, action,actions);
+                    case 'UpdateContactRecordingBehavior':
             return await processFlowActionUpdateContactRecordingBehavior(smaEvent, action)
-       default:
+        default:
             return null;
     }
 }
@@ -198,7 +192,7 @@ async function processFlowActionGetParticipantInputSuccess(smaEvent: any, action
     }
 
     const nextAction = findActionByID(contactFlow.Actions, action.Transitions.NextAction);
-    return await processFlowAction(smaEvent, nextAction);
+    return await processFlowAction(smaEvent, nextAction,contactFlow.Actions);
 }
 
 async function processFlowActionGetParticipantInputFailure(smaEvent: any, action: any, contactFlow: any) {
@@ -221,7 +215,6 @@ async function processFlowActionDisconnectParticipant(smaEvent:any, action:any){
             "SipResponseCode": "0"
         }
     };
-
     return {
         "SchemaVersion": "1.0",
         "Actions": [
@@ -233,7 +226,7 @@ async function processFlowActionDisconnectParticipant(smaEvent:any, action:any){
     }
 }
 
-async function processFlowActionWait(smaEvent:any, action:any){
+async function processFlowActionWait(smaEvent:any, action:any,actions:any){
     const legA = getLegACallDetails(smaEvent);
     let smaAction = {
         Type: "Pause",
@@ -241,58 +234,22 @@ async function processFlowActionWait(smaEvent:any, action:any){
             "DurationInMilliseconds": getWaitTimeParameter(action)
         }
     };
+    const nextAction = findActionByID(actions, action.Transitions.NextAction);
+    console.log("Next Action identifier:"+action.Transitions.NextAction.identifier);
+    let smaAction1 =await (await processFlowAction(smaEvent, nextAction,actions)).Actions[0];
+    console.log("Next Action Data:"+smaAction1);
+    return {
+        "SchemaVersion": "1.0",
+        "Actions": [
+            smaAction,smaAction1
+        ],
+        "TransactionAttributes": {
+            "currentFlowBlock": nextAction
+        }
+    }
+}
 
-    return {
-        "SchemaVersion": "1.0",
-        "Actions": [
-            smaAction,smaAction
-        ],
-        "TransactionAttributes": {
-            "currentFlowBlock": action
-        }
-    }
-}
-async function processFlowActionUpdateContactRecordingBehavior(smaEvent:any, action:any){
-    const legA = getLegACallDetails(smaEvent);
-    if(action.Parameters.RecordingBehavior.RecordedParticipants.length<1){
-        let smaAction={
-            Type: "StopCallRecording",
-            Parameters: {
-                "CallId": legA.CallId 
-            }
-        };
-        return {
-            "SchemaVersion": "1.0",
-            "Actions": [
-                smaAction
-            ],
-            "TransactionAttributes": {
-                "currentFlowBlock": action
-            }
-        }
-    }
-    let smaAction={
-        Type: "StartCallRecording",
-        Parameters:{
-            "CallId": legA.CallId,
-            "Track":legA.Direction
-        },
-        Destination:{
-         "Type": "S3",                                       
-         "Location":"CallRecordings"
-        }
-        
-    }
-    return {
-        "SchemaVersion": "1.0",
-        "Actions": [
-            smaAction
-        ],
-        "TransactionAttributes": {
-            "currentFlowBlock": action
-        }
-    }
-}
+
 
 async function processFlowActionMessageParticipant(smaEvent: any, action: any) {
     if(action.Parameters.Media!=null){
@@ -363,7 +320,7 @@ function getAudioParameters(action: any) {
         let  uriObj:string[];
         let key:string;
         
-        if (action.Parameters.Media.SourceType !== null) {
+        if (action.Parameters.SourceType !== null) {
             console.log("Parameters SourceType Exists");
             uri = action.Parameters.Media.Uri;
             console.log("Uri Value"+uri);
@@ -400,6 +357,46 @@ function getWaitTimeParameter(action: any){
 
 function findActionByID(actions: any[], identifier: string) {
     return actions.find((action: any) => action.Identifier === identifier);
+}
+async function processFlowActionUpdateContactRecordingBehavior(smaEvent:any, action:any){
+    const legA = getLegACallDetails(smaEvent);
+    if(action.Parameters.RecordingBehavior.RecordedParticipants.length<1){
+        let smaAction={
+            Type: "StopCallRecording",
+            Parameters: {
+                "CallId": legA.CallId 
+            }
+        };
+        return {
+            "SchemaVersion": "1.0",
+            "Actions": [
+                smaAction
+            ],
+            "TransactionAttributes": {
+                "currentFlowBlock": action
+            }
+        }
+    }
+    let smaAction={
+        Type: "StartCallRecording",
+        Parameters:{
+            "CallId": legA.CallId,
+            "Track":"BOTH",
+        Destination:{
+         "Type": "S3",                                       
+         "Location":"CallRecordings"
+        }
+    } 
+};
+    return {
+        "SchemaVersion": "1.0",
+        "Actions": [
+            smaAction
+        ],
+        "TransactionAttributes": {
+            "currentFlowBlock": action
+        }
+    }
 }
 
 function getLegACallDetails(event: any) {
