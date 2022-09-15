@@ -234,8 +234,8 @@ async function processFlowActionWait(smaEvent:any, action:any,actions:any){
             "DurationInMilliseconds": getWaitTimeParameter(action)
         }
     };
-    const nextAction = findActionByID(actions, action.Transitions.NextAction);
-    console.log("Next Action identifier:"+action.Transitions.NextAction.identifier);
+    const nextAction = findActionByID(actions, action.Transitions.Conditions[0].NextAction);
+    console.log("Next Action identifier:"+action.Transitions.Conditions[0].NextAction);
     let smaAction1 =await (await processFlowAction(smaEvent, nextAction,actions)).Actions[0];
     console.log("Next Action Data:"+smaAction1);
     return {
@@ -384,7 +384,7 @@ async function processFlowActionUpdateContactRecordingBehavior(smaEvent:any, act
             "Track":"BOTH",
         Destination:{
          "Type": "S3",                                       
-         "Location":"CallRecordings"
+         "Location":" callrecordings-us-east-1-664887287655"
         }
     } 
 };
