@@ -14,7 +14,7 @@ export async function processFlow(smaEvent: any, amazonConnectInstanceID: string
             return await processFlowActionGetParticipantInputSuccess(smaEvent, transactionAttributes.currentFlowBlock, contactFlow);
         }
         else {
-            return await processFlowActionFailure(smaEvent, transactionAttributes.currentFlowBlock, contactFlow);
+            return await processFlowActionFailed(smaEvent, transactionAttributes.currentFlowBlock, contactFlow);
         }
     }
     else {
@@ -398,7 +398,34 @@ async function processFlowActionUpdateContactRecordingBehavior(smaEvent:any, act
         }
     }
 }
+async function processFlowActionFailed(smaEvent:any, actionObj:any,contactFlow:any){
 
+    let currentAction=contactFlow.Actions.find((action: any) => action.Identifier===actionObj.Identifier);
+    let smaAction:any;
+    let nextAction:any;
+    if(smaEvent!=null && smaEvent.ActionData.ErrorType.includes('InputTimeLimitExceeded') && currentAction.Transitions.Errors>2){
+     nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[2].NextAction);
+    console.log("Next Action identifier:"+currentAction.Transitions.Errors[2].NextAction);
+     smaAction =await (await processFlowAction(smaEvent, nextAction,contactFlow.Actions)).Actions[0];
+    }else if(smaEvent!=null && smaEvent.ActionData.ErrorType.includes('NoMatchingCondition') && currentAction.Transitions.Errors>1){
+     nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[1].NextAction);
+    console.log("Next Action identifier:"+currentAction.Transitions.Errors[1].NextAction);
+     smaAction =await (await processFlowAction(smaEvent, nextAction,contactFlow.Actions)).Actions[0];
+}else{
+     nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[0].NextAction);
+    console.log("Next Action identifier:"+currentAction.Transitions.Errors[0].NextAction);
+     smaAction =await (await processFlowAction(smaEvent, nextAction,contactFlow.Actions)).Actions[0];
+}
+    return {
+        "SchemaVersion": "1.0",
+        "Actions": [
+            smaAction
+        ],
+        "TransactionAttributes": {
+            "currentFlowBlock": nextAction
+        }
+    }
+}
 function getLegACallDetails(event: any) {
     let rv = null;
     if (event && event.CallDetails && event.CallDetails.Participants && event.CallDetails.Participants.length > 0) {

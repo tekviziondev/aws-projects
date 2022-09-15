@@ -25,7 +25,7 @@ function processFlow(smaEvent, amazonConnectInstanceID, amazonConnectFlowID, buc
                 return yield processFlowActionGetParticipantInputSuccess(smaEvent, transactionAttributes.currentFlowBlock, contactFlow);
             }
             else {
-                return yield processFlowActionFailure(smaEvent, transactionAttributes.currentFlowBlock, contactFlow);
+                return yield processFlowActionFailed(smaEvent, transactionAttributes.currentFlowBlock, contactFlow);
             }
         }
         else {
@@ -402,6 +402,37 @@ function processFlowActionUpdateContactRecordingBehavior(smaEvent, action) {
             ],
             "TransactionAttributes": {
                 "currentFlowBlock": action
+            }
+        };
+    });
+}
+function processFlowActionFailed(smaEvent, actionObj, contactFlow) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let currentAction = contactFlow.Actions.find((action) => action.Identifier === actionObj.Identifier);
+        let smaAction;
+        let nextAction;
+        if (smaEvent != null && smaEvent.ActionData.ErrorType.includes('InputTimeLimitExceeded') && currentAction.Transitions.Errors > 2) {
+            nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[2].NextAction);
+            console.log("Next Action identifier:" + currentAction.Transitions.Errors[2].NextAction);
+            smaAction = yield (yield processFlowAction(smaEvent, nextAction, contactFlow.Actions)).Actions[0];
+        }
+        else if (smaEvent != null && smaEvent.ActionData.ErrorType.includes('NoMatchingCondition') && currentAction.Transitions.Errors > 1) {
+            nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[1].NextAction);
+            console.log("Next Action identifier:" + currentAction.Transitions.Errors[1].NextAction);
+            smaAction = yield (yield processFlowAction(smaEvent, nextAction, contactFlow.Actions)).Actions[0];
+        }
+        else {
+            nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[0].NextAction);
+            console.log("Next Action identifier:" + currentAction.Transitions.Errors[0].NextAction);
+            smaAction = yield (yield processFlowAction(smaEvent, nextAction, contactFlow.Actions)).Actions[0];
+        }
+        return {
+            "SchemaVersion": "1.0",
+            "Actions": [
+                smaAction
+            ],
+            "TransactionAttributes": {
+                "currentFlowBlock": nextAction
             }
         };
     });
