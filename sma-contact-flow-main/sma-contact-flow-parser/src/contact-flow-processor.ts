@@ -76,14 +76,18 @@ async function processFlowAction(smaEvent: any, action: any,actions:any) {
     switch (action.Type) {
         case 'GetParticipantInput':
             return await processFlowActionGetParticipantInput(smaEvent, action);
-            case 'MessageParticipant':
-                return await processFlowActionMessageParticipant(smaEvent, action);
-                case 'DisconnectParticipant':
-                    return await processFlowActionDisconnectParticipant(smaEvent, action);
-                case 'Wait':
-                    return await processFlowActionWait(smaEvent, action,actions);
-                    case 'UpdateContactRecordingBehavior':
+        case 'MessageParticipant':
+            return await processFlowActionMessageParticipant(smaEvent, action);
+        case 'DisconnectParticipant':
+             return await processFlowActionDisconnectParticipant(smaEvent, action);
+        case 'Wait':
+            return await processFlowActionWait(smaEvent, action,actions);
+        case 'UpdateContactRecordingBehavior':
             return await processFlowActionUpdateContactRecordingBehavior(smaEvent, action)
+        case 'UpdateContactRecordingBehavior':
+            return await processFlowActionUpdateContactRecordingBehavior(smaEvent, action)
+        case 'Loop':
+            return await processFlowActionLoop(smaEvent, action,actions)
         default:
             return null;
     }
@@ -194,7 +198,12 @@ async function processFlowActionGetParticipantInputSuccess(smaEvent: any, action
     if (action.Parameters && action.Parameters.StoreInput == "True") {
         smaEvent.CallDetails.TransactionAttributes = updateConnectContextStore(transactionAttributes, "StoredCustomerInput", smaEvent.ActionData.ReceivedDigits);
     }
-
+    let currentAction:any;
+    if(action.Type=="Loop"){
+        currentAction=findActionByID(contactFlow.Actions, action.Identifier);
+        currentAction.Parameters.LoopCount=action.Parameters.LoopCount;
+        return await processFlowAction(smaEvent, currentAction,contactFlow.Actions);
+    }
     const nextAction = findActionByID(contactFlow.Actions, action.Transitions.NextAction);
     return await processFlowAction(smaEvent, nextAction,contactFlow.Actions);
 }
@@ -405,6 +414,10 @@ async function processFlowActionUpdateContactRecordingBehavior(smaEvent:any, act
 async function processFlowActionFailed(smaEvent:any, actionObj:any,contactFlow:any){
 
     let currentAction=contactFlow.Actions.find((action: any) => action.Identifier===actionObj.Identifier);
+    if(actionObj.Type=="Loop"){
+        currentAction.Parameters.LoopCount=actionObj.Parameters.LoopCount;
+        return await processFlowAction(smaEvent, currentAction,contactFlow.Actions);
+    }
     let smaAction:any;
     let nextAction:any;
     if(smaEvent!=null && smaEvent.ActionData.ErrorType.includes('InputTimeLimitExceeded')){
@@ -465,7 +478,41 @@ async function processFlowConditionValidation(smaEvent:any, actionObj:any,contac
         }
     }
 }
-
+async function processFlowActionLoop(smaEvent:any, action:any,actions:any){
+    let smaAction:any;
+    if(action.Parameters.LoopCount!="0"){
+    const nextAction = findActionByID(actions, action.Transitions.Conditions[1].NextAction);
+    console.log("Next Action identifier:"+action.Transitions.Conditions[1].NextAction);
+    smaAction= await (await processFlowAction(smaEvent, nextAction,actions)).Actions[0];
+    let count: number = Number.parseInt(action.Parameters.LoopCount)-1
+    action.Parameters.LoopCount=String(count)
+    console.log("Next Action Data:"+smaAction);
+    return {
+        "SchemaVersion": "1.0",
+        "Actions": [
+         smaAction
+        ],
+        "TransactionAttributes": {
+        "currentFlowBlock": action
+         }
+        }
+    }else{
+        let nextAction = findActionByID(actions, action.Transitions.Conditions[0].NextAction);
+    console.log("Next Action identifier:"+action.Transitions.Conditions[0].NextAction);
+    smaAction= await (await processFlowAction(smaEvent, nextAction,actions)).Actions[0];
+    console.log("Next Action Data:"+smaAction);
+    return {
+        "SchemaVersion": "1.0",
+        "Actions": [
+         smaAction
+        ],
+        "TransactionAttributes": {
+        "currentFlowBlock": nextAction
+         }
+    }
+   
+     }
+    }
 function getNextAction(currentAction:any,contactFlow:any,ErrorType:string){
     let nextAction:any;
     if(currentAction.Transitions.Errors>2 && currentAction.Transitions.Errors[2].includes(ErrorType)){

@@ -99,6 +99,10 @@ function processFlowAction(smaEvent, action, actions) {
                 return yield processFlowActionWait(smaEvent, action, actions);
             case 'UpdateContactRecordingBehavior':
                 return yield processFlowActionUpdateContactRecordingBehavior(smaEvent, action);
+            case 'UpdateContactRecordingBehavior':
+                return yield processFlowActionUpdateContactRecordingBehavior(smaEvent, action);
+            case 'Loop':
+                return yield processFlowActionLoop(smaEvent, action, actions);
             default:
                 return null;
         }
@@ -209,6 +213,12 @@ function processFlowActionGetParticipantInputSuccess(smaEvent, action, contactFl
         let transactionAttributes = smaEvent.CallDetails.TransactionAttributes;
         if (action.Parameters && action.Parameters.StoreInput == "True") {
             smaEvent.CallDetails.TransactionAttributes = updateConnectContextStore(transactionAttributes, "StoredCustomerInput", smaEvent.ActionData.ReceivedDigits);
+        }
+        let currentAction;
+        if (action.Type == "Loop") {
+            currentAction = findActionByID(contactFlow.Actions, action.Identifier);
+            currentAction.Parameters.LoopCount = action.Parameters.LoopCount;
+            return yield processFlowAction(smaEvent, currentAction, contactFlow.Actions);
         }
         const nextAction = findActionByID(contactFlow.Actions, action.Transitions.NextAction);
         return yield processFlowAction(smaEvent, nextAction, contactFlow.Actions);
@@ -413,6 +423,10 @@ function processFlowActionUpdateContactRecordingBehavior(smaEvent, action) {
 function processFlowActionFailed(smaEvent, actionObj, contactFlow) {
     return __awaiter(this, void 0, void 0, function* () {
         let currentAction = contactFlow.Actions.find((action) => action.Identifier === actionObj.Identifier);
+        if (actionObj.Type == "Loop") {
+            currentAction.Parameters.LoopCount = actionObj.Parameters.LoopCount;
+            return yield processFlowAction(smaEvent, currentAction, contactFlow.Actions);
+        }
         let smaAction;
         let nextAction;
         if (smaEvent != null && smaEvent.ActionData.ErrorType.includes('InputTimeLimitExceeded')) {
@@ -465,6 +479,43 @@ function processFlowConditionValidation(smaEvent, actionObj, contactFlow, reciev
             nextAction = findActionByID(contactFlow.Actions, nextAction_id);
             console.log("Next Action identifier:" + nextAction_id);
             smaAction = yield (yield processFlowAction(smaEvent, nextAction, contactFlow.Actions)).Actions[0];
+            return {
+                "SchemaVersion": "1.0",
+                "Actions": [
+                    smaAction
+                ],
+                "TransactionAttributes": {
+                    "currentFlowBlock": nextAction
+                }
+            };
+        }
+    });
+}
+function processFlowActionLoop(smaEvent, action, actions) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let smaAction;
+        if (action.Parameters.LoopCount != "0") {
+            const nextAction = findActionByID(actions, action.Transitions.Conditions[1].NextAction);
+            console.log("Next Action identifier:" + action.Transitions.Conditions[1].NextAction);
+            smaAction = yield (yield processFlowAction(smaEvent, nextAction, actions)).Actions[0];
+            let count = Number.parseInt(action.Parameters.LoopCount) - 1;
+            action.Parameters.LoopCount = String(count);
+            console.log("Next Action Data:" + smaAction);
+            return {
+                "SchemaVersion": "1.0",
+                "Actions": [
+                    smaAction
+                ],
+                "TransactionAttributes": {
+                    "currentFlowBlock": action
+                }
+            };
+        }
+        else {
+            let nextAction = findActionByID(actions, action.Transitions.Conditions[0].NextAction);
+            console.log("Next Action identifier:" + action.Transitions.Conditions[0].NextAction);
+            smaAction = yield (yield processFlowAction(smaEvent, nextAction, actions)).Actions[0];
+            console.log("Next Action Data:" + smaAction);
             return {
                 "SchemaVersion": "1.0",
                 "Actions": [
