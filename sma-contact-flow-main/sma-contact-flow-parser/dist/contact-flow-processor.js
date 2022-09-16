@@ -22,6 +22,10 @@ function processFlow(smaEvent, amazonConnectInstanceID, amazonConnectFlowID, buc
         if (transactionAttributes && transactionAttributes.currentFlowBlock) {
             console.log("InvocationEventType:" + smaEvent.InvocationEventType);
             if (smaEvent.InvocationEventType === 'ACTION_SUCCESSFUL') {
+                if (smaEvent.ActionData.ReceivedDigits != null) {
+                    const recieved_digits = smaEvent.ActionData.ReceivedDigits;
+                    return yield processFlowConditionValidation(smaEvent, transactionAttributes.currentFlowBlock, contactFlow, recieved_digits);
+                }
                 return yield processFlowActionGetParticipantInputSuccess(smaEvent, transactionAttributes.currentFlowBlock, contactFlow);
             }
             else {
@@ -411,14 +415,12 @@ function processFlowActionFailed(smaEvent, actionObj, contactFlow) {
         let currentAction = contactFlow.Actions.find((action) => action.Identifier === actionObj.Identifier);
         let smaAction;
         let nextAction;
-        if (smaEvent != null && smaEvent.ActionData.ErrorType.includes('InputTimeLimitExceeded') && currentAction.Transitions.Errors > 2) {
-            nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[2].NextAction);
-            console.log("Next Action identifier:" + currentAction.Transitions.Errors[2].NextAction);
+        if (smaEvent != null && smaEvent.ActionData.ErrorType.includes('InputTimeLimitExceeded')) {
+            nextAction = yield getNextAction(currentAction, contactFlow, 'InputTimeLimitExceeded');
             smaAction = yield (yield processFlowAction(smaEvent, nextAction, contactFlow.Actions)).Actions[0];
         }
-        else if (smaEvent != null && smaEvent.ActionData.ErrorType.includes('NoMatchingCondition') && currentAction.Transitions.Errors > 1) {
-            nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[1].NextAction);
-            console.log("Next Action identifier:" + currentAction.Transitions.Errors[1].NextAction);
+        else if (smaEvent != null && smaEvent.ActionData.ErrorType.includes('NoMatchingCondition')) {
+            nextAction = yield getNextAction(currentAction, contactFlow, 'InputTimeLimitExceeded');
             smaAction = yield (yield processFlowAction(smaEvent, nextAction, contactFlow.Actions)).Actions[0];
         }
         else {
@@ -436,6 +438,56 @@ function processFlowActionFailed(smaEvent, actionObj, contactFlow) {
             }
         };
     });
+}
+function processFlowConditionValidation(smaEvent, actionObj, contactFlow, recieved_digits) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let currentAction = contactFlow.Actions.find((action) => action.Identifier === actionObj.Identifier);
+        let smaAction;
+        let nextAction;
+        let nextAction_id;
+        const condition = currentAction.Transitions.Conditions;
+        if (smaEvent != null && condition.length > 0) {
+            console.log("Enter If Condition ");
+            for (let index = 0; index < condition.length; index++) {
+                console.log("Recieved Digits " + recieved_digits);
+                console.log("Condition Operands " + condition[index].Condition.Operands[0]);
+                if (condition[index].Condition.Operands[0] === recieved_digits) {
+                    nextAction_id = condition[index].NextAction;
+                    console.log("the Passed condition action is " + nextAction_id);
+                    break;
+                }
+            }
+            if (nextAction_id == null) {
+                nextAction_id = currentAction.Transitions.Errors[1].NextAction;
+                console.log("the Condition is failed, because there is No MatchingCondition ");
+                console.log("the failed condition next action id " + nextAction_id);
+            }
+            nextAction = findActionByID(contactFlow.Actions, nextAction_id);
+            console.log("Next Action identifier:" + nextAction_id);
+            smaAction = yield (yield processFlowAction(smaEvent, nextAction, contactFlow.Actions)).Actions[0];
+            return {
+                "SchemaVersion": "1.0",
+                "Actions": [
+                    smaAction
+                ],
+                "TransactionAttributes": {
+                    "currentFlowBlock": nextAction
+                }
+            };
+        }
+    });
+}
+function getNextAction(currentAction, contactFlow, ErrorType) {
+    let nextAction;
+    if (currentAction.Transitions.Errors > 2 && currentAction.Transitions.Errors[2].includes(ErrorType)) {
+        nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[2].NextAction);
+        console.log("Next Action identifier:" + currentAction.Transitions.Errors[2].NextAction);
+    }
+    else if (currentAction.Transitions.Errors > 1 && currentAction.Transitions.Errors[1].includes(ErrorType)) {
+        nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[1].NextAction);
+        console.log("Next Action identifier:" + currentAction.Transitions.Errors[1].NextAction);
+    }
+    return nextAction;
 }
 function getLegACallDetails(event) {
     let rv = null;
