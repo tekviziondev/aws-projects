@@ -15,7 +15,7 @@ export async function processFlow(smaEvent: any, amazonConnectInstanceID: string
                 const recieved_digits=smaEvent.ActionData.ReceivedDigits;
                 return await processFlowConditionValidation(smaEvent, transactionAttributes.currentFlowBlock, contactFlow,recieved_digits);
             }
-            return await processFlowActionGetParticipantInputSuccess(smaEvent, transactionAttributes.currentFlowBlock, contactFlow);
+            return await processFlowActionSuccess(smaEvent, transactionAttributes.currentFlowBlock, contactFlow);
         }
         else {
             return await processFlowActionFailed(smaEvent, transactionAttributes.currentFlowBlock, contactFlow);
@@ -29,7 +29,7 @@ export async function processFlow(smaEvent: any, amazonConnectInstanceID: string
 
 async function processRootFlowBlock(smaEvent: any, contactFlow: any, transactionAttributes: any) {
     // OK, time to figure out the root of the flow
-   
+
     if (contactFlow.StartAction !== null) {
         const actions: any[] = contactFlow.Actions;
         if (actions !== null && actions.length > 0) {
@@ -38,36 +38,6 @@ async function processRootFlowBlock(smaEvent: any, contactFlow: any, transaction
                 return await processFlowAction(smaEvent, currentAction,actions);
             }
         }
-    }
-}
-
-async function processFlowActionFailure(smaEvent: any, action: any, contactFlow: any) {
-    console.log("ProcessFlowActionFailure:"+action);
-    switch (action.Type) {
-        case 'GetParticipantInput':
-            return await processFlowActionGetParticipantInput(smaEvent, action);
-            case 'MessageParticipant':
-                return await processFlowActionMessageParticipant(smaEvent, action);
-                case 'DisconnectParticipant':
-                    return await processFlowActionDisconnectParticipant(smaEvent, action);
-        default:
-            return null;
-    }
-}
-
-async function processFlowActionSuccess(smaEvent: any, action: any, contactFlow: any) {
-    console.log("ProcessFlowActionSuccess:"+action);
-    switch (action.Type) {
-        case 'GetParticipantInput':
-            return await processFlowActionGetParticipantInput(smaEvent, action);
-            case 'MessageParticipant':
-                return await processFlowActionMessageParticipant(smaEvent, action);
-                case 'DisconnectParticipant':
-                    return await processFlowActionDisconnectParticipant(smaEvent, action);
-                case 'Wait':
-                    return await processFlowActionWait(smaEvent, action,contactFlow);
-        default:
-            return null;
     }
 }
 
@@ -88,6 +58,8 @@ async function processFlowAction(smaEvent: any, action: any,actions:any) {
             return await processFlowActionUpdateContactRecordingBehavior(smaEvent, action)
         case 'Loop':
             return await processFlowActionLoop(smaEvent, action,actions)
+        case 'TransferParticipantToThirdParty':
+            return await processFlowActionTransferParticipantToThirdParty(smaEvent, action)
         default:
             return null;
     }
@@ -99,6 +71,7 @@ async function processFlowActionGetParticipantInput(smaEvent: any, action: any) 
         return await processPlayAudioAndGetDigits(smaEvent, action);
    }
     const legA = getLegACallDetails(smaEvent);
+    console.log("Speak and Get Digits Action");
     let smaAction = {
         Type: "SpeakAndGetDigits",
         Parameters: {
@@ -136,7 +109,7 @@ async function processFlowActionGetParticipantInput(smaEvent: any, action: any) 
 }
 
 async function processPlayAudio(smaEvent: any, action: any) {
-    const legA = getLegACallDetails(smaEvent);
+    console.log("Play Audio Action");
     let smaAction = {
         Type: "PlayAudio",
         Parameters: {
@@ -155,7 +128,6 @@ async function processPlayAudio(smaEvent: any, action: any) {
 }
 
 async function processPlayAudioAndGetDigits(smaEvent: any, action: any) {
-       const legA = getLegACallDetails(smaEvent);
     let smaAction = {
         Type: "PlayAudioAndGetDigits",
         Parameters: {
@@ -191,8 +163,7 @@ async function processPlayAudioAndGetDigits(smaEvent: any, action: any) {
     }
 }
 
-async function processFlowActionGetParticipantInputSuccess(smaEvent: any, action: any, contactFlow: any) {
-    const legA = getLegACallDetails(smaEvent);
+async function processFlowActionSuccess(smaEvent: any, action: any, contactFlow: any) {
     let transactionAttributes = smaEvent.CallDetails.TransactionAttributes;
 
     if (action.Parameters && action.Parameters.StoreInput == "True") {
@@ -208,10 +179,6 @@ async function processFlowActionGetParticipantInputSuccess(smaEvent: any, action
     return await processFlowAction(smaEvent, nextAction,contactFlow.Actions);
 }
 
-async function processFlowActionGetParticipantInputFailure(smaEvent: any, action: any, contactFlow: any) {
-    return null;
-}
-
 function updateConnectContextStore(transactionAttributes: any, key: string, value: any) {
     if (transactionAttributes[connectContextStore]) transactionAttributes[connectContextStore][key] = value;
     else {
@@ -220,8 +187,9 @@ function updateConnectContextStore(transactionAttributes: any, key: string, valu
     }
     return transactionAttributes;
 }
+
 async function processFlowActionDisconnectParticipant(smaEvent:any, action:any){
-    const legA = getLegACallDetails(smaEvent);
+    console.log("Hangup Action");
     let smaAction = {
         Type: "Hangup",
         Parameters: { 
@@ -240,7 +208,7 @@ async function processFlowActionDisconnectParticipant(smaEvent:any, action:any){
 }
 
 async function processFlowActionWait(smaEvent:any, action:any,actions:any){
-    const legA = getLegACallDetails(smaEvent);
+    console.log("Pause Action");
     let smaAction = {
         Type: "Pause",
         Parameters: {
@@ -262,8 +230,6 @@ async function processFlowActionWait(smaEvent:any, action:any,actions:any){
     }
 }
 
-
-
 async function processFlowActionMessageParticipant(smaEvent: any, action: any) {
     if(action.Parameters.Media!=null){
         console.log("Play Audio Action");
@@ -278,17 +244,14 @@ async function processFlowActionMessageParticipant(smaEvent: any, action: any) {
     }
     let smaAction = {
         Type: "Speak",
-           
         Parameters: {
                  Engine: 'neural',
                 CallId: legA.CallId,
                 Text: text,
                 TextType: type,
                 VoiceId: "Joanna",
-            
         }
     };
-    
     return {
         "SchemaVersion": "1.0",
         "Actions": [
@@ -299,8 +262,6 @@ async function processFlowActionMessageParticipant(smaEvent: any, action: any) {
         }
     }
 }
-
-
 
 function getSpeechParameters(action: any) {
     let rv = null;
@@ -320,40 +281,32 @@ function getSpeechParameters(action: any) {
             TextType: type
         }
     }
-    console.log(rv);
+    console.log("Speech Parameter : "+rv);
     return rv;
 }
 
 function getAudioParameters(action: any) {
     let rv = null;
-    
         let bucketName: string;
         let type: string;
         let uri:string;
         let  uriObj:string[];
         let key:string;
-        
         if (action.Parameters.SourceType !== null) {
-            console.log("Parameters SourceType Exists");
+            console.log("Audio Parameters SourceType Exists");
             uri = action.Parameters.Media.Uri;
-            console.log("Uri Value"+uri);
             uriObj=uri.split("/");
-            console.log("UriObj Value"+uriObj);
             bucketName = uriObj[2];
-            console.log("BucketName"+bucketName);
             key=uriObj[3];
-            console.log("key Value"+key);
             type = action.Parameters.Media.SourceType;
-            console.log("Type Value"+type);
         }
-      
         rv = {
             Type: type,
             BucketName: bucketName,
             Key:key
         }
     
-    console.log(rv);
+    console.log("Audio Parameters : "+rv);
     return rv;
 }
 
@@ -364,7 +317,7 @@ function getWaitTimeParameter(action: any){
         const timeLimitSeconds: number = Number.parseInt(action.Parameters.TimeLimitSeconds);
         rv = String(timeLimitSeconds*1000)
     }   
-    console.log(rv);
+    console.log("Wait Parameter : "+rv);
     return rv;
 }
 
@@ -421,15 +374,32 @@ async function processFlowActionFailed(smaEvent:any, actionObj:any,contactFlow:a
     let smaAction:any;
     let nextAction:any;
     if(smaEvent!=null && smaEvent.ActionData.ErrorType.includes('InputTimeLimitExceeded')){
-        nextAction=await getNextAction(currentAction,contactFlow,'InputTimeLimitExceeded');
+        nextAction=await getNextActionForError(currentAction,contactFlow,'InputTimeLimitExceeded');
      smaAction =await (await processFlowAction(smaEvent, nextAction,contactFlow.Actions)).Actions[0];
     }else if(smaEvent!=null && smaEvent.ActionData.ErrorType.includes('NoMatchingCondition')){
-        nextAction=await getNextAction(currentAction,contactFlow,'InputTimeLimitExceeded');
+        nextAction=await getNextActionForError(currentAction,contactFlow,'NoMatchingCondition');
         smaAction =await (await processFlowAction(smaEvent, nextAction,contactFlow.Actions)).Actions[0];
+    }
+    else if(smaEvent!=null && smaEvent.ActionData.ErrorType.includes('ConnectionTimeLimitExceeded')){
+        nextAction=await getNextActionForError(currentAction,contactFlow,'ConnectionTimeLimitExceeded');
+        smaAction =await (await processFlowAction(smaEvent, nextAction,contactFlow.Actions)).Actions[0];
+    }
+    else if(smaEvent!=null && smaEvent.ActionData.ErrorType.includes('CallFailed')){
+        nextAction=await getNextActionForError(currentAction,contactFlow,'CallFailed');
+        smaAction =await (await processFlowAction(smaEvent, nextAction,contactFlow.Actions)).Actions[0];       
+    
 }else{
-     nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[0].NextAction);
-    console.log("Next Action identifier:"+currentAction.Transitions.Errors[0].NextAction);
+    let count:number;
+    for(let i=0;i<currentAction.Transitions.Errors.length;i++){
+        if(currentAction.Transitions.Errors[i].ErrorType=="NoMatchingError"){
+            count=i;
+            break;
+        }
+    }
+     nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[count].NextAction);
+     console.log("Next Action identifier:"+currentAction.Transitions.Errors[count].NextAction);
      smaAction =await (await processFlowAction(smaEvent, nextAction,contactFlow.Actions)).Actions[0];
+    
 }
     return {
         "SchemaVersion": "1.0",
@@ -441,6 +411,7 @@ async function processFlowActionFailed(smaEvent:any, actionObj:any,contactFlow:a
         }
     }
 }
+
 async function processFlowConditionValidation(smaEvent:any, actionObj:any,contactFlow:any,recieved_digits:any){
     let currentAction=contactFlow.Actions.find((action: any) => action.Identifier===actionObj.Identifier);
     let smaAction:any;
@@ -449,20 +420,20 @@ async function processFlowConditionValidation(smaEvent:any, actionObj:any,contac
     const condition=currentAction.Transitions.Conditions;
    
     if(smaEvent!=null  && condition.length>0){
-        console.log("Enter If Condition ");
         for (let index = 0; index < condition.length; index++) {
             console.log("Recieved Digits "+recieved_digits);
             console.log("Condition Operands "+condition[index].Condition.Operands[0]);
             if(condition[index].Condition.Operands[0]===recieved_digits){
                  nextAction_id=condition[index].NextAction;
-                console.log("the Passed condition action is "+nextAction_id);
+                console.log("The condition passsed with recieved digit "+recieved_digits);
+                console.log("Next Action identifier"+nextAction_id)
                 break;
                 }
             }
         if(nextAction_id==null){
              nextAction_id=currentAction.Transitions.Errors[1].NextAction;
-            console.log("the Condition is failed, because there is No MatchingCondition ");
-            console.log("the failed condition next action id "+nextAction_id);
+            console.log("Conditions are not matching with Recieved Digits ");
+            console.log("Next Action identifier"+nextAction_id)
         }
         nextAction = findActionByID(contactFlow.Actions,nextAction_id)
         console.log("Next Action identifier:"+nextAction_id);
@@ -478,6 +449,7 @@ async function processFlowConditionValidation(smaEvent:any, actionObj:any,contac
         }
     }
 }
+
 async function processFlowActionLoop(smaEvent:any, action:any,actions:any){
     let smaAction:any;
     if(action.Parameters.LoopCount!="0"){
@@ -490,7 +462,7 @@ async function processFlowActionLoop(smaEvent:any, action:any,actions:any){
     return {
         "SchemaVersion": "1.0",
         "Actions": [
-         smaAction
+             smaAction
         ],
         "TransactionAttributes": {
         "currentFlowBlock": action
@@ -504,16 +476,42 @@ async function processFlowActionLoop(smaEvent:any, action:any,actions:any){
     return {
         "SchemaVersion": "1.0",
         "Actions": [
-         smaAction
+              smaAction
         ],
         "TransactionAttributes": {
         "currentFlowBlock": nextAction
          }
     }
-   
-     }
+     }    
+}
+
+async function processFlowActionTransferParticipantToThirdParty(smaEvent:any, action:any){
+    let smaAction = {
+        Type: "CallAndBridge",
+        Parameters: {
+            "CallTimeoutSeconds":action.Parameters.ThirdPartyConnectionTimeLimitSeconds,
+            "CallerIdNumber":action.Parameters.ThirdPartyPhoneNumber,
+            "Endpoints":[
+                {
+                    "BridgeEndpointType":"PSTN",
+                    "Uri":action.Parameters.ThirdPartyPhoneNumber 
+                }
+            ]
+        }
+        
+    };
+    return {
+        "SchemaVersion": "1.0",
+        "Actions": [
+            smaAction
+        ],
+        "TransactionAttributes": {
+            "currentFlowBlock": action
+        }
     }
-function getNextAction(currentAction:any,contactFlow:any,ErrorType:string){
+}
+
+function getNextActionForError(currentAction:any,contactFlow:any,ErrorType:string){
     let nextAction:any;
     if(currentAction.Transitions.Errors>2 && currentAction.Transitions.Errors[2].includes(ErrorType)){
         nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[2].NextAction);
@@ -522,8 +520,14 @@ function getNextAction(currentAction:any,contactFlow:any,ErrorType:string){
             nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[1].NextAction);
         console.log("Next Action identifier:"+currentAction.Transitions.Errors[1].NextAction);
         }
+        else if(currentAction.Transitions.Errors>0 && currentAction.Transitions.Errors[0].includes(ErrorType)){
+            nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[0].NextAction);
+        console.log("Next Action identifier:"+currentAction.Transitions.Errors[0].NextAction);
+        }
         return nextAction;
+        
 }
+
 function getLegACallDetails(event: any) {
     let rv = null;
     if (event && event.CallDetails && event.CallDetails.Participants && event.CallDetails.Participants.length > 0) {

@@ -26,7 +26,7 @@ function processFlow(smaEvent, amazonConnectInstanceID, amazonConnectFlowID, buc
                     const recieved_digits = smaEvent.ActionData.ReceivedDigits;
                     return yield processFlowConditionValidation(smaEvent, transactionAttributes.currentFlowBlock, contactFlow, recieved_digits);
                 }
-                return yield processFlowActionGetParticipantInputSuccess(smaEvent, transactionAttributes.currentFlowBlock, contactFlow);
+                return yield processFlowActionSuccess(smaEvent, transactionAttributes.currentFlowBlock, contactFlow);
             }
             else {
                 return yield processFlowActionFailed(smaEvent, transactionAttributes.currentFlowBlock, contactFlow);
@@ -53,38 +53,6 @@ function processRootFlowBlock(smaEvent, contactFlow, transactionAttributes) {
         }
     });
 }
-function processFlowActionFailure(smaEvent, action, contactFlow) {
-    return __awaiter(this, void 0, void 0, function* () {
-        console.log("ProcessFlowActionFailure:" + action);
-        switch (action.Type) {
-            case 'GetParticipantInput':
-                return yield processFlowActionGetParticipantInput(smaEvent, action);
-            case 'MessageParticipant':
-                return yield processFlowActionMessageParticipant(smaEvent, action);
-            case 'DisconnectParticipant':
-                return yield processFlowActionDisconnectParticipant(smaEvent, action);
-            default:
-                return null;
-        }
-    });
-}
-function processFlowActionSuccess(smaEvent, action, contactFlow) {
-    return __awaiter(this, void 0, void 0, function* () {
-        console.log("ProcessFlowActionSuccess:" + action);
-        switch (action.Type) {
-            case 'GetParticipantInput':
-                return yield processFlowActionGetParticipantInput(smaEvent, action);
-            case 'MessageParticipant':
-                return yield processFlowActionMessageParticipant(smaEvent, action);
-            case 'DisconnectParticipant':
-                return yield processFlowActionDisconnectParticipant(smaEvent, action);
-            case 'Wait':
-                return yield processFlowActionWait(smaEvent, action, contactFlow);
-            default:
-                return null;
-        }
-    });
-}
 function processFlowAction(smaEvent, action, actions) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log("ProcessFlowAction:" + action);
@@ -103,6 +71,8 @@ function processFlowAction(smaEvent, action, actions) {
                 return yield processFlowActionUpdateContactRecordingBehavior(smaEvent, action);
             case 'Loop':
                 return yield processFlowActionLoop(smaEvent, action, actions);
+            case 'TransferParticipantToThirdParty':
+                return yield processFlowActionTransferParticipantToThirdParty(smaEvent, action);
             default:
                 return null;
         }
@@ -116,6 +86,7 @@ function processFlowActionGetParticipantInput(smaEvent, action) {
             return yield processPlayAudioAndGetDigits(smaEvent, action);
         }
         const legA = getLegACallDetails(smaEvent);
+        console.log("Speak and Get Digits Action");
         let smaAction = {
             Type: "SpeakAndGetDigits",
             Parameters: {
@@ -152,7 +123,7 @@ function processFlowActionGetParticipantInput(smaEvent, action) {
 }
 function processPlayAudio(smaEvent, action) {
     return __awaiter(this, void 0, void 0, function* () {
-        const legA = getLegACallDetails(smaEvent);
+        console.log("Play Audio Action");
         let smaAction = {
             Type: "PlayAudio",
             Parameters: {
@@ -173,7 +144,6 @@ function processPlayAudio(smaEvent, action) {
 function processPlayAudioAndGetDigits(smaEvent, action) {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j;
     return __awaiter(this, void 0, void 0, function* () {
-        const legA = getLegACallDetails(smaEvent);
         let smaAction = {
             Type: "PlayAudioAndGetDigits",
             Parameters: {
@@ -207,9 +177,8 @@ function processPlayAudioAndGetDigits(smaEvent, action) {
         };
     });
 }
-function processFlowActionGetParticipantInputSuccess(smaEvent, action, contactFlow) {
+function processFlowActionSuccess(smaEvent, action, contactFlow) {
     return __awaiter(this, void 0, void 0, function* () {
-        const legA = getLegACallDetails(smaEvent);
         let transactionAttributes = smaEvent.CallDetails.TransactionAttributes;
         if (action.Parameters && action.Parameters.StoreInput == "True") {
             smaEvent.CallDetails.TransactionAttributes = updateConnectContextStore(transactionAttributes, "StoredCustomerInput", smaEvent.ActionData.ReceivedDigits);
@@ -224,11 +193,6 @@ function processFlowActionGetParticipantInputSuccess(smaEvent, action, contactFl
         return yield processFlowAction(smaEvent, nextAction, contactFlow.Actions);
     });
 }
-function processFlowActionGetParticipantInputFailure(smaEvent, action, contactFlow) {
-    return __awaiter(this, void 0, void 0, function* () {
-        return null;
-    });
-}
 function updateConnectContextStore(transactionAttributes, key, value) {
     if (transactionAttributes[connectContextStore])
         transactionAttributes[connectContextStore][key] = value;
@@ -240,7 +204,7 @@ function updateConnectContextStore(transactionAttributes, key, value) {
 }
 function processFlowActionDisconnectParticipant(smaEvent, action) {
     return __awaiter(this, void 0, void 0, function* () {
-        const legA = getLegACallDetails(smaEvent);
+        console.log("Hangup Action");
         let smaAction = {
             Type: "Hangup",
             Parameters: {
@@ -260,7 +224,7 @@ function processFlowActionDisconnectParticipant(smaEvent, action) {
 }
 function processFlowActionWait(smaEvent, action, actions) {
     return __awaiter(this, void 0, void 0, function* () {
-        const legA = getLegACallDetails(smaEvent);
+        console.log("Pause Action");
         let smaAction = {
             Type: "Pause",
             Parameters: {
@@ -334,7 +298,7 @@ function getSpeechParameters(action) {
             TextType: type
         };
     }
-    console.log(rv);
+    console.log("Speech Parameter : " + rv);
     return rv;
 }
 function getAudioParameters(action) {
@@ -345,24 +309,19 @@ function getAudioParameters(action) {
     let uriObj;
     let key;
     if (action.Parameters.SourceType !== null) {
-        console.log("Parameters SourceType Exists");
+        console.log("Audio Parameters SourceType Exists");
         uri = action.Parameters.Media.Uri;
-        console.log("Uri Value" + uri);
         uriObj = uri.split("/");
-        console.log("UriObj Value" + uriObj);
         bucketName = uriObj[2];
-        console.log("BucketName" + bucketName);
         key = uriObj[3];
-        console.log("key Value" + key);
         type = action.Parameters.Media.SourceType;
-        console.log("Type Value" + type);
     }
     rv = {
         Type: type,
         BucketName: bucketName,
         Key: key
     };
-    console.log(rv);
+    console.log("Audio Parameters : " + rv);
     return rv;
 }
 function getWaitTimeParameter(action) {
@@ -372,7 +331,7 @@ function getWaitTimeParameter(action) {
         const timeLimitSeconds = Number.parseInt(action.Parameters.TimeLimitSeconds);
         rv = String(timeLimitSeconds * 1000);
     }
-    console.log(rv);
+    console.log("Wait Parameter : " + rv);
     return rv;
 }
 function findActionByID(actions, identifier) {
@@ -430,16 +389,31 @@ function processFlowActionFailed(smaEvent, actionObj, contactFlow) {
         let smaAction;
         let nextAction;
         if (smaEvent != null && smaEvent.ActionData.ErrorType.includes('InputTimeLimitExceeded')) {
-            nextAction = yield getNextAction(currentAction, contactFlow, 'InputTimeLimitExceeded');
+            nextAction = yield getNextActionForError(currentAction, contactFlow, 'InputTimeLimitExceeded');
             smaAction = yield (yield processFlowAction(smaEvent, nextAction, contactFlow.Actions)).Actions[0];
         }
         else if (smaEvent != null && smaEvent.ActionData.ErrorType.includes('NoMatchingCondition')) {
-            nextAction = yield getNextAction(currentAction, contactFlow, 'InputTimeLimitExceeded');
+            nextAction = yield getNextActionForError(currentAction, contactFlow, 'NoMatchingCondition');
+            smaAction = yield (yield processFlowAction(smaEvent, nextAction, contactFlow.Actions)).Actions[0];
+        }
+        else if (smaEvent != null && smaEvent.ActionData.ErrorType.includes('ConnectionTimeLimitExceeded')) {
+            nextAction = yield getNextActionForError(currentAction, contactFlow, 'ConnectionTimeLimitExceeded');
+            smaAction = yield (yield processFlowAction(smaEvent, nextAction, contactFlow.Actions)).Actions[0];
+        }
+        else if (smaEvent != null && smaEvent.ActionData.ErrorType.includes('CallFailed')) {
+            nextAction = yield getNextActionForError(currentAction, contactFlow, 'CallFailed');
             smaAction = yield (yield processFlowAction(smaEvent, nextAction, contactFlow.Actions)).Actions[0];
         }
         else {
-            nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[0].NextAction);
-            console.log("Next Action identifier:" + currentAction.Transitions.Errors[0].NextAction);
+            let count;
+            for (let i = 0; i < currentAction.Transitions.Errors.length; i++) {
+                if (currentAction.Transitions.Errors[i].ErrorType == "NoMatchingError") {
+                    count = i;
+                    break;
+                }
+            }
+            nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[count].NextAction);
+            console.log("Next Action identifier:" + currentAction.Transitions.Errors[count].NextAction);
             smaAction = yield (yield processFlowAction(smaEvent, nextAction, contactFlow.Actions)).Actions[0];
         }
         return {
@@ -461,20 +435,20 @@ function processFlowConditionValidation(smaEvent, actionObj, contactFlow, reciev
         let nextAction_id;
         const condition = currentAction.Transitions.Conditions;
         if (smaEvent != null && condition.length > 0) {
-            console.log("Enter If Condition ");
             for (let index = 0; index < condition.length; index++) {
                 console.log("Recieved Digits " + recieved_digits);
                 console.log("Condition Operands " + condition[index].Condition.Operands[0]);
                 if (condition[index].Condition.Operands[0] === recieved_digits) {
                     nextAction_id = condition[index].NextAction;
-                    console.log("the Passed condition action is " + nextAction_id);
+                    console.log("The condition passsed with recieved digit " + recieved_digits);
+                    console.log("Next Action identifier" + nextAction_id);
                     break;
                 }
             }
             if (nextAction_id == null) {
                 nextAction_id = currentAction.Transitions.Errors[1].NextAction;
-                console.log("the Condition is failed, because there is No MatchingCondition ");
-                console.log("the failed condition next action id " + nextAction_id);
+                console.log("Conditions are not matching with Recieved Digits ");
+                console.log("Next Action identifier" + nextAction_id);
             }
             nextAction = findActionByID(contactFlow.Actions, nextAction_id);
             console.log("Next Action identifier:" + nextAction_id);
@@ -528,7 +502,33 @@ function processFlowActionLoop(smaEvent, action, actions) {
         }
     });
 }
-function getNextAction(currentAction, contactFlow, ErrorType) {
+function processFlowActionTransferParticipantToThirdParty(smaEvent, action) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let smaAction = {
+            Type: "CallAndBridge",
+            Parameters: {
+                "CallTimeoutSeconds": action.Parameters.ThirdPartyConnectionTimeLimitSeconds,
+                "CallerIdNumber": action.Parameters.ThirdPartyPhoneNumber,
+                "Endpoints": [
+                    {
+                        "BridgeEndpointType": "PSTN",
+                        "Uri": action.Parameters.ThirdPartyPhoneNumber
+                    }
+                ]
+            }
+        };
+        return {
+            "SchemaVersion": "1.0",
+            "Actions": [
+                smaAction
+            ],
+            "TransactionAttributes": {
+                "currentFlowBlock": action
+            }
+        };
+    });
+}
+function getNextActionForError(currentAction, contactFlow, ErrorType) {
     let nextAction;
     if (currentAction.Transitions.Errors > 2 && currentAction.Transitions.Errors[2].includes(ErrorType)) {
         nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[2].NextAction);
@@ -537,6 +537,10 @@ function getNextAction(currentAction, contactFlow, ErrorType) {
     else if (currentAction.Transitions.Errors > 1 && currentAction.Transitions.Errors[1].includes(ErrorType)) {
         nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[1].NextAction);
         console.log("Next Action identifier:" + currentAction.Transitions.Errors[1].NextAction);
+    }
+    else if (currentAction.Transitions.Errors > 0 && currentAction.Transitions.Errors[0].includes(ErrorType)) {
+        nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[0].NextAction);
+        console.log("Next Action identifier:" + currentAction.Transitions.Errors[0].NextAction);
     }
     return nextAction;
 }

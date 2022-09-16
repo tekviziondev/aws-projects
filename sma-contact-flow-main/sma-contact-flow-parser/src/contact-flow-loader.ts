@@ -2,10 +2,9 @@ import { Connect } from 'aws-sdk';
 import { S3 } from 'aws-sdk';
 
 let s3Bucket: string;
-const cacheTimeInMilliseconds: number = 3000;
+const cacheTimeInMilliseconds: number = 5000;
 
 export async function loadContactFlow(amazonConnectInstanceID: string, amazonConnectContactFlowID: string,bucket:string) {  
-  console.log("Entering load contact flow");
   s3Bucket=bucket;
   const describeContactFlowParams = {
     ContactFlowId: amazonConnectContactFlowID,
@@ -14,7 +13,7 @@ export async function loadContactFlow(amazonConnectInstanceID: string, amazonCon
 
   let rv = await checkFlowCache(amazonConnectInstanceID, amazonConnectContactFlowID);
   if (rv == null) {
-    console.log("Flow cache miss");
+    console.log("Loading Contact Flow Details from Connect ");
     const connect = new Connect();
     const contactFlowResponse = await connect.describeContactFlow(describeContactFlowParams).promise();
     rv = JSON.parse(contactFlowResponse.ContactFlow.Content) as any;
@@ -24,7 +23,7 @@ export async function loadContactFlow(amazonConnectInstanceID: string, amazonCon
 }
 
 async function writeFlowCache(flow: any, amazonConnectInstanceID: string, amazonConnectContactFlowID: string) {
-  console.log("Writing flow cache");
+  console.log("Writing Contact flow Details to S3 Bucket ");
   let flowBinary = Buffer.from(JSON.stringify(flow), 'binary');
   const s3Params = {
     Bucket: s3Bucket,
@@ -46,9 +45,9 @@ async function checkFlowCache(amazonConnectInstanceID: string, amazonConnectCont
   try {
     let s3Head = await s3.headObject(s3Params).promise();
     var deltaTimeInMs = new Date().getTime() - s3Head.LastModified.getTime();
-    console.log("Delta Time: " + deltaTimeInMs);
+    console.log("Delta Time of Last updated Flow Cache: " + deltaTimeInMs);
     if (deltaTimeInMs < cacheTimeInMilliseconds) {
-      console.log("Loading flow from cache");
+      console.log("Loading Contact Flow from Flow cache");
       let s3Result = await s3.getObject(s3Params).promise();
       rv = JSON.parse(s3Result.Body.toString());
     }
