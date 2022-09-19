@@ -1,6 +1,8 @@
 import { loadContactFlow } from "./contact-flow-loader";
 
 const connectContextStore: string = "ConnectContextStore";
+const loopCountStore: string = "LoopCountStore";
+let loopMap = new Map<string, string>();
 
 export async function processFlow(smaEvent: any, amazonConnectInstanceID: string, amazonConnectFlowID: string,bucketName:string) {
     const contactFlow = await loadContactFlow(amazonConnectInstanceID, amazonConnectFlowID,bucketName);
@@ -60,6 +62,8 @@ async function processFlowAction(smaEvent: any, action: any,actions:any) {
             return await processFlowActionLoop(smaEvent, action,actions)
         case 'TransferParticipantToThirdParty':
             return await processFlowActionTransferParticipantToThirdParty(smaEvent, action)
+            case 'ConnectParticipantWithLexBot':
+                return await processFlowActionConnectParticipantWithLexBot(smaEvent, action)
         default:
             return null;
     }
@@ -169,11 +173,9 @@ async function processFlowActionSuccess(smaEvent: any, action: any, contactFlow:
     if (action.Parameters && action.Parameters.StoreInput == "True") {
         smaEvent.CallDetails.TransactionAttributes = updateConnectContextStore(transactionAttributes, "StoredCustomerInput", smaEvent.ActionData.ReceivedDigits);
     }
-    let currentAction:any;
-    if(action.Type=="Loop"){
-        currentAction=findActionByID(contactFlow.Actions, action.Identifier);
-        currentAction.Parameters.LoopCount=action.Parameters.LoopCount;
-        return await processFlowAction(smaEvent, currentAction,contactFlow.Actions);
+    if(smaEvent.ActionData.IntentResult!=null){
+       let intentName= smaEvent.ActionData.IntentResult.SessionState.Intent.Name;
+       return await processFlowConditionValidation(smaEvent, transactionAttributes.currentFlowBlock, contactFlow,intentName);
     }
     const nextAction = findActionByID(contactFlow.Actions, action.Transitions.NextAction);
     return await processFlowAction(smaEvent, nextAction,contactFlow.Actions);
@@ -184,6 +186,15 @@ function updateConnectContextStore(transactionAttributes: any, key: string, valu
     else {
         transactionAttributes[connectContextStore] = { };
         transactionAttributes[connectContextStore][key] = value;
+    }
+    return transactionAttributes;
+}
+
+function updateLoopCountStore(transactionAttributes: any, key: string, value: any) {
+    if (transactionAttributes[loopCountStore]) transactionAttributes[loopCountStore][key] = value;
+    else {
+        transactionAttributes[loopCountStore] = { };
+        transactionAttributes[loopCountStore][key] = value;
     }
     return transactionAttributes;
 }
@@ -350,7 +361,7 @@ async function processFlowActionUpdateContactRecordingBehavior(smaEvent:any, act
             "Track":"BOTH",
         Destination:{
          "Type": "S3",                                       
-         "Location":" callrecordings-us-east-1-664887287655"
+         "Location":" flow-cache1"
         }
     } 
 };
@@ -367,10 +378,6 @@ async function processFlowActionUpdateContactRecordingBehavior(smaEvent:any, act
 async function processFlowActionFailed(smaEvent:any, actionObj:any,contactFlow:any){
 
     let currentAction=contactFlow.Actions.find((action: any) => action.Identifier===actionObj.Identifier);
-    if(actionObj.Type=="Loop"){
-        currentAction.Parameters.LoopCount=actionObj.Parameters.LoopCount;
-        return await processFlowAction(smaEvent, currentAction,contactFlow.Actions);
-    }
     let smaAction:any;
     let nextAction:any;
     if(smaEvent!=null && smaEvent.ActionData.ErrorType.includes('InputTimeLimitExceeded')){
@@ -418,7 +425,6 @@ async function processFlowConditionValidation(smaEvent:any, actionObj:any,contac
     let nextAction:any;
     let nextAction_id:any;
     const condition=currentAction.Transitions.Conditions;
-   
     if(smaEvent!=null  && condition.length>0){
         for (let index = 0; index < condition.length; index++) {
             console.log("Recieved Digits "+recieved_digits);
@@ -452,12 +458,20 @@ async function processFlowConditionValidation(smaEvent:any, actionObj:any,contac
 
 async function processFlowActionLoop(smaEvent:any, action:any,actions:any){
     let smaAction:any;
-    if(action.Parameters.LoopCount!="0"){
+    let callId:string;
+        const legA = getLegACallDetails(smaEvent);
+         callId=legA.CallId;
+        if(callId=="NaN")
+        callId=  smaEvent.ActionData.Parameters.CallId;
+    if(!loopMap.has(callId) || loopMap.get(callId)!=action.Parameters.LoopCount){
     const nextAction = findActionByID(actions, action.Transitions.Conditions[1].NextAction);
     console.log("Next Action identifier:"+action.Transitions.Conditions[1].NextAction);
     smaAction= await (await processFlowAction(smaEvent, nextAction,actions)).Actions[0];
-    let count: number = Number.parseInt(action.Parameters.LoopCount)-1
-    action.Parameters.LoopCount=String(count)
+   let count = String(Number.parseInt(loopMap.get(callId))+1)
+   if(!loopMap.has(callId))
+    loopMap.set(callId,"1");
+    else
+    loopMap.set(callId,count);
     console.log("Next Action Data:"+smaAction);
     return {
         "SchemaVersion": "1.0",
@@ -465,10 +479,11 @@ async function processFlowActionLoop(smaEvent:any, action:any,actions:any){
              smaAction
         ],
         "TransactionAttributes": {
-        "currentFlowBlock": action
-         }
+        "currentFlowBlock": nextAction
+        }
         }
     }else{
+        loopMap.delete(callId);
         let nextAction = findActionByID(actions, action.Transitions.Conditions[0].NextAction);
     console.log("Next Action identifier:"+action.Transitions.Conditions[0].NextAction);
     smaAction= await (await processFlowAction(smaEvent, nextAction,actions)).Actions[0];
@@ -479,7 +494,7 @@ async function processFlowActionLoop(smaEvent:any, action:any,actions:any){
               smaAction
         ],
         "TransactionAttributes": {
-        "currentFlowBlock": nextAction
+        "currentFlowBlock": nextAction,
          }
     }
      }    
@@ -511,16 +526,48 @@ async function processFlowActionTransferParticipantToThirdParty(smaEvent:any, ac
     }
 }
 
+async function processFlowActionConnectParticipantWithLexBot(smaEvent:any, action:any){
+    let smaAction={
+        Type: "StartBotConversation",
+        Parameters: {
+          BotAliasArn:action.Parameters.LexV2Bot.AliasArn,
+          LocaleId: "en_US",
+          Configuration: {
+            SessionState: {
+              DialogAction: {
+                Type: "ElicitIntent"
+              }
+            },
+            WelcomeMessages: [
+              {
+                ContentType: "PlainText",
+                Content:action.Parameters.Text
+              },
+            ]
+          }
+        }
+      }
+      return {
+        "SchemaVersion": "1.0",
+        "Actions": [
+            smaAction
+        ],
+        "TransactionAttributes": {
+            "currentFlowBlock": action
+        }
+    }
+}
+
 function getNextActionForError(currentAction:any,contactFlow:any,ErrorType:string){
     let nextAction:any;
-    if(currentAction.Transitions.Errors>2 && currentAction.Transitions.Errors[2].includes(ErrorType)){
-        nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[2].NextAction);
+    if(currentAction.Transitions.Errors>2 && currentAction.Transitions.Errors[2].ErrorType.includes(ErrorType)){
+        nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[2].ErrorType.NextAction);
         console.log("Next Action identifier:"+currentAction.Transitions.Errors[2].NextAction);
-        }else if(currentAction.Transitions.Errors>1 && currentAction.Transitions.Errors[1].includes(ErrorType)){
+        }else if(currentAction.Transitions.Errors>1 && currentAction.Transitions.Errors[1].ErrorType.includes(ErrorType)){
             nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[1].NextAction);
         console.log("Next Action identifier:"+currentAction.Transitions.Errors[1].NextAction);
         }
-        else if(currentAction.Transitions.Errors>0 && currentAction.Transitions.Errors[0].includes(ErrorType)){
+        else if(currentAction.Transitions.Errors>0 && currentAction.Transitions.Errors[0].ErrorType.includes(ErrorType)){
             nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[0].NextAction);
         console.log("Next Action identifier:"+currentAction.Transitions.Errors[0].NextAction);
         }

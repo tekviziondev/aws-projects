@@ -75,6 +75,8 @@ function processFlowAction(smaEvent, action, actions) {
                 return yield processFlowActionLoop(smaEvent, action, actions);
             case 'TransferParticipantToThirdParty':
                 return yield processFlowActionTransferParticipantToThirdParty(smaEvent, action);
+            case 'ConnectParticipantWithLexBot':
+                return yield processFlowActionConnectParticipantWithLexBot(smaEvent, action);
             default:
                 return null;
         }
@@ -185,17 +187,11 @@ function processFlowActionSuccess(smaEvent, action, contactFlow) {
         if (action.Parameters && action.Parameters.StoreInput == "True") {
             smaEvent.CallDetails.TransactionAttributes = updateConnectContextStore(transactionAttributes, "StoredCustomerInput", smaEvent.ActionData.ReceivedDigits);
         }
-        //let currentAction:any;
-        /*if(action.Type=="Loop"){
-            currentAction=findActionByID(contactFlow.Actions, action.Identifier);
-            currentAction.Parameters.LoopCount=action.Parameters.LoopCount;
-            return await processFlowAction(smaEvent, currentAction,contactFlow.Actions);
-        }*/
+        if (smaEvent.ActionData.IntentResult != null) {
+            let intentName = smaEvent.ActionData.IntentResult.SessionState.Intent.Name;
+            return yield processFlowConditionValidation(smaEvent, transactionAttributes.currentFlowBlock, contactFlow, intentName);
+        }
         const nextAction = findActionByID(contactFlow.Actions, action.Transitions.NextAction);
-        /*if(nextAction.Type=="Loop"){
-            console.log(smaEvent.CallDetails.TransactionAttributes.StoreCustomerLoopCount);
-            nextAction.Parameters.LoopCount=smaEvent.CallDetails.TransactionAttributes.LoopCountStore;
-        }*/
         return yield processFlowAction(smaEvent, nextAction, contactFlow.Actions);
     });
 }
@@ -379,7 +375,7 @@ function processFlowActionUpdateContactRecordingBehavior(smaEvent, action) {
                 "Track": "BOTH",
                 Destination: {
                     "Type": "S3",
-                    "Location": " callrecordings"
+                    "Location": " flow-cache1"
                 }
             }
         };
@@ -535,6 +531,39 @@ function processFlowActionTransferParticipantToThirdParty(smaEvent, action) {
                         "Uri": action.Parameters.ThirdPartyPhoneNumber
                     }
                 ]
+            }
+        };
+        return {
+            "SchemaVersion": "1.0",
+            "Actions": [
+                smaAction
+            ],
+            "TransactionAttributes": {
+                "currentFlowBlock": action
+            }
+        };
+    });
+}
+function processFlowActionConnectParticipantWithLexBot(smaEvent, action) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let smaAction = {
+            Type: "StartBotConversation",
+            Parameters: {
+                BotAliasArn: action.Parameters.LexV2Bot.AliasArn,
+                LocaleId: "en_US",
+                Configuration: {
+                    SessionState: {
+                        DialogAction: {
+                            Type: "ElicitIntent"
+                        }
+                    },
+                    WelcomeMessages: [
+                        {
+                            ContentType: "PlainText",
+                            Content: action.Parameters.Text
+                        },
+                    ]
+                }
             }
         };
         return {
