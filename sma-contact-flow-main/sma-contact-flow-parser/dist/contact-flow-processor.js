@@ -12,6 +12,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.processFlow = void 0;
 const contact_flow_loader_1 = require("./contact-flow-loader");
 const connectContextStore = "ConnectContextStore";
+const loopCountStore = "LoopCountStore";
+let loopMap = new Map();
 function processFlow(smaEvent, amazonConnectInstanceID, amazonConnectFlowID, bucketName) {
     return __awaiter(this, void 0, void 0, function* () {
         const contactFlow = yield (0, contact_flow_loader_1.loadContactFlow)(amazonConnectInstanceID, amazonConnectFlowID, bucketName);
@@ -183,13 +185,17 @@ function processFlowActionSuccess(smaEvent, action, contactFlow) {
         if (action.Parameters && action.Parameters.StoreInput == "True") {
             smaEvent.CallDetails.TransactionAttributes = updateConnectContextStore(transactionAttributes, "StoredCustomerInput", smaEvent.ActionData.ReceivedDigits);
         }
-        let currentAction;
-        if (action.Type == "Loop") {
-            currentAction = findActionByID(contactFlow.Actions, action.Identifier);
-            currentAction.Parameters.LoopCount = action.Parameters.LoopCount;
-            return yield processFlowAction(smaEvent, currentAction, contactFlow.Actions);
-        }
+        //let currentAction:any;
+        /*if(action.Type=="Loop"){
+            currentAction=findActionByID(contactFlow.Actions, action.Identifier);
+            currentAction.Parameters.LoopCount=action.Parameters.LoopCount;
+            return await processFlowAction(smaEvent, currentAction,contactFlow.Actions);
+        }*/
         const nextAction = findActionByID(contactFlow.Actions, action.Transitions.NextAction);
+        /*if(nextAction.Type=="Loop"){
+            console.log(smaEvent.CallDetails.TransactionAttributes.StoreCustomerLoopCount);
+            nextAction.Parameters.LoopCount=smaEvent.CallDetails.TransactionAttributes.LoopCountStore;
+        }*/
         return yield processFlowAction(smaEvent, nextAction, contactFlow.Actions);
     });
 }
@@ -199,6 +205,15 @@ function updateConnectContextStore(transactionAttributes, key, value) {
     else {
         transactionAttributes[connectContextStore] = {};
         transactionAttributes[connectContextStore][key] = value;
+    }
+    return transactionAttributes;
+}
+function updateLoopCountStore(transactionAttributes, key, value) {
+    if (transactionAttributes[loopCountStore])
+        transactionAttributes[loopCountStore][key] = value;
+    else {
+        transactionAttributes[loopCountStore] = {};
+        transactionAttributes[loopCountStore][key] = value;
     }
     return transactionAttributes;
 }
@@ -364,7 +379,7 @@ function processFlowActionUpdateContactRecordingBehavior(smaEvent, action) {
                 "Track": "BOTH",
                 Destination: {
                     "Type": "S3",
-                    "Location": " callrecordings-us-east-1-664887287655"
+                    "Location": " callrecordings"
                 }
             }
         };
@@ -382,10 +397,6 @@ function processFlowActionUpdateContactRecordingBehavior(smaEvent, action) {
 function processFlowActionFailed(smaEvent, actionObj, contactFlow) {
     return __awaiter(this, void 0, void 0, function* () {
         let currentAction = contactFlow.Actions.find((action) => action.Identifier === actionObj.Identifier);
-        if (actionObj.Type == "Loop") {
-            currentAction.Parameters.LoopCount = actionObj.Parameters.LoopCount;
-            return yield processFlowAction(smaEvent, currentAction, contactFlow.Actions);
-        }
         let smaAction;
         let nextAction;
         if (smaEvent != null && smaEvent.ActionData.ErrorType.includes('InputTimeLimitExceeded')) {
@@ -468,12 +479,20 @@ function processFlowConditionValidation(smaEvent, actionObj, contactFlow, reciev
 function processFlowActionLoop(smaEvent, action, actions) {
     return __awaiter(this, void 0, void 0, function* () {
         let smaAction;
-        if (action.Parameters.LoopCount != "0") {
+        let callId;
+        const legA = getLegACallDetails(smaEvent);
+        callId = legA.CallId;
+        if (callId == "NaN")
+            callId = smaEvent.ActionData.Parameters.CallId;
+        if (!loopMap.has(callId) || loopMap.get(callId) != action.Parameters.LoopCount) {
             const nextAction = findActionByID(actions, action.Transitions.Conditions[1].NextAction);
             console.log("Next Action identifier:" + action.Transitions.Conditions[1].NextAction);
             smaAction = yield (yield processFlowAction(smaEvent, nextAction, actions)).Actions[0];
-            let count = Number.parseInt(action.Parameters.LoopCount) - 1;
-            action.Parameters.LoopCount = String(count);
+            let count = String(Number.parseInt(loopMap.get(callId)) + 1);
+            if (!loopMap.has(callId))
+                loopMap.set(callId, "1");
+            else
+                loopMap.set(callId, count);
             console.log("Next Action Data:" + smaAction);
             return {
                 "SchemaVersion": "1.0",
@@ -481,11 +500,12 @@ function processFlowActionLoop(smaEvent, action, actions) {
                     smaAction
                 ],
                 "TransactionAttributes": {
-                    "currentFlowBlock": action
+                    "currentFlowBlock": nextAction
                 }
             };
         }
         else {
+            loopMap.delete(callId);
             let nextAction = findActionByID(actions, action.Transitions.Conditions[0].NextAction);
             console.log("Next Action identifier:" + action.Transitions.Conditions[0].NextAction);
             smaAction = yield (yield processFlowAction(smaEvent, nextAction, actions)).Actions[0];
@@ -496,7 +516,7 @@ function processFlowActionLoop(smaEvent, action, actions) {
                     smaAction
                 ],
                 "TransactionAttributes": {
-                    "currentFlowBlock": nextAction
+                    "currentFlowBlock": nextAction,
                 }
             };
         }
@@ -530,15 +550,15 @@ function processFlowActionTransferParticipantToThirdParty(smaEvent, action) {
 }
 function getNextActionForError(currentAction, contactFlow, ErrorType) {
     let nextAction;
-    if (currentAction.Transitions.Errors > 2 && currentAction.Transitions.Errors[2].includes(ErrorType)) {
-        nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[2].NextAction);
+    if (currentAction.Transitions.Errors > 2 && currentAction.Transitions.Errors[2].ErrorType.includes(ErrorType)) {
+        nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[2].ErrorType.NextAction);
         console.log("Next Action identifier:" + currentAction.Transitions.Errors[2].NextAction);
     }
-    else if (currentAction.Transitions.Errors > 1 && currentAction.Transitions.Errors[1].includes(ErrorType)) {
+    else if (currentAction.Transitions.Errors > 1 && currentAction.Transitions.Errors[1].ErrorType.includes(ErrorType)) {
         nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[1].NextAction);
         console.log("Next Action identifier:" + currentAction.Transitions.Errors[1].NextAction);
     }
-    else if (currentAction.Transitions.Errors > 0 && currentAction.Transitions.Errors[0].includes(ErrorType)) {
+    else if (currentAction.Transitions.Errors > 0 && currentAction.Transitions.Errors[0].ErrorType.includes(ErrorType)) {
         nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[0].NextAction);
         console.log("Next Action identifier:" + currentAction.Transitions.Errors[0].NextAction);
     }

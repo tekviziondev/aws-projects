@@ -11,7 +11,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.loadContactFlow = void 0;
 const aws_sdk_1 = require("aws-sdk");
-aws_sdk_1.config.update({region:'us-east-1'});
 const aws_sdk_2 = require("aws-sdk");
 let s3Bucket;
 const cacheTimeInMilliseconds = 5000;
