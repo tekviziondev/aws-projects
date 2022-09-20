@@ -14,8 +14,17 @@ const contact_flow_loader_1 = require("./contact-flow-loader");
 const connectContextStore = "ConnectContextStore";
 const loopCountStore = "LoopCountStore";
 let loopMap = new Map();
+let ContactFlowARNMap = new Map();
 function processFlow(smaEvent, amazonConnectInstanceID, amazonConnectFlowID, bucketName) {
     return __awaiter(this, void 0, void 0, function* () {
+        let callId;
+        const legA = getLegACallDetails(smaEvent);
+        callId = legA.CallId;
+        if (callId == "NaN")
+            callId = smaEvent.ActionData.Parameters.CallId;
+        if (ContactFlowARNMap.has(callId)) {
+            amazonConnectFlowID = (ContactFlowARNMap.get(callId));
+        }
         const contactFlow = yield (0, contact_flow_loader_1.loadContactFlow)(amazonConnectInstanceID, amazonConnectFlowID, bucketName);
         console.log("Loaded Contact Flow" + contactFlow);
         console.log("CallDetails:" + smaEvent.CallDetails);
@@ -26,36 +35,38 @@ function processFlow(smaEvent, amazonConnectInstanceID, amazonConnectFlowID, buc
             if (smaEvent.InvocationEventType === 'ACTION_SUCCESSFUL') {
                 if (smaEvent.ActionData.ReceivedDigits != null) {
                     const recieved_digits = smaEvent.ActionData.ReceivedDigits;
-                    return yield processFlowConditionValidation(smaEvent, transactionAttributes.currentFlowBlock, contactFlow, recieved_digits);
+                    return yield processFlowConditionValidation(smaEvent, transactionAttributes.currentFlowBlock, contactFlow, recieved_digits, amazonConnectInstanceID, bucketName);
                 }
-                return yield processFlowActionSuccess(smaEvent, transactionAttributes.currentFlowBlock, contactFlow);
+                return yield processFlowActionSuccess(smaEvent, transactionAttributes.currentFlowBlock, contactFlow, amazonConnectInstanceID, bucketName);
             }
             else {
-                return yield processFlowActionFailed(smaEvent, transactionAttributes.currentFlowBlock, contactFlow);
+                return yield processFlowActionFailed(smaEvent, transactionAttributes.currentFlowBlock, contactFlow, amazonConnectInstanceID, bucketName);
             }
         }
         else {
             // We're at the root start from there
-            return yield processRootFlowBlock(smaEvent, contactFlow, transactionAttributes);
+            return yield processRootFlowBlock(smaEvent, contactFlow, transactionAttributes, amazonConnectInstanceID, bucketName);
         }
     });
 }
 exports.processFlow = processFlow;
-function processRootFlowBlock(smaEvent, contactFlow, transactionAttributes) {
+function processRootFlowBlock(smaEvent, contactFlow, transactionAttributes, amazonConnectInstanceID, bucketName) {
     return __awaiter(this, void 0, void 0, function* () {
         // OK, time to figure out the root of the flow
         if (contactFlow.StartAction !== null) {
             const actions = contactFlow.Actions;
+            console.log("Root Flow Block The actions are" + actions);
             if (actions !== null && actions.length > 0) {
                 const currentAction = findActionByID(actions, contactFlow.StartAction);
+                console.log("Root Flow Block The current Action is " + currentAction.Type);
                 if (currentAction !== null) {
-                    return yield processFlowAction(smaEvent, currentAction, actions);
+                    return yield processFlowAction(smaEvent, currentAction, actions, amazonConnectInstanceID, bucketName);
                 }
             }
         }
     });
 }
-function processFlowAction(smaEvent, action, actions) {
+function processFlowAction(smaEvent, action, actions, amazonConnectInstanceID, bucketName) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log("ProcessFlowAction:" + action);
         switch (action.Type) {
@@ -66,19 +77,19 @@ function processFlowAction(smaEvent, action, actions) {
             case 'DisconnectParticipant':
                 return yield processFlowActionDisconnectParticipant(smaEvent, action);
             case 'Wait':
-                return yield processFlowActionWait(smaEvent, action, actions);
-            case 'UpdateContactRecordingBehavior':
-                return yield processFlowActionUpdateContactRecordingBehavior(smaEvent, action);
+                return yield processFlowActionWait(smaEvent, action, actions, amazonConnectInstanceID, bucketName);
             case 'UpdateContactRecordingBehavior':
                 return yield processFlowActionUpdateContactRecordingBehavior(smaEvent, action);
             case 'Loop':
-                return yield processFlowActionLoop(smaEvent, action, actions);
+                return yield processFlowActionLoop(smaEvent, action, actions, amazonConnectInstanceID, bucketName);
             case 'TransferParticipantToThirdParty':
                 return yield processFlowActionTransferParticipantToThirdParty(smaEvent, action);
             case 'ConnectParticipantWithLexBot':
                 return yield processFlowActionConnectParticipantWithLexBot(smaEvent, action);
+            case 'TransferToFlow':
+                return yield processFlowActionTransferToFlow(smaEvent, action, amazonConnectInstanceID, bucketName);
             default:
-                return null;
+                null;
         }
     });
 }
@@ -181,7 +192,7 @@ function processPlayAudioAndGetDigits(smaEvent, action) {
         };
     });
 }
-function processFlowActionSuccess(smaEvent, action, contactFlow) {
+function processFlowActionSuccess(smaEvent, action, contactFlow, amazonConnectInstanceID, bucketName) {
     return __awaiter(this, void 0, void 0, function* () {
         let transactionAttributes = smaEvent.CallDetails.TransactionAttributes;
         if (action.Parameters && action.Parameters.StoreInput == "True") {
@@ -189,10 +200,10 @@ function processFlowActionSuccess(smaEvent, action, contactFlow) {
         }
         if (smaEvent.ActionData.IntentResult != null) {
             let intentName = smaEvent.ActionData.IntentResult.SessionState.Intent.Name;
-            return yield processFlowConditionValidation(smaEvent, transactionAttributes.currentFlowBlock, contactFlow, intentName);
+            return yield processFlowConditionValidation(smaEvent, transactionAttributes.currentFlowBlock, contactFlow, intentName, amazonConnectInstanceID, bucketName);
         }
         const nextAction = findActionByID(contactFlow.Actions, action.Transitions.NextAction);
-        return yield processFlowAction(smaEvent, nextAction, contactFlow.Actions);
+        return yield processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName);
     });
 }
 function updateConnectContextStore(transactionAttributes, key, value) {
@@ -215,6 +226,12 @@ function updateLoopCountStore(transactionAttributes, key, value) {
 }
 function processFlowActionDisconnectParticipant(smaEvent, action) {
     return __awaiter(this, void 0, void 0, function* () {
+        let callId;
+        const legA = getLegACallDetails(smaEvent);
+        callId = legA.CallId;
+        if (callId == "NaN")
+            callId = smaEvent.ActionData.Parameters.CallId;
+        ContactFlowARNMap.delete(callId);
         console.log("Hangup Action");
         let smaAction = {
             Type: "Hangup",
@@ -233,7 +250,7 @@ function processFlowActionDisconnectParticipant(smaEvent, action) {
         };
     });
 }
-function processFlowActionWait(smaEvent, action, actions) {
+function processFlowActionWait(smaEvent, action, actions, amazonConnectInstanceID, bucketName) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log("Pause Action");
         let smaAction = {
@@ -244,7 +261,7 @@ function processFlowActionWait(smaEvent, action, actions) {
         };
         const nextAction = findActionByID(actions, action.Transitions.Conditions[0].NextAction);
         console.log("Next Action identifier:" + action.Transitions.Conditions[0].NextAction);
-        let smaAction1 = yield (yield processFlowAction(smaEvent, nextAction, actions)).Actions[0];
+        let smaAction1 = yield (yield processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName)).Actions[0];
         console.log("Next Action Data:" + smaAction1);
         return {
             "SchemaVersion": "1.0",
@@ -266,6 +283,8 @@ function processFlowActionMessageParticipant(smaEvent, action) {
         const legA = getLegACallDetails(smaEvent);
         let text;
         let type;
+        console.log("DEBUG Message Participant 1" + JSON.stringify(smaEvent));
+        console.log("DEBUG Message Participant 2" + JSON.stringify(action));
         if (action.Parameters.Text !== null) {
             text = action.Parameters.Text;
             type = "text";
@@ -390,26 +409,26 @@ function processFlowActionUpdateContactRecordingBehavior(smaEvent, action) {
         };
     });
 }
-function processFlowActionFailed(smaEvent, actionObj, contactFlow) {
+function processFlowActionFailed(smaEvent, actionObj, contactFlow, amazonConnectInstanceID, bucketName) {
     return __awaiter(this, void 0, void 0, function* () {
         let currentAction = contactFlow.Actions.find((action) => action.Identifier === actionObj.Identifier);
         let smaAction;
         let nextAction;
         if (smaEvent != null && smaEvent.ActionData.ErrorType.includes('InputTimeLimitExceeded')) {
             nextAction = yield getNextActionForError(currentAction, contactFlow, 'InputTimeLimitExceeded');
-            smaAction = yield (yield processFlowAction(smaEvent, nextAction, contactFlow.Actions)).Actions[0];
+            smaAction = yield (yield processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName)).Actions[0];
         }
         else if (smaEvent != null && smaEvent.ActionData.ErrorType.includes('NoMatchingCondition')) {
             nextAction = yield getNextActionForError(currentAction, contactFlow, 'NoMatchingCondition');
-            smaAction = yield (yield processFlowAction(smaEvent, nextAction, contactFlow.Actions)).Actions[0];
+            smaAction = yield (yield processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName)).Actions[0];
         }
         else if (smaEvent != null && smaEvent.ActionData.ErrorType.includes('ConnectionTimeLimitExceeded')) {
             nextAction = yield getNextActionForError(currentAction, contactFlow, 'ConnectionTimeLimitExceeded');
-            smaAction = yield (yield processFlowAction(smaEvent, nextAction, contactFlow.Actions)).Actions[0];
+            smaAction = yield (yield processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName)).Actions[0];
         }
         else if (smaEvent != null && smaEvent.ActionData.ErrorType.includes('CallFailed')) {
             nextAction = yield getNextActionForError(currentAction, contactFlow, 'CallFailed');
-            smaAction = yield (yield processFlowAction(smaEvent, nextAction, contactFlow.Actions)).Actions[0];
+            smaAction = yield (yield processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName)).Actions[0];
         }
         else {
             let count;
@@ -421,7 +440,7 @@ function processFlowActionFailed(smaEvent, actionObj, contactFlow) {
             }
             nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[count].NextAction);
             console.log("Next Action identifier:" + currentAction.Transitions.Errors[count].NextAction);
-            smaAction = yield (yield processFlowAction(smaEvent, nextAction, contactFlow.Actions)).Actions[0];
+            smaAction = yield (yield processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName)).Actions[0];
         }
         return {
             "SchemaVersion": "1.0",
@@ -434,7 +453,7 @@ function processFlowActionFailed(smaEvent, actionObj, contactFlow) {
         };
     });
 }
-function processFlowConditionValidation(smaEvent, actionObj, contactFlow, recieved_digits) {
+function processFlowConditionValidation(smaEvent, actionObj, contactFlow, recieved_digits, amazonConnectInstanceID, bucketName) {
     return __awaiter(this, void 0, void 0, function* () {
         let currentAction = contactFlow.Actions.find((action) => action.Identifier === actionObj.Identifier);
         let smaAction;
@@ -459,7 +478,7 @@ function processFlowConditionValidation(smaEvent, actionObj, contactFlow, reciev
             }
             nextAction = findActionByID(contactFlow.Actions, nextAction_id);
             console.log("Next Action identifier:" + nextAction_id);
-            smaAction = yield (yield processFlowAction(smaEvent, nextAction, contactFlow.Actions)).Actions[0];
+            smaAction = yield (yield processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName)).Actions[0];
             return {
                 "SchemaVersion": "1.0",
                 "Actions": [
@@ -472,7 +491,7 @@ function processFlowConditionValidation(smaEvent, actionObj, contactFlow, reciev
         }
     });
 }
-function processFlowActionLoop(smaEvent, action, actions) {
+function processFlowActionLoop(smaEvent, action, actions, amazonConnectInstanceID, bucketName) {
     return __awaiter(this, void 0, void 0, function* () {
         let smaAction;
         let callId;
@@ -483,7 +502,7 @@ function processFlowActionLoop(smaEvent, action, actions) {
         if (!loopMap.has(callId) || loopMap.get(callId) != action.Parameters.LoopCount) {
             const nextAction = findActionByID(actions, action.Transitions.Conditions[1].NextAction);
             console.log("Next Action identifier:" + action.Transitions.Conditions[1].NextAction);
-            smaAction = yield (yield processFlowAction(smaEvent, nextAction, actions)).Actions[0];
+            smaAction = yield (yield processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName)).Actions[0];
             let count = String(Number.parseInt(loopMap.get(callId)) + 1);
             if (!loopMap.has(callId))
                 loopMap.set(callId, "1");
@@ -504,7 +523,7 @@ function processFlowActionLoop(smaEvent, action, actions) {
             loopMap.delete(callId);
             let nextAction = findActionByID(actions, action.Transitions.Conditions[0].NextAction);
             console.log("Next Action identifier:" + action.Transitions.Conditions[0].NextAction);
-            smaAction = yield (yield processFlowAction(smaEvent, nextAction, actions)).Actions[0];
+            smaAction = yield (yield processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName)).Actions[0];
             console.log("Next Action Data:" + smaAction);
             return {
                 "SchemaVersion": "1.0",
@@ -575,6 +594,20 @@ function processFlowActionConnectParticipantWithLexBot(smaEvent, action) {
                 "currentFlowBlock": action
             }
         };
+    });
+}
+function processFlowActionTransferToFlow(smaEvent, action, amazonConnectInstanceID, bucketName) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let TransferFlowARN = action.Parameters.ContactFlowId;
+        let callId;
+        const legA = getLegACallDetails(smaEvent);
+        callId = legA.CallId;
+        if (callId == "NaN")
+            callId = smaEvent.ActionData.Parameters.CallId;
+        ContactFlowARNMap.set(callId, TransferFlowARN);
+        const contactFlow = yield (0, contact_flow_loader_1.loadContactFlow)(amazonConnectInstanceID, TransferFlowARN, bucketName);
+        console.log("Transfering to Another contact FLow function");
+        return yield processRootFlowBlock(smaEvent, contactFlow, smaEvent.CallDetails.TransactionAttributes, amazonConnectInstanceID, bucketName);
     });
 }
 function getNextActionForError(currentAction, contactFlow, ErrorType) {
