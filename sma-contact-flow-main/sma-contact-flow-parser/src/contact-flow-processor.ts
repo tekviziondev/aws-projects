@@ -5,6 +5,16 @@ const loopCountStore: string = "LoopCountStore";
 let loopMap = new Map<string, string>();
 let ContactFlowARNMap=new Map<string, string>();
 
+
+/**
+  * This function get connect flow data from contact flow loader 
+  * and send the connect flow data to respective functions.
+  * @param smaEvent 
+  * @param amazonConnectInstanceID
+  * @param amazonConnectFlowID
+  * @param bucketName
+  * @returns SMA Action
+  */
 export async function processFlow(smaEvent: any, amazonConnectInstanceID: string, amazonConnectFlowID: string,bucketName:string) {
     let callId:string;
         const legA = getLegACallDetails(smaEvent);
@@ -38,6 +48,16 @@ export async function processFlow(smaEvent: any, amazonConnectInstanceID: string
     }
 }
 
+/**
+  * This function is starting of the flow exection.
+  * Get current action from the flow block and send to process flow action
+  * @param smaEvent 
+  * @param contactFlow
+  * @param transactionAttributes
+  * @param amazonConnectInstanceID
+  * @param bucketName
+  * @returns SMA Action
+  */
 async function processRootFlowBlock(smaEvent: any, contactFlow: any, transactionAttributes: any,amazonConnectInstanceID: string,bucketName:string) {
     // OK, time to figure out the root of the flow
 
@@ -54,6 +74,15 @@ async function processRootFlowBlock(smaEvent: any, contactFlow: any, transaction
     }
 }
 
+/**
+  * This function process the flow actions and call the respective functions based on the action type.
+  * @param smaEvent 
+  * @param action
+  * @param actions
+  * @param amazonConnectInstanceID
+  * @param bucketName
+  * @returns SMA Action
+  */
 async function processFlowAction(smaEvent: any, action: any,actions:any,amazonConnectInstanceID: string,bucketName:string) {
     console.log("ProcessFlowAction:"+action);
     switch (action.Type) {
@@ -80,6 +109,12 @@ async function processFlowAction(smaEvent: any, action: any,actions:any,amazonCo
     }
 }
 
+/**
+  * Making a SMA action to perform delivering an audio message to obtain customer input.
+  * @param smaEvent 
+  * @param action
+  * @returns SMA Action
+  */
 async function processFlowActionGetParticipantInput(smaEvent: any, action: any) {
     if(action.Parameters.Media!=null){
         console.log("Play Audio And Get Digits");
@@ -123,6 +158,12 @@ async function processFlowActionGetParticipantInput(smaEvent: any, action: any) 
     }
 }
 
+/**
+  * Making play audio json object for sma action.
+  * @param smaEvent 
+  * @param action
+  * @returns SMA Action
+  */
 async function processPlayAudio(smaEvent: any, action: any) {
     console.log("Play Audio Action");
     let smaAction = {
@@ -141,6 +182,13 @@ async function processPlayAudio(smaEvent: any, action: any) {
         }
     }
 }
+
+/**
+  * Making play audio and get digits json object for sma action.
+  * @param smaEvent 
+  * @param action
+  * @returns SMA Action
+  */
 
 async function processPlayAudioAndGetDigits(smaEvent: any, action: any) {
     let smaAction = {
@@ -177,6 +225,14 @@ async function processPlayAudioAndGetDigits(smaEvent: any, action: any) {
         }
     }
 }
+/**
+  * After received success event from SMA,process the next action.
+  * @param smaEvent 
+  * @param action
+  * @param amazonConnectInstanceID
+  * @param bucketName
+  * @returns Process Flow Action
+  */
 
 async function processFlowActionSuccess(smaEvent: any, action: any, contactFlow: any,amazonConnectInstanceID: string,bucketName:string) {
     let transactionAttributes = smaEvent.CallDetails.TransactionAttributes;
@@ -209,7 +265,12 @@ function updateLoopCountStore(transactionAttributes: any, key: string, value: an
     }
     return transactionAttributes;
 }
-
+/**
+  * Making a SMA action to perform Ends the interaction.
+  * @param smaEvent 
+  * @param action
+  * @returns SMA Action
+  */
 async function processFlowActionDisconnectParticipant(smaEvent:any, action:any){
     let callId:string;
         const legA = getLegACallDetails(smaEvent);
@@ -235,6 +296,15 @@ async function processFlowActionDisconnectParticipant(smaEvent:any, action:any){
     }
 }
 
+/**
+  * Making a SMA action to perform Wait for a specified period of time.
+  * @param smaEvent 
+  * @param action
+  * @param actions
+  * @param amazonConnectInstanceID
+  * @param bucketName
+  * @returns SMA Action
+  */
 async function processFlowActionWait(smaEvent:any, action:any,actions:any,amazonConnectInstanceID: string,bucketName:string){
     console.log("Pause Action");
     let smaAction = {
@@ -257,7 +327,12 @@ async function processFlowActionWait(smaEvent:any, action:any,actions:any,amazon
         }
     }
 }
-
+/**
+  * Making a SMA action to perform Delivers an audio or chat message.
+  * @param smaEvent 
+  * @param action
+  * @returns SMA Action
+  */
 async function processFlowActionMessageParticipant(smaEvent: any, action: any) {
     if(action.Parameters.Media!=null){
         console.log("Play Audio Action");
@@ -268,9 +343,13 @@ async function processFlowActionMessageParticipant(smaEvent: any, action: any) {
     let type:string;
     console.log("DEBUG Message Participant 1"+JSON.stringify(smaEvent));
     console.log("DEBUG Message Participant 2"+JSON.stringify(action));
-    if (action.Parameters.Text !== null) {
+    if (action.Parameters.Text !== null && action.Parameters.Text !== "" && action.Parameters.Text && action.Parameters.Text!== "undefined") {
         text = action.Parameters.Text;
         type = "text";
+    }
+   else if (action.Parameters.SSML !== null && action.Parameters.SSML && action.Parameters.SSML!== "undefined") {
+        text = action.Parameters.SSML;
+        type = "ssml";
     }
     let smaAction = {
         Type: "Speak",
@@ -298,13 +377,13 @@ function getSpeechParameters(action: any) {
     if (action.Text !== null || action.SSML !== null) {
         let text: string;
         let type: string;
-        if (action.Parameters.Text !== null) {
+        if (action.Parameters.Text !== null && action.Parameters.Text !== "" && action.Parameters.Text && action.Parameters.Text!== "undefined") {
             text = action.Parameters.Text;
-            type = "text"
+            type = "text";
         }
-        else if (action.Parameters.SSML !== null) {
+       else if (action.Parameters.SSML !== null && action.Parameters.SSML && action.Parameters.SSML!== "undefined") {
             text = action.Parameters.SSML;
-            type == "ssml";
+            type = "ssml";
         }
         rv = {
             Text: text,
@@ -354,6 +433,13 @@ function getWaitTimeParameter(action: any){
 function findActionByID(actions: any[], identifier: string) {
     return actions.find((action: any) => action.Identifier === identifier);
 }
+
+/**
+  * Making a SMA action to perform Call Recording.
+  * @param smaEvent 
+  * @param action
+  * @returns SMA Action
+  */
 async function processFlowActionUpdateContactRecordingBehavior(smaEvent:any, action:any){
     const legA = getLegACallDetails(smaEvent);
     if(action.Parameters.RecordingBehavior.RecordedParticipants.length<1){
@@ -438,6 +524,16 @@ async function processFlowActionFailed(smaEvent:any, actionObj:any,contactFlow:a
     }
 }
 
+/**
+  * Making a SMA action to perform delivering an audio or chat message to obtain customer input.
+  * @param smaEvent 
+  * @param action
+  * @param actions
+  * @param amazonConnectInstanceID
+  * @param bucketName
+  * @param recieved_digits
+  * @returns SMA Action
+  */
 async function processFlowConditionValidation(smaEvent:any, actionObj:any, contactFlow:any, recieved_digits:any, amazonConnectInstanceID: string, bucketName:string){
     let currentAction=contactFlow.Actions.find((action: any) => action.Identifier===actionObj.Identifier);
     let smaAction:any;
@@ -475,6 +571,15 @@ async function processFlowConditionValidation(smaEvent:any, actionObj:any, conta
     }
 }
 
+/**
+  * Making a SMA action to perform Repeats the looping branch for the specified number of times. After which, the complete branch is followed.
+  * @param smaEvent 
+  * @param action
+  * @param actions
+  * @param amazonConnectInstanceID
+  * @param bucketName
+  * @returns SMA Action
+  */
 async function processFlowActionLoop(smaEvent:any, action:any,actions:any, amazonConnectInstanceID: string, bucketName:string){
     let smaAction:any;
     let callId:string;
@@ -519,6 +624,12 @@ async function processFlowActionLoop(smaEvent:any, action:any,actions:any, amazo
      }    
 }
 
+/**
+  * Making a SMA action to perform Transfer a call to a phone number for voice interactions.
+  * @param smaEvent 
+  * @param action
+  * @returns SMA Action
+  */
 async function processFlowActionTransferParticipantToThirdParty(smaEvent:any, action:any){
     let smaAction = {
         Type: "CallAndBridge",
@@ -545,6 +656,12 @@ async function processFlowActionTransferParticipantToThirdParty(smaEvent:any, ac
     }
 }
 
+/**
+  * Making a SMA action to perform delvier a Chat message and obtain customer input.
+  * @param smaEvent 
+  * @param action
+  * @returns SMA Action
+  */
 async function processFlowActionConnectParticipantWithLexBot(smaEvent:any, action:any){
     let smaAction={
         Type: "StartBotConversation",
@@ -576,6 +693,16 @@ async function processFlowActionConnectParticipantWithLexBot(smaEvent:any, actio
         }
     }
 }
+
+/**
+  * Making a SMA action to Ends the current flow and transfers the customer to a flow of type contact flow.
+  * @param smaEvent 
+  * @param action
+  * @param actions
+  * @param amazonConnectInstanceID
+  * @param bucketName
+  * @returns SMA Action
+  */
 async function processFlowActionTransferToFlow(smaEvent:any, action:any, amazonConnectInstanceID: string,bucketName:string){
     let TransferFlowARN=action.Parameters.ContactFlowId;
     let callId:string;
@@ -589,6 +716,7 @@ async function processFlowActionTransferToFlow(smaEvent:any, action:any, amazonC
      return await processRootFlowBlock(smaEvent,contactFlow,smaEvent.CallDetails.TransactionAttributes, amazonConnectInstanceID,bucketName);
 
 }
+
 function getNextActionForError(currentAction:any,contactFlow:any,ErrorType:string){
     let nextAction:any;
     if(currentAction.Transitions.Errors>2 && currentAction.Transitions.Errors[2].ErrorType.includes(ErrorType)){

@@ -15,6 +15,15 @@ const connectContextStore = "ConnectContextStore";
 const loopCountStore = "LoopCountStore";
 let loopMap = new Map();
 let ContactFlowARNMap = new Map();
+/**
+  * This function get connect flow data from contact flow loader
+  * and send the connect flow data to respective functions.
+  * @param smaEvent
+  * @param amazonConnectInstanceID
+  * @param amazonConnectFlowID
+  * @param bucketName
+  * @returns SMA Action
+  */
 function processFlow(smaEvent, amazonConnectInstanceID, amazonConnectFlowID, bucketName) {
     return __awaiter(this, void 0, void 0, function* () {
         let callId;
@@ -50,6 +59,16 @@ function processFlow(smaEvent, amazonConnectInstanceID, amazonConnectFlowID, buc
     });
 }
 exports.processFlow = processFlow;
+/**
+  * This function is starting of the flow exection.
+  * Get current action from the flow block and send to process flow action
+  * @param smaEvent
+  * @param contactFlow
+  * @param transactionAttributes
+  * @param amazonConnectInstanceID
+  * @param bucketName
+  * @returns SMA Action
+  */
 function processRootFlowBlock(smaEvent, contactFlow, transactionAttributes, amazonConnectInstanceID, bucketName) {
     return __awaiter(this, void 0, void 0, function* () {
         // OK, time to figure out the root of the flow
@@ -66,6 +85,15 @@ function processRootFlowBlock(smaEvent, contactFlow, transactionAttributes, amaz
         }
     });
 }
+/**
+  * This function process the flow actions and call the respective functions based on the action type.
+  * @param smaEvent
+  * @param action
+  * @param actions
+  * @param amazonConnectInstanceID
+  * @param bucketName
+  * @returns SMA Action
+  */
 function processFlowAction(smaEvent, action, actions, amazonConnectInstanceID, bucketName) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log("ProcessFlowAction:" + action);
@@ -93,6 +121,12 @@ function processFlowAction(smaEvent, action, actions, amazonConnectInstanceID, b
         }
     });
 }
+/**
+  * Making a SMA action to perform delivering an audio message to obtain customer input.
+  * @param smaEvent
+  * @param action
+  * @returns SMA Action
+  */
 function processFlowActionGetParticipantInput(smaEvent, action) {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j;
     return __awaiter(this, void 0, void 0, function* () {
@@ -136,6 +170,12 @@ function processFlowActionGetParticipantInput(smaEvent, action) {
         };
     });
 }
+/**
+  * Making play audio json object for sma action.
+  * @param smaEvent
+  * @param action
+  * @returns SMA Action
+  */
 function processPlayAudio(smaEvent, action) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log("Play Audio Action");
@@ -156,6 +196,12 @@ function processPlayAudio(smaEvent, action) {
         };
     });
 }
+/**
+  * Making play audio and get digits json object for sma action.
+  * @param smaEvent
+  * @param action
+  * @returns SMA Action
+  */
 function processPlayAudioAndGetDigits(smaEvent, action) {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j;
     return __awaiter(this, void 0, void 0, function* () {
@@ -192,6 +238,14 @@ function processPlayAudioAndGetDigits(smaEvent, action) {
         };
     });
 }
+/**
+  * After received success event from SMA,process the next action.
+  * @param smaEvent
+  * @param action
+  * @param amazonConnectInstanceID
+  * @param bucketName
+  * @returns Process Flow Action
+  */
 function processFlowActionSuccess(smaEvent, action, contactFlow, amazonConnectInstanceID, bucketName) {
     return __awaiter(this, void 0, void 0, function* () {
         let transactionAttributes = smaEvent.CallDetails.TransactionAttributes;
@@ -224,6 +278,12 @@ function updateLoopCountStore(transactionAttributes, key, value) {
     }
     return transactionAttributes;
 }
+/**
+  * Making a SMA action to perform Ends the interaction.
+  * @param smaEvent
+  * @param action
+  * @returns SMA Action
+  */
 function processFlowActionDisconnectParticipant(smaEvent, action) {
     return __awaiter(this, void 0, void 0, function* () {
         let callId;
@@ -250,6 +310,15 @@ function processFlowActionDisconnectParticipant(smaEvent, action) {
         };
     });
 }
+/**
+  * Making a SMA action to perform Wait for a specified period of time.
+  * @param smaEvent
+  * @param action
+  * @param actions
+  * @param amazonConnectInstanceID
+  * @param bucketName
+  * @returns SMA Action
+  */
 function processFlowActionWait(smaEvent, action, actions, amazonConnectInstanceID, bucketName) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log("Pause Action");
@@ -274,6 +343,12 @@ function processFlowActionWait(smaEvent, action, actions, amazonConnectInstanceI
         };
     });
 }
+/**
+  * Making a SMA action to perform Delivers an audio or chat message.
+  * @param smaEvent
+  * @param action
+  * @returns SMA Action
+  */
 function processFlowActionMessageParticipant(smaEvent, action) {
     return __awaiter(this, void 0, void 0, function* () {
         if (action.Parameters.Media != null) {
@@ -285,9 +360,13 @@ function processFlowActionMessageParticipant(smaEvent, action) {
         let type;
         console.log("DEBUG Message Participant 1" + JSON.stringify(smaEvent));
         console.log("DEBUG Message Participant 2" + JSON.stringify(action));
-        if (action.Parameters.Text !== null) {
+        if (action.Parameters.Text !== null && action.Parameters.Text !== "" && action.Parameters.Text && action.Parameters.Text !== "undefined") {
             text = action.Parameters.Text;
             type = "text";
+        }
+        else if (action.Parameters.SSML !== null && action.Parameters.SSML && action.Parameters.SSML !== "undefined") {
+            text = action.Parameters.SSML;
+            type = "ssml";
         }
         let smaAction = {
             Type: "Speak",
@@ -315,13 +394,13 @@ function getSpeechParameters(action) {
     if (action.Text !== null || action.SSML !== null) {
         let text;
         let type;
-        if (action.Parameters.Text !== null) {
+        if (action.Parameters.Text !== null && action.Parameters.Text !== "" && action.Parameters.Text && action.Parameters.Text !== "undefined") {
             text = action.Parameters.Text;
             type = "text";
         }
-        else if (action.Parameters.SSML !== null) {
+        else if (action.Parameters.SSML !== null && action.Parameters.SSML && action.Parameters.SSML !== "undefined") {
             text = action.Parameters.SSML;
-            type == "ssml";
+            type = "ssml";
         }
         rv = {
             Text: text,
@@ -367,6 +446,12 @@ function getWaitTimeParameter(action) {
 function findActionByID(actions, identifier) {
     return actions.find((action) => action.Identifier === identifier);
 }
+/**
+  * Making a SMA action to perform Call Recording.
+  * @param smaEvent
+  * @param action
+  * @returns SMA Action
+  */
 function processFlowActionUpdateContactRecordingBehavior(smaEvent, action) {
     return __awaiter(this, void 0, void 0, function* () {
         const legA = getLegACallDetails(smaEvent);
@@ -453,6 +538,16 @@ function processFlowActionFailed(smaEvent, actionObj, contactFlow, amazonConnect
         };
     });
 }
+/**
+  * Making a SMA action to perform delivering an audio or chat message to obtain customer input.
+  * @param smaEvent
+  * @param action
+  * @param actions
+  * @param amazonConnectInstanceID
+  * @param bucketName
+  * @param recieved_digits
+  * @returns SMA Action
+  */
 function processFlowConditionValidation(smaEvent, actionObj, contactFlow, recieved_digits, amazonConnectInstanceID, bucketName) {
     return __awaiter(this, void 0, void 0, function* () {
         let currentAction = contactFlow.Actions.find((action) => action.Identifier === actionObj.Identifier);
@@ -491,6 +586,15 @@ function processFlowConditionValidation(smaEvent, actionObj, contactFlow, reciev
         }
     });
 }
+/**
+  * Making a SMA action to perform Repeats the looping branch for the specified number of times. After which, the complete branch is followed.
+  * @param smaEvent
+  * @param action
+  * @param actions
+  * @param amazonConnectInstanceID
+  * @param bucketName
+  * @returns SMA Action
+  */
 function processFlowActionLoop(smaEvent, action, actions, amazonConnectInstanceID, bucketName) {
     return __awaiter(this, void 0, void 0, function* () {
         let smaAction;
@@ -537,6 +641,12 @@ function processFlowActionLoop(smaEvent, action, actions, amazonConnectInstanceI
         }
     });
 }
+/**
+  * Making a SMA action to perform Transfer a call to a phone number for voice interactions.
+  * @param smaEvent
+  * @param action
+  * @returns SMA Action
+  */
 function processFlowActionTransferParticipantToThirdParty(smaEvent, action) {
     return __awaiter(this, void 0, void 0, function* () {
         let smaAction = {
@@ -563,6 +673,12 @@ function processFlowActionTransferParticipantToThirdParty(smaEvent, action) {
         };
     });
 }
+/**
+  * Making a SMA action to perform delvier a Chat message and obtain customer input.
+  * @param smaEvent
+  * @param action
+  * @returns SMA Action
+  */
 function processFlowActionConnectParticipantWithLexBot(smaEvent, action) {
     return __awaiter(this, void 0, void 0, function* () {
         let smaAction = {
@@ -596,6 +712,15 @@ function processFlowActionConnectParticipantWithLexBot(smaEvent, action) {
         };
     });
 }
+/**
+  * Making a SMA action to Ends the current flow and transfers the customer to a flow of type contact flow.
+  * @param smaEvent
+  * @param action
+  * @param actions
+  * @param amazonConnectInstanceID
+  * @param bucketName
+  * @returns SMA Action
+  */
 function processFlowActionTransferToFlow(smaEvent, action, amazonConnectInstanceID, bucketName) {
     return __awaiter(this, void 0, void 0, function* () {
         let TransferFlowARN = action.Parameters.ContactFlowId;
