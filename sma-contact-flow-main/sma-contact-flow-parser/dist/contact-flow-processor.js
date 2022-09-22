@@ -6,7 +6,7 @@ const connectContextStore = "ConnectContextStore";
 const loopCountStore = "LoopCountStore";
 let loopMap = new Map();
 let ContactFlowARNMap = new Map();
-let SpeechAttributeMap = new Map();
+const SpeechAttributeMap = new Map();
 /**
   * This function get connect flow data from contact flow loader
   * and send the connect flow data to respective functions.
@@ -355,7 +355,7 @@ async function processFlowActionMessageParticipant(smaEvent, action) {
         voiceId = SpeechAttributeMap.get("TextToSpeechVoice");
     }
     if (SpeechAttributeMap.has("TextToSpeechEngine")) {
-        engine = SpeechAttributeMap.get("TextToSpeechEngine");
+        engine = SpeechAttributeMap.get("TextToSpeechEngine").toLowerCase();
     }
     if (SpeechAttributeMap.has("LanguageCode")) {
         languageCode = SpeechAttributeMap.get("LanguageCode");
@@ -398,7 +398,7 @@ function getSpeechParameters(action) {
         voiceId = SpeechAttributeMap.get("TextToSpeechVoice");
     }
     if (SpeechAttributeMap.has("TextToSpeechEngine")) {
-        engine = SpeechAttributeMap.get("TextToSpeechEngine");
+        engine = SpeechAttributeMap.get("TextToSpeechEngine").toLowerCase();
     }
     if (SpeechAttributeMap.has("LanguageCode")) {
         languageCode = SpeechAttributeMap.get("LanguageCode");
@@ -764,12 +764,19 @@ function getNextActionForError(currentAction, contactFlow, ErrorType) {
 async function processFlowActionUpdateContactTextToSpeechVoice(smaEvent, action, actions, amazonConnectInstanceID, bucketName) {
     let SpeechParameters = action.Parameters;
     let smaAction;
-    SpeechAttributeMap = new Map(Object.entries(SpeechParameters));
+    const keys = Object.keys(SpeechParameters);
+    keys.forEach((key, index) => {
+        SpeechAttributeMap.set(key, SpeechParameters[key]);
+    });
     let nextAction = findActionByID(actions, action.Transitions.NextAction);
     console.log("Next Action identifier:" + action.Transitions.NextAction);
-    if (nextAction.Type = 'UpdateContactData') {
+    if (nextAction.Type == "UpdateContactData") {
+        console.log("Next Action Type:" + nextAction.Type);
         let SpeechParameter = nextAction.Parameters;
-        SpeechAttributeMap = new Map(Object.entries(SpeechParameter));
+        const keys = Object.keys(SpeechParameter);
+        keys.forEach((key, index) => {
+            SpeechAttributeMap.set(key, SpeechParameter[key]);
+        });
         nextAction = findActionByID(actions, nextAction.Transitions.NextAction);
         console.log("Next Action identifier:" + action.Transitions.NextAction);
     }
