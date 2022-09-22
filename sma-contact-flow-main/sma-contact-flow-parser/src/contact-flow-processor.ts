@@ -4,6 +4,7 @@ const connectContextStore: string = "ConnectContextStore";
 const loopCountStore: string = "LoopCountStore";
 let loopMap = new Map<string, string>();
 let ContactFlowARNMap=new Map<string, string>();
+let SpeechAttributeMap=new Map<string,string>();
 
 
 /**
@@ -104,6 +105,8 @@ async function processFlowAction(smaEvent: any, action: any,actions:any,amazonCo
             return await processFlowActionConnectParticipantWithLexBot(smaEvent, action)
         case 'TransferToFlow':
             return await processFlowActionTransferToFlow(smaEvent, action,amazonConnectInstanceID,bucketName)
+        case 'UpdateContactTextToSpeechVoice':
+            return await processFlowActionUpdateContactTextToSpeechVoice(smaEvent, action,actions,amazonConnectInstanceID,bucketName)
         default:
             null;
     }
@@ -166,9 +169,15 @@ async function processFlowActionGetParticipantInput(smaEvent: any, action: any) 
   */
 async function processPlayAudio(smaEvent: any, action: any) {
     console.log("Play Audio Action");
+    let callId:string;
+    const legA = getLegACallDetails(smaEvent);
+     callId=legA.CallId;
+    if(callId=="NaN")
+    callId=  smaEvent.ActionData.Parameters.CallId;
     let smaAction = {
         Type: "PlayAudio",
         Parameters: {
+            "CallId":callId,
             "AudioSource": getAudioParameters(action)
         }
     };
@@ -191,9 +200,15 @@ async function processPlayAudio(smaEvent: any, action: any) {
   */
 
 async function processPlayAudioAndGetDigits(smaEvent: any, action: any) {
+    let callId:string;
+    const legA = getLegACallDetails(smaEvent);
+     callId=legA.CallId;
+    if(callId=="NaN")
+    callId=  smaEvent.ActionData.Parameters.CallId;
     let smaAction = {
         Type: "PlayAudioAndGetDigits",
         Parameters: {
+            "CallId":callId,
             "AudioSource": getAudioParameters(action),
             "FailureAudioSource": getAudioParameters(action),
             "MinNumberOfDigits": 5
@@ -282,7 +297,8 @@ async function processFlowActionDisconnectParticipant(smaEvent:any, action:any){
     let smaAction = {
         Type: "Hangup",
         Parameters: { 
-            "SipResponseCode": "0"
+            "SipResponseCode": "0",
+            "CallId":callId
         }
     };
     return {
@@ -341,8 +357,20 @@ async function processFlowActionMessageParticipant(smaEvent: any, action: any) {
     const legA = getLegACallDetails(smaEvent);
     let text:string;
     let type:string;
+    let voiceId="Joanna"
+    let engine="neural"
+    let languageCode='en-US'
     console.log("DEBUG Message Participant 1"+JSON.stringify(smaEvent));
     console.log("DEBUG Message Participant 2"+JSON.stringify(action));
+    if(SpeechAttributeMap.has("TextToSpeechVoice")){
+        voiceId=SpeechAttributeMap.get("TextToSpeechVoice")
+    }
+    if(SpeechAttributeMap.has("TextToSpeechEngine")){
+        engine=SpeechAttributeMap.get("TextToSpeechEngine")
+    }
+	if(SpeechAttributeMap.has("LanguageCode")){
+        languageCode=SpeechAttributeMap.get("LanguageCode")
+    }
     if (action.Parameters.Text !== null && action.Parameters.Text !== "" && action.Parameters.Text && action.Parameters.Text!== "undefined") {
         text = action.Parameters.Text;
         type = "text";
@@ -354,11 +382,13 @@ async function processFlowActionMessageParticipant(smaEvent: any, action: any) {
     let smaAction = {
         Type: "Speak",
         Parameters: {
-                 Engine: 'neural',
+                 Engine: engine,
                 CallId: legA.CallId,
                 Text: text,
                 TextType: type,
-                VoiceId: "Joanna",
+                LanguageCode:languageCode,
+                VoiceId: voiceId
+                
         }
     };
     return {
@@ -374,6 +404,18 @@ async function processFlowActionMessageParticipant(smaEvent: any, action: any) {
 
 function getSpeechParameters(action: any) {
     let rv = null;
+    let voiceId="Joanna"
+        let engine="neural"
+        let languageCode='en-US'
+        if(SpeechAttributeMap.has("TextToSpeechVoice")){
+            voiceId=SpeechAttributeMap.get("TextToSpeechVoice")
+        }
+        if(SpeechAttributeMap.has("TextToSpeechEngine")){
+            engine=SpeechAttributeMap.get("TextToSpeechEngine")
+        }
+        if(SpeechAttributeMap.has("LanguageCode")){
+            languageCode=SpeechAttributeMap.get("LanguageCode")
+        }
     if (action.Text !== null || action.SSML !== null) {
         let text: string;
         let type: string;
@@ -387,7 +429,10 @@ function getSpeechParameters(action: any) {
         }
         rv = {
             Text: text,
-            TextType: type
+            TextType: type,
+            Engine: engine,     
+            LanguageCode:languageCode, 
+            VoiceId:voiceId, 
         }
     }
     console.log("Speech Parameter : "+rv);
@@ -527,8 +572,8 @@ async function processFlowActionFailed(smaEvent:any, actionObj:any,contactFlow:a
 /**
   * Making a SMA action to perform delivering an audio or chat message to obtain customer input.
   * @param smaEvent 
-  * @param action
-  * @param actions
+  * @param actionObj
+  * @param contactFlow
   * @param amazonConnectInstanceID
   * @param bucketName
   * @param recieved_digits
@@ -733,6 +778,40 @@ function getNextActionForError(currentAction:any,contactFlow:any,ErrorType:strin
         return nextAction;
         
 }
+
+/**
+  * Sets the voice parameters to interact with the customer
+  * @param smaEvent 
+  * @param action
+  * @param actions
+  * @param amazonConnectInstanceID
+  * @param bucketName
+  * @returns SMA Action
+  */
+ async function processFlowActionUpdateContactTextToSpeechVoice(smaEvent:any, action:any,actions:any, amazonConnectInstanceID: string, bucketName:string){
+    let SpeechParameters=action.Parameters
+    let smaAction:any;
+    SpeechAttributeMap = new Map(Object.entries(SpeechParameters));
+    let nextAction = findActionByID(actions, action.Transitions.NextAction);
+    console.log("Next Action identifier:"+action.Transitions.NextAction);
+    if(nextAction.Type='UpdateContactData'){
+        let SpeechParameter=nextAction.Parameters
+        SpeechAttributeMap = new Map(Object.entries(SpeechParameter));
+        nextAction = findActionByID(actions, nextAction.Transitions.NextAction);
+        console.log("Next Action identifier:"+action.Transitions.NextAction);
+    }
+    smaAction= await (await processFlowAction(smaEvent, nextAction,actions,amazonConnectInstanceID,bucketName)).Actions[0];
+    return {
+        "SchemaVersion": "1.0",
+        "Actions": [
+             smaAction
+        ],
+        "TransactionAttributes": {
+        "currentFlowBlock": nextAction
+        }
+        }
+}
+
 
 function getLegACallDetails(event: any) {
     let rv = null;
