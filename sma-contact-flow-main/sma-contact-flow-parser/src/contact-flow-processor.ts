@@ -696,11 +696,16 @@ async function processFlowActionLoop(smaEvent:any, action:any,actions:any, amazo
   * @returns SMA Action
   */
 async function processFlowActionTransferParticipantToThirdParty(smaEvent:any, action:any){
+    const legA = getLegACallDetails(smaEvent);
+    let fromNumber=legA.From;
+    if(action.Parameters.hasOwnProperty("CallerId")){
+        fromNumber=action.Parameters.CallerId.Number;
+       }
     let smaAction = {
         Type: "CallAndBridge",
         Parameters: {
             "CallTimeoutSeconds":action.Parameters.ThirdPartyConnectionTimeLimitSeconds,
-            "CallerIdNumber":action.Parameters.ThirdPartyPhoneNumber,
+            "CallerIdNumber":fromNumber,
             "Endpoints":[
                 {
                     "BridgeEndpointType":"PSTN",
@@ -728,26 +733,53 @@ async function processFlowActionTransferParticipantToThirdParty(smaEvent:any, ac
   * @returns SMA Action
   */
 async function processFlowActionConnectParticipantWithLexBot(smaEvent:any, action:any){
-    let smaAction={
-        Type: "StartBotConversation",
-        Parameters: {
-          BotAliasArn:action.Parameters.LexV2Bot.AliasArn,
-          LocaleId: "en_US",
-          Configuration: {
-            SessionState: {
-              DialogAction: {
-                Type: "ElicitIntent"
+    let smaAction;
+    if(action.Parameters.hasOwnProperty("LexSessionAttributes")){
+        smaAction={
+            Type: "StartBotConversation",
+            Parameters: {
+              BotAliasArn:action.Parameters.LexV2Bot.AliasArn,
+              LocaleId: "en_US",
+              Configuration: {
+                SessionState: {
+                  SessionAttributes:action.Parameters.LexSessionAttributes,
+                  DialogAction: {
+                    Type: "ElicitIntent"
+                  }
+                },
+                WelcomeMessages: [
+                  {
+                    ContentType: "PlainText",
+                    Content:action.Parameters.Text
+                  },
+                ]
               }
-            },
-            WelcomeMessages: [
-              {
-                ContentType: "PlainText",
-                Content:action.Parameters.Text
-              },
-            ]
+            }
           }
-        }
-      }
+    }
+    else{
+        smaAction={
+            Type: "StartBotConversation",
+            Parameters: {
+              BotAliasArn:action.Parameters.LexV2Bot.AliasArn,
+              LocaleId: "en_US",
+              Configuration: {
+                SessionState: { 
+                  DialogAction: {
+                    Type: "ElicitIntent"
+                  }
+                },
+                WelcomeMessages: [
+                  {
+                    ContentType: "PlainText",
+                    Content:action.Parameters.Text
+                  },
+                ]
+              }
+            }
+          }
+    }
+
       return {
         "SchemaVersion": "1.0",
         "Actions": [
@@ -816,6 +848,7 @@ async function processFlowActionInvokeLambdaFunction(smaEvent: any, action: any,
     const keys = Object.keys(x);
         keys.forEach((key, index) => {
             tmpMap.set(key,x[key]);
+            LambdaReturn.set("$.External."+key,x[key])
         });
     
     let nextAction = findActionByID(actions, action.Transitions.NextAction);
@@ -840,7 +873,7 @@ async function processFlowActionUpdateContactAttributes(smaEvent: any, action: a
             if(x.includes("$.External.")){
                 let tmp:any[]=x.split("$.External.")
                 if(tmpMap.has(tmp[1])){
-                    LambdaReturn.set(x,tmpMap.get(tmp[1]))
+                    LambdaReturn.set("$.Attributes."+ContactAttributes[i][0],tmpMap.get(tmp[1]))
                 }
             }
             else if(x.includes("$.Attributes.")){
