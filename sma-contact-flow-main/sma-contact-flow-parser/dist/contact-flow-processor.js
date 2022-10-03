@@ -2,12 +2,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.processFlow = void 0;
 const contact_flow_loader_1 = require("./contact-flow-loader");
-const EventTypes_1 = require("./EventTypes");
-const ErrorTypes_1 = require("./ErrorTypes");
-const ComparisonOperators_1 = require("./ComparisonOperators");
-const ChimeActionTypes_1 = require("./ChimeActionTypes");
-const AmazonConnectActionTypes_1 = require("./AmazonConnectActionTypes");
-const ConstantValues_1 = require("./ConstantValues");
+const EventTypes_1 = require("./utility/EventTypes");
+const ErrorTypes_1 = require("./utility/ErrorTypes");
+const ComparisonOperators_1 = require("./utility/ComparisonOperators");
+const ChimeActionTypes_1 = require("./utility/ChimeActionTypes");
+const AmazonConnectActionTypes_1 = require("./utility/AmazonConnectActionTypes");
+const ConstantValues_1 = require("./utility/ConstantValues");
 const connectContextStore = "ConnectContextStore";
 let loop = new Map();
 let ContactFlowARNMap = new Map();
@@ -547,7 +547,7 @@ async function processFlowActionFailed(smaEvent, actionObj, contactFlow, amazonC
     let smaAction;
     let nextAction;
     if (smaEvent != null && smaEvent.ActionData.ErrorType.includes(ErrorTypes_1.ErrorTypes.InputTimeLimitExceeded)) {
-        nextAction = await getNextActionForError(currentAction, contactFlow, ErrorTypes_1.ErrorTypes.InputTimeLimitExceeded);
+        nextAction = await getNextActionForError(currentAction, contactFlow.Actions, ErrorTypes_1.ErrorTypes.InputTimeLimitExceeded);
         smaAction = await (await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName)).Actions[0];
     }
     else if (smaEvent != null && smaEvent.ActionData.ErrorType.includes(ErrorTypes_1.ErrorTypes.NoMatchingCondition)) {
@@ -617,11 +617,11 @@ async function processFlowConditionValidation(smaEvent, actionObj, contactFlow, 
             }
         }
         if (nextAction_id === null && nextAction_id === "undefined" && !nextAction_id && actionObj.Parameters && actionObj.Parameters.StoreInput == "false") {
-            nextAction = await getNextActionForError(currentAction, contactFlow, ErrorTypes_1.ErrorTypes.NoMatchingCondition);
+            nextAction = await getNextActionForError(currentAction, contactFlow.Actions, ErrorTypes_1.ErrorTypes.NoMatchingCondition);
             console.log("Conditions are not matching with Recieved Digits ");
         }
         else if ((nextAction_id === null && nextAction_id === "undefined" && !nextAction_id && actionObj.Parameters && actionObj.Parameters.StoreInput == "true")) {
-            nextAction = await getNextActionForError(currentAction, contactFlow, ErrorTypes_1.ErrorTypes.NoMatchingError);
+            nextAction = await getNextActionForError(currentAction, contactFlow.Actions, ErrorTypes_1.ErrorTypes.NoMatchingError);
             console.log("Conditions are not matching with Recieved Digits ");
         }
         console.log("Next Action identifier:" + nextAction_id);
@@ -928,7 +928,7 @@ async function processFlowActionCompareContactAttributes(smaEvent, action, actio
         const condition = action.Transitions.Conditions;
         for (let index = 0; index < condition.length; index++) {
             console.log("Recieved Value " + ComparisonValue);
-            console.log("Condition Operands " + condition[index].Condition.Operands[0]);
+            console.log("Expected Value " + condition[index].Condition.Operands[0]);
             switch (condition[index].Condition.Operator) {
                 case ComparisonOperators_1.Operators.Equals:
                     if (condition[index].Condition.Operands[0] === ComparisonValue) {
@@ -938,49 +938,49 @@ async function processFlowActionCompareContactAttributes(smaEvent, action, actio
                     }
                     break;
                 case ComparisonOperators_1.Operators.NumberLessThan:
-                    if (condition[index].Condition.Operands[0] < ComparisonValue) {
+                    if (ComparisonValue < condition[index].Condition.Operands[0]) {
                         let nextAction_id = condition[index].NextAction;
                         console.log("Next Action identifier" + nextAction_id);
                         nextAction = findActionByID(actions, nextAction_id);
                     }
                     break;
                 case ComparisonOperators_1.Operators.NumberLessOrEqualTo:
-                    if (condition[index].Condition.Operands[0] <= ComparisonValue) {
+                    if (ComparisonValue <= condition[index].Condition.Operands[0]) {
                         let nextAction_id = condition[index].NextAction;
                         console.log("Next Action identifier" + nextAction_id);
                         nextAction = findActionByID(actions, nextAction_id);
                     }
                     break;
                 case ComparisonOperators_1.Operators.NumberGreaterThan:
-                    if (condition[index].Condition.Operands[0] > ComparisonValue) {
+                    if (ComparisonValue > condition[index].Condition.Operands[0]) {
                         let nextAction_id = condition[index].NextAction;
                         console.log("Next Action identifier" + nextAction_id);
                         nextAction = findActionByID(actions, nextAction_id);
                     }
                     break;
                 case ComparisonOperators_1.Operators.NumberLessOrEqualTo:
-                    if (condition[index].Condition.Operands[0] >= ComparisonValue) {
+                    if (ComparisonValue >= condition[index].Condition.Operands[0]) {
                         let nextAction_id = condition[index].NextAction;
                         console.log("Next Action identifier" + nextAction_id);
                         nextAction = findActionByID(actions, nextAction_id);
                     }
                     break;
                 case ComparisonOperators_1.Operators.TextStartsWith:
-                    if (condition[index].Condition.Operands[0].startsWith(ComparisonValue)) {
+                    if (ComparisonValue.startsWith(condition[index].Condition.Operands[0])) {
                         let nextAction_id = condition[index].NextAction;
                         console.log("Next Action identifier" + nextAction_id);
                         nextAction = findActionByID(actions, nextAction_id);
                     }
                     break;
                 case ComparisonOperators_1.Operators.TextEndsWith:
-                    if (condition[index].Condition.Operands[0].endsWith(ComparisonValue)) {
+                    if (ComparisonValue.endsWith(condition[index].Condition.Operands[0])) {
                         let nextAction_id = condition[index].NextAction;
                         console.log("Next Action identifier" + nextAction_id);
                         nextAction = findActionByID(actions, nextAction_id);
                     }
                     break;
                 case ComparisonOperators_1.Operators.TextContains:
-                    if (condition[index].Condition.Operands[0].includes(ComparisonValue)) {
+                    if (ComparisonValue.includes(condition[index].Condition.Operands[0])) {
                         let nextAction_id = condition[index].NextAction;
                         console.log("Next Action identifier" + nextAction_id);
                         nextAction = findActionByID(actions, nextAction_id);
@@ -988,9 +988,14 @@ async function processFlowActionCompareContactAttributes(smaEvent, action, actio
                     break;
             }
         }
+        if (nextAction === null || !nextAction || nextAction === "undefined") {
+            console.log("Next Action is inValid");
+            let nextAction = await getNextActionForError(action, actions, ErrorTypes_1.ErrorTypes.NoMatchingCondition);
+            return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName);
+        }
     }
     catch (e) {
-        let nextAction = await getNextActionForError(action, actions, ErrorTypes_1.ErrorTypes.NoMatchingError);
+        let nextAction = await getNextActionForError(action, actions, ErrorTypes_1.ErrorTypes.NoMatchingCondition);
         return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName);
     }
     return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName);
@@ -1006,15 +1011,17 @@ async function processFlowActionCompareContactAttributes(smaEvent, action, actio
   */
 function getNextActionForError(currentAction, contactFlow, ErrorType) {
     let nextAction;
-    if (currentAction.Transitions.Errors > 2 && currentAction.Transitions.Errors[2].ErrorType.includes(ErrorType)) {
-        nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[2].ErrorType.NextAction);
+    console.log("Error Action Count:" + currentAction.Transitions.Errors);
+    console.log("Next Action Validation:" + currentAction.Transitions.Errors.length);
+    if (currentAction.Transitions.Errors.length > 2 && currentAction.Transitions.Errors[2].ErrorType.includes(ErrorType)) {
+        nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[2].NextAction);
         console.log("Next Action identifier:" + currentAction.Transitions.Errors[2].NextAction);
     }
-    else if (currentAction.Transitions.Errors > 1 && currentAction.Transitions.Errors[1].ErrorType.includes(ErrorType)) {
+    else if (currentAction.Transitions.Errors.length > 1 && currentAction.Transitions.Errors[1].ErrorType.includes(ErrorType)) {
         nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[1].NextAction);
         console.log("Next Action identifier:" + currentAction.Transitions.Errors[1].NextAction);
     }
-    else if (currentAction.Transitions.Errors > 0 && currentAction.Transitions.Errors[0].ErrorType.includes(ErrorType)) {
+    else if (currentAction.Transitions.Errors.length > 0 && currentAction.Transitions.Errors[0].ErrorType.includes(ErrorType)) {
         nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[0].NextAction);
         console.log("Next Action identifier:" + currentAction.Transitions.Errors[0].NextAction);
     }
