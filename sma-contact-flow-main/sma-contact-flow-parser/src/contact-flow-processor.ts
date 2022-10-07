@@ -112,7 +112,6 @@ async function processRootFlowBlock(smaEvent: any, contactFlow: any, transaction
   * @returns SMA Action
   */
 async function processFlowAction(smaEvent: any, action: any,actions:any,amazonConnectInstanceID: string,bucketName:string) {
-    console.log("ProcessFlowAction:"+action);
     switch (action.Type) {
         case AmazonConnectActions.GetParticipantInput:
             return await processFlowActionGetParticipantInput(smaEvent, action);
