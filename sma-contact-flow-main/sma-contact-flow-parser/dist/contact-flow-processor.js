@@ -14,6 +14,7 @@ let ContactFlowARNMap = new Map();
 const SpeechAttributeMap = new Map();
 const contextAttributs = new Map();
 let tmpMap = new Map();
+const defaultLogger = "SMA-Contact-Flow-Parser | Call ID - ";
 /**
   * This function get connect flow data from contact flow loader
   * and send the connect flow data to respective functions.
@@ -26,20 +27,19 @@ let tmpMap = new Map();
 async function processFlow(smaEvent, amazonConnectInstanceID, amazonConnectFlowID, bucketName) {
     let callId;
     const legA = getLegACallDetails(smaEvent);
-    console.log("Action Data: " + ConstantValues_1.ConstData.voiceId);
     callId = legA.CallId;
     if (callId == "NaN")
         callId = smaEvent.ActionData.Parameters.CallId;
     if (ContactFlowARNMap.has(callId)) {
         amazonConnectFlowID = (ContactFlowARNMap.get(callId));
     }
-    const contactFlow = await (0, contact_flow_loader_1.loadContactFlow)(amazonConnectInstanceID, amazonConnectFlowID, bucketName);
-    console.log("ConnectInstanceId:" + amazonConnectInstanceID + " Loaded Contact Flow" + contactFlow);
-    console.log("ConnectInstanceId:" + amazonConnectInstanceID + " CallDetails:" + smaEvent.CallDetails);
+    const contactFlow = await (0, contact_flow_loader_1.loadContactFlow)(amazonConnectInstanceID, amazonConnectFlowID, bucketName, smaEvent);
+    console.log(defaultLogger + callId + " ConnectInstanceId:" + amazonConnectInstanceID + " Loaded Contact Flow" + contactFlow);
+    console.log(defaultLogger + callId + " ConnectInstanceId:" + amazonConnectInstanceID + " CallDetails:" + smaEvent.CallDetails);
     const transactionAttributes = smaEvent.CallDetails.TransactionAttributes;
-    console.log("ConnectInstanceId:" + amazonConnectInstanceID + " TransactionAttributes:" + transactionAttributes);
+    console.log(defaultLogger + callId + " ConnectInstanceId:" + amazonConnectInstanceID + " TransactionAttributes:" + transactionAttributes);
     if (transactionAttributes && transactionAttributes.currentFlowBlock) {
-        console.log("InvocationEventType:" + smaEvent.InvocationEventType);
+        console.log(defaultLogger + callId + " InvocationEventType:" + smaEvent.InvocationEventType);
         if (smaEvent.InvocationEventType === EventTypes_1.EventTypes.ACTION_SUCCESSFUL || smaEvent.InvocationEventType === EventTypes_1.EventTypes.CALL_ANSWERED) {
             if (smaEvent.ActionData.ReceivedDigits != null) {
                 const recieved_digits = smaEvent.ActionData.ReceivedDigits;
@@ -69,9 +69,9 @@ async function storeSystemAttributs(smaEvent, amazonConnectFlowID, amazonConnect
     contextAttributs.set("$.InitiationMethod", legA.Direction);
     contextAttributs.set("$.ContactId", amazonConnectFlowID);
     contextAttributs.set("$.InstanceARN", amazonConnectInstanceID);
-    contextAttributs.set("$.Channel", "VOICE");
-    contextAttributs.set("$.CustomerEndpoint.Type", "TELEPHONE_NUMBER");
-    contextAttributs.set("$.SystemEndpoint.Type", "TELEPHONE_NUMBER");
+    contextAttributs.set("$.Channel", ConstantValues_1.ConstData.channel);
+    contextAttributs.set("$.CustomerEndpoint.Type", ConstantValues_1.ConstData.customerEndpointType);
+    contextAttributs.set("$.SystemEndpoint.Type", ConstantValues_1.ConstData.systemEndpointType);
 }
 /**
   * This function is starting of the flow exection.
@@ -85,12 +85,17 @@ async function storeSystemAttributs(smaEvent, amazonConnectFlowID, amazonConnect
   */
 async function processRootFlowBlock(smaEvent, contactFlow, transactionAttributes, amazonConnectInstanceID, bucketName) {
     // OK, time to figure out the root of the flow
+    let callId;
+    const legA = getLegACallDetails(smaEvent);
+    callId = legA.CallId;
+    if (callId == "NaN")
+        callId = smaEvent.ActionData.Parameters.CallId;
     if (contactFlow.StartAction !== null) {
         const actions = contactFlow.Actions;
-        console.log("ConnectInstanceId:" + amazonConnectInstanceID + " Root Flow Block The actions are" + actions);
+        console.log(defaultLogger + callId + " ConnectInstanceId:" + amazonConnectInstanceID + " Root Flow Block The actions are" + actions);
         if (actions !== null && actions.length > 0) {
             const currentAction = findActionByID(actions, contactFlow.StartAction);
-            console.log("ConnectInstanceId:" + amazonConnectInstanceID + " Root Flow Block The current Action is " + currentAction.Type);
+            console.log(defaultLogger + callId + " ConnectInstanceId:" + amazonConnectInstanceID + " Root Flow Block The current Action is " + currentAction.Type);
             if (currentAction !== null) {
                 return await processFlowAction(smaEvent, currentAction, actions, amazonConnectInstanceID, bucketName);
             }
@@ -147,18 +152,22 @@ async function processFlowAction(smaEvent, action, actions, amazonConnectInstanc
   */
 async function processFlowActionGetParticipantInput(smaEvent, action) {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+    let callId;
+    const legA = getLegACallDetails(smaEvent);
+    callId = legA.CallId;
+    if (callId == "NaN")
+        callId = smaEvent.ActionData.Parameters.CallId;
     if (action.Parameters.Media != null) {
-        console.log("Play Audio And Get Digits");
+        console.log(defaultLogger + callId + " Play Audio And Get Digits");
         return await processPlayAudioAndGetDigits(smaEvent, action);
     }
-    const legA = getLegACallDetails(smaEvent);
-    console.log("Speak and Get Digits Action");
+    console.log(defaultLogger + callId + " Speak and Get Digits Action");
     let smaAction = {
         Type: ChimeActionTypes_1.ChimeActions.SpeakAndGetDigits,
         Parameters: {
             "CallId": legA.CallId,
-            "SpeechParameters": getSpeechParameters(action),
-            "FailureSpeechParameters": getSpeechParameters(action),
+            "SpeechParameters": getSpeechParameters(smaEvent, action),
+            "FailureSpeechParameters": getSpeechParameters(smaEvent, action),
             "MinNumberOfDigits": 1
         }
     };
@@ -193,17 +202,17 @@ async function processFlowActionGetParticipantInput(smaEvent, action) {
   * @returns SMA Action
   */
 async function processPlayAudio(smaEvent, action) {
-    console.log("Play Audio Action");
     let callId;
     const legA = getLegACallDetails(smaEvent);
     callId = legA.CallId;
     if (callId == "NaN")
         callId = smaEvent.ActionData.Parameters.CallId;
+    console.log(defaultLogger + callId + "Play Audio Action");
     let smaAction = {
         Type: ChimeActionTypes_1.ChimeActions.PlayAudio,
         Parameters: {
             "CallId": callId,
-            "AudioSource": getAudioParameters(action)
+            "AudioSource": getAudioParameters(smaEvent, action)
         }
     };
     return {
@@ -229,12 +238,13 @@ async function processPlayAudioAndGetDigits(smaEvent, action) {
     callId = legA.CallId;
     if (callId == "NaN")
         callId = smaEvent.ActionData.Parameters.CallId;
+    console.log(defaultLogger + callId + " Action| Play Audio Action and Get Digits");
     let smaAction = {
         Type: ChimeActionTypes_1.ChimeActions.PlayAudioAndGetDigits,
         Parameters: {
             "CallId": callId,
-            "AudioSource": getAudioParameters(action),
-            "FailureAudioSource": getAudioParameters(action),
+            "AudioSource": getAudioParameters(smaEvent, action),
+            "FailureAudioSource": getAudioParameters(smaEvent, action),
             "MinNumberOfDigits": 5
         }
     };
@@ -305,7 +315,7 @@ async function processFlowActionDisconnectParticipant(smaEvent, action) {
         callId = smaEvent.ActionData.Parameters.CallId;
     ContactFlowARNMap.delete(callId);
     contextAttributs.clear();
-    console.log("Hangup Action");
+    console.log(defaultLogger + callId + " is going to Hang up");
     let smaAction = {
         Type: ChimeActionTypes_1.ChimeActions.Hangup,
         Parameters: {
@@ -333,7 +343,12 @@ async function processFlowActionDisconnectParticipant(smaEvent, action) {
   * @returns SMA Action
   */
 async function processFlowActionWait(smaEvent, action, actions, amazonConnectInstanceID, bucketName) {
-    console.log("Pause Action");
+    let callId;
+    const legA = getLegACallDetails(smaEvent);
+    callId = legA.CallId;
+    if (callId == "NaN")
+        callId = smaEvent.ActionData.Parameters.CallId;
+    console.log(defaultLogger + callId + " Pause Action");
     let smaAction = {
         Type: ChimeActionTypes_1.ChimeActions.Pause,
         Parameters: {
@@ -341,9 +356,9 @@ async function processFlowActionWait(smaEvent, action, actions, amazonConnectIns
         }
     };
     const nextAction = findActionByID(actions, action.Transitions.Conditions[0].NextAction);
-    console.log("Next Action identifier:" + action.Transitions.Conditions[0].NextAction);
+    console.log(defaultLogger + callId + "Next Action identifier:" + action.Transitions.Conditions[0].NextAction);
     let smaAction1 = await (await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName)).Actions[0];
-    console.log("Next Action Data:" + smaAction1);
+    console.log(defaultLogger + callId + "Next Action Data:" + smaAction1);
     return {
         "SchemaVersion": "1.0",
         "Actions": [
@@ -361,18 +376,20 @@ async function processFlowActionWait(smaEvent, action, actions, amazonConnectIns
   * @returns SMA Action
   */
 async function processFlowActionMessageParticipant(smaEvent, action) {
+    let callId;
+    const legA = getLegACallDetails(smaEvent);
+    callId = legA.CallId;
+    if (callId == "NaN")
+        callId = smaEvent.ActionData.Parameters.CallId;
     if (action.Parameters.Media != null) {
-        console.log("Play Audio Action");
+        console.log(defaultLogger + callId + "Play Audio Action");
         return await processPlayAudio(smaEvent, action);
     }
-    const legA = getLegACallDetails(smaEvent);
     let text;
     let type;
     let voiceId = ConstantValues_1.ConstData.voiceId;
     let engine = ConstantValues_1.ConstData.engine;
     let languageCode = ConstantValues_1.ConstData.languageCode;
-    console.log("DEBUG Message Participant 1" + JSON.stringify(smaEvent));
-    console.log("DEBUG Message Participant 2" + JSON.stringify(action));
     if (SpeechAttributeMap.has("TextToSpeechVoice")) {
         voiceId = SpeechAttributeMap.get("TextToSpeechVoice");
     }
@@ -418,7 +435,12 @@ async function processFlowActionMessageParticipant(smaEvent, action) {
         }
     };
 }
-function getSpeechParameters(action) {
+function getSpeechParameters(smaEvent, action) {
+    let callId;
+    const legA = getLegACallDetails(smaEvent);
+    callId = legA.CallId;
+    if (callId == "NaN")
+        callId = smaEvent.ActionData.Parameters.CallId;
     let rv = null;
     let voiceId = ConstantValues_1.ConstData.voiceId;
     let engine = ConstantValues_1.ConstData.engine;
@@ -457,10 +479,15 @@ function getSpeechParameters(action) {
             VoiceId: voiceId,
         };
     }
-    console.log("Speech Parameter : " + rv);
+    console.log(defaultLogger + callId + "Speech Parameters are : " + rv);
     return rv;
 }
-function getAudioParameters(action) {
+function getAudioParameters(smaEvent, action) {
+    let callId;
+    const legA = getLegACallDetails(smaEvent);
+    callId = legA.CallId;
+    if (callId == "NaN")
+        callId = smaEvent.ActionData.Parameters.CallId;
     let rv = null;
     let bucketName;
     let type;
@@ -468,7 +495,7 @@ function getAudioParameters(action) {
     let uriObj;
     let key;
     if (action.Parameters.SourceType !== null) {
-        console.log("Audio Parameters SourceType Exists");
+        console.log(defaultLogger + callId + " Audio Parameters SourceType Exists");
         uri = action.Parameters.Media.Uri;
         uriObj = uri.split("/");
         bucketName = uriObj[2];
@@ -480,7 +507,7 @@ function getAudioParameters(action) {
         BucketName: bucketName,
         Key: key
     };
-    console.log("Audio Parameters : " + rv);
+    console.log(defaultLogger + callId + " Audio Parameters : " + rv);
     return rv;
 }
 function getWaitTimeParameter(action) {
@@ -525,10 +552,10 @@ async function processFlowActionUpdateContactRecordingBehavior(smaEvent, action)
         Type: ChimeActionTypes_1.ChimeActions.StartCallRecording,
         Parameters: {
             "CallId": legA.CallId,
-            "Track": "BOTH",
+            "Track": ConstantValues_1.ConstData.Track,
             Destination: {
-                "Type": "S3",
-                "Location": " flow-cache1"
+                "Type": ConstantValues_1.ConstData.destinationType,
+                "Location": ConstantValues_1.ConstData.destinationLocation
             }
         }
     };
@@ -543,27 +570,32 @@ async function processFlowActionUpdateContactRecordingBehavior(smaEvent, action)
     };
 }
 async function processFlowActionFailed(smaEvent, actionObj, contactFlow, amazonConnectInstanceID, bucketName) {
+    let callId;
+    const legA = getLegACallDetails(smaEvent);
+    callId = legA.CallId;
+    if (callId == "NaN")
+        callId = smaEvent.ActionData.Parameters.CallId;
     let currentAction = contactFlow.Actions.find((action) => action.Identifier === actionObj.Identifier);
     let smaAction;
     let nextAction;
     if (smaEvent != null && smaEvent.ActionData.ErrorType.includes(ErrorTypes_1.ErrorTypes.InputTimeLimitExceeded)) {
-        nextAction = await getNextActionForError(currentAction, contactFlow.Actions, ErrorTypes_1.ErrorTypes.InputTimeLimitExceeded);
+        nextAction = await getNextActionForError(currentAction, contactFlow.Actions, ErrorTypes_1.ErrorTypes.InputTimeLimitExceeded, smaEvent);
         smaAction = await (await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName)).Actions[0];
     }
     else if (smaEvent != null && smaEvent.ActionData.ErrorType.includes(ErrorTypes_1.ErrorTypes.NoMatchingCondition)) {
-        nextAction = await getNextActionForError(currentAction, contactFlow, ErrorTypes_1.ErrorTypes.NoMatchingCondition);
+        nextAction = await getNextActionForError(currentAction, contactFlow, ErrorTypes_1.ErrorTypes.NoMatchingCondition, smaEvent);
         smaAction = await (await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName)).Actions[0];
     }
     else if (smaEvent != null && smaEvent.ActionData.ErrorType.includes(ErrorTypes_1.ErrorTypes.ConnectionTimeLimitExceeded)) {
-        nextAction = await getNextActionForError(currentAction, contactFlow, ErrorTypes_1.ErrorTypes.ConnectionTimeLimitExceeded);
+        nextAction = await getNextActionForError(currentAction, contactFlow, ErrorTypes_1.ErrorTypes.ConnectionTimeLimitExceeded, smaEvent);
         smaAction = await (await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName)).Actions[0];
     }
     else if (smaEvent != null && smaEvent.ActionData.ErrorType.includes(ErrorTypes_1.ErrorTypes.CallFailed)) {
-        nextAction = await getNextActionForError(currentAction, contactFlow, ErrorTypes_1.ErrorTypes.CallFailed);
+        nextAction = await getNextActionForError(currentAction, contactFlow, ErrorTypes_1.ErrorTypes.CallFailed, smaEvent);
         smaAction = await (await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName)).Actions[0];
     }
     else if (smaEvent != null && smaEvent.ActionData.ErrorType.includes(ErrorTypes_1.ErrorTypes.InvalidPhoneNumber)) {
-        nextAction = await getNextActionForError(currentAction, contactFlow, ErrorTypes_1.ErrorTypes.InvalidPhoneNumber);
+        nextAction = await getNextActionForError(currentAction, contactFlow, ErrorTypes_1.ErrorTypes.InvalidPhoneNumber, smaEvent);
         smaAction = await (await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName)).Actions[0];
     }
     else {
@@ -575,7 +607,7 @@ async function processFlowActionFailed(smaEvent, actionObj, contactFlow, amazonC
             }
         }
         nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[count].NextAction);
-        console.log("Next Action identifier:" + currentAction.Transitions.Errors[count].NextAction);
+        console.log(defaultLogger + callId + "Next Action identifier:" + currentAction.Transitions.Errors[count].NextAction);
         smaAction = await (await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName)).Actions[0];
     }
     return {
@@ -604,27 +636,32 @@ async function processFlowConditionValidation(smaEvent, actionObj, contactFlow, 
     let nextAction;
     let nextAction_id;
     const condition = currentAction.Transitions.Conditions;
+    let callId;
+    const legA = getLegACallDetails(smaEvent);
+    callId = legA.CallId;
+    if (callId == "NaN")
+        callId = smaEvent.ActionData.Parameters.CallId;
     if (smaEvent != null && condition.length > 0) {
         for (let index = 0; index < condition.length; index++) {
-            console.log("Recieved Digits " + recieved_digits);
-            console.log("Condition Operands " + condition[index].Condition.Operands[0]);
+            console.log(defaultLogger + callId + " Recieved Digits " + recieved_digits);
+            console.log(defaultLogger + callId + " Condition Operands " + condition[index].Condition.Operands[0]);
             if (condition[index].Condition.Operands[0] === recieved_digits) {
                 nextAction_id = condition[index].NextAction;
-                console.log("The condition passsed with recieved digit " + recieved_digits);
-                console.log("Next Action identifier" + nextAction_id);
+                console.log(defaultLogger + callId + " The condition passsed with recieved digit " + recieved_digits);
+                console.log(defaultLogger + callId + " Next Action identifier" + nextAction_id);
                 nextAction = findActionByID(contactFlow.Actions, nextAction_id);
                 break;
             }
         }
         if (nextAction_id === null && nextAction_id === "undefined" && !nextAction_id && actionObj.Parameters && actionObj.Parameters.StoreInput == "false") {
-            nextAction = await getNextActionForError(currentAction, contactFlow.Actions, ErrorTypes_1.ErrorTypes.NoMatchingCondition);
-            console.log("Conditions are not matching with Recieved Digits ");
+            nextAction = await getNextActionForError(currentAction, contactFlow.Actions, ErrorTypes_1.ErrorTypes.NoMatchingCondition, smaEvent);
+            console.log(defaultLogger + callId + " Conditions are not matching with Recieved Digits ");
         }
         else if ((nextAction_id === null && nextAction_id === "undefined" && !nextAction_id && actionObj.Parameters && actionObj.Parameters.StoreInput == "true")) {
-            nextAction = await getNextActionForError(currentAction, contactFlow.Actions, ErrorTypes_1.ErrorTypes.NoMatchingError);
-            console.log("Conditions are not matching with Recieved Digits ");
+            nextAction = await getNextActionForError(currentAction, contactFlow.Actions, ErrorTypes_1.ErrorTypes.NoMatchingError, smaEvent);
+            console.log(defaultLogger + callId + " Conditions are not matching with Recieved Digits ");
         }
-        console.log("Next Action identifier:" + nextAction_id);
+        console.log(defaultLogger + callId + " Next Action identifier:" + nextAction_id);
         smaAction = await (await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName)).Actions[0];
         return {
             "SchemaVersion": "1.0",
@@ -655,7 +692,7 @@ async function processFlowActionLoop(smaEvent, action, actions, amazonConnectIns
         callId = smaEvent.ActionData.Parameters.CallId;
     if (!loop.has(callId) || loop.get(callId) != action.Parameters.LoopCount) {
         const nextAction = findActionByID(actions, action.Transitions.Conditions[1].NextAction);
-        console.log("Next Action identifier:" + action.Transitions.Conditions[1].NextAction);
+        console.log(defaultLogger + callId + " Next Action identifier:" + action.Transitions.Conditions[1].NextAction);
         smaAction = await (await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName)).Actions[0];
         let count = String(Number.parseInt(loop.get(callId)) + 1);
         if (!loop.has(callId))
@@ -676,9 +713,9 @@ async function processFlowActionLoop(smaEvent, action, actions, amazonConnectIns
     else {
         loop.delete(callId);
         let nextAction = findActionByID(actions, action.Transitions.Conditions[0].NextAction);
-        console.log("Next Action identifier:" + action.Transitions.Conditions[0].NextAction);
+        console.log(defaultLogger + callId + " Next Action identifier:" + action.Transitions.Conditions[0].NextAction);
         smaAction = await (await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName)).Actions[0];
-        console.log("Next Action Data:" + smaAction);
+        console.log(defaultLogger + callId + " Next Action Data:" + smaAction);
         return {
             "SchemaVersion": "1.0",
             "Actions": [
@@ -698,10 +735,15 @@ async function processFlowActionLoop(smaEvent, action, actions, amazonConnectIns
   */
 async function processFlowActionTransferParticipantToThirdParty(smaEvent, action) {
     const legA = getLegACallDetails(smaEvent);
+    let callId;
+    callId = legA.CallId;
+    if (callId == "NaN")
+        callId = smaEvent.ActionData.Parameters.CallId;
     let fromNumber = legA.From;
     if (action.Parameters.hasOwnProperty("CallerId")) {
         fromNumber = action.Parameters.CallerId.Number;
     }
+    console.log(defaultLogger + callId + " Transfering call to Third Party Number");
     let smaAction = {
         Type: ChimeActionTypes_1.ChimeActions.CallAndBridge,
         Parameters: {
@@ -709,7 +751,7 @@ async function processFlowActionTransferParticipantToThirdParty(smaEvent, action
             "CallerIdNumber": fromNumber,
             "Endpoints": [
                 {
-                    "BridgeEndpointType": "PSTN",
+                    "BridgeEndpointType": ConstantValues_1.ConstData.BridgeEndpointType,
                     "Uri": action.Parameters.ThirdPartyPhoneNumber
                 }
             ]
@@ -733,6 +775,12 @@ async function processFlowActionTransferParticipantToThirdParty(smaEvent, action
   */
 async function processFlowActionConnectParticipantWithLexBot(smaEvent, action) {
     let smaAction;
+    const legA = getLegACallDetails(smaEvent);
+    let callId;
+    callId = legA.CallId;
+    if (callId == "NaN")
+        callId = smaEvent.ActionData.Parameters.CallId;
+    console.log(defaultLogger + callId + " Start Bot Conversation");
     if (action.Parameters.hasOwnProperty("LexSessionAttributes")) {
         smaAction = {
             Type: ChimeActionTypes_1.ChimeActions.StartBotConversation,
@@ -743,12 +791,12 @@ async function processFlowActionConnectParticipantWithLexBot(smaEvent, action) {
                     SessionState: {
                         SessionAttributes: action.Parameters.LexSessionAttributes,
                         DialogAction: {
-                            Type: "ElicitIntent"
+                            Type: ConstantValues_1.ConstData.dialogType
                         }
                     },
                     WelcomeMessages: [
                         {
-                            ContentType: "PlainText",
+                            ContentType: ConstantValues_1.ConstData.ContentType,
                             Content: action.Parameters.Text
                         },
                     ]
@@ -765,12 +813,12 @@ async function processFlowActionConnectParticipantWithLexBot(smaEvent, action) {
                 Configuration: {
                     SessionState: {
                         DialogAction: {
-                            Type: "ElicitIntent"
+                            Type: ConstantValues_1.ConstData.dialogType
                         }
                     },
                     WelcomeMessages: [
                         {
-                            ContentType: "PlainText",
+                            ContentType: ConstantValues_1.ConstData.ContentType,
                             Content: action.Parameters.Text
                         },
                     ]
@@ -805,8 +853,8 @@ async function processFlowActionTransferToFlow(smaEvent, action, amazonConnectIn
     if (callId == "NaN")
         callId = smaEvent.ActionData.Parameters.CallId;
     ContactFlowARNMap.set(callId, TransferFlowARN);
-    const contactFlow = await (0, contact_flow_loader_1.loadContactFlow)(amazonConnectInstanceID, TransferFlowARN, bucketName);
-    console.log("Transfering to Another contact FLow function");
+    const contactFlow = await (0, contact_flow_loader_1.loadContactFlow)(amazonConnectInstanceID, TransferFlowARN, bucketName, smaEvent);
+    console.log(defaultLogger + callId + " Transfering to Another contact FLow function");
     return await processRootFlowBlock(smaEvent, contactFlow, smaEvent.CallDetails.TransactionAttributes, amazonConnectInstanceID, bucketName);
 }
 /**
@@ -820,6 +868,11 @@ async function processFlowActionTransferToFlow(smaEvent, action, amazonConnectIn
   */
 async function processFlowActionInvokeLambdaFunction(smaEvent, action, actions, amazonConnectInstanceID, bucketName) {
     let smaAction;
+    const legA = getLegACallDetails(smaEvent);
+    let callId;
+    callId = legA.CallId;
+    if (callId == "NaN")
+        callId = smaEvent.ActionData.Parameters.CallId;
     const AWS = require("aws-sdk");
     const lambda = new AWS.Lambda({ region: ConstantValues_1.ConstData.region });
     let LambdaARN = action.Parameters.LambdaFunctionARN;
@@ -830,18 +883,18 @@ async function processFlowActionInvokeLambdaFunction(smaEvent, action, actions, 
     };
     let result = await lambda.invoke(params).promise();
     if (result === null && result === "undefined" && !result) {
-        let nextAction = await getNextActionForError(action, actions, ErrorTypes_1.ErrorTypes.NoMatchingError);
+        let nextAction = await getNextActionForError(action, actions, ErrorTypes_1.ErrorTypes.NoMatchingError, smaEvent);
         return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName);
     }
     let x = JSON.parse(result.Payload);
-    console.log("The Result After Invoking Lambda is" + JSON.stringify(x));
+    console.log(defaultLogger + callId + " The Result After Invoking Lambda is" + JSON.stringify(x));
     const keys = Object.keys(x);
     keys.forEach((key, index) => {
         contextAttributs.set("$.External." + key, x[key]);
         tmpMap.set(key, x[key]);
     });
     let nextAction = findActionByID(actions, action.Transitions.NextAction);
-    console.log("Next Action identifier:" + action.Transitions.NextAction);
+    console.log(defaultLogger + callId + " Next Action identifier:" + action.Transitions.NextAction);
     return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName);
 }
 async function inputForInvokingLambda(action) {
@@ -889,11 +942,15 @@ async function inputForInvokingLambda(action) {
   * @returns The Next SMA Action to perform
   */
 async function processFlowActionUpdateContactAttributes(smaEvent, action, actions, amazonConnectInstanceID, bucketName) {
+    const legA = getLegACallDetails(smaEvent);
+    let callId;
+    callId = legA.CallId;
+    if (callId == "NaN")
+        callId = smaEvent.ActionData.Parameters.CallId;
     let ContactAttributes = Object.entries(action.Parameters.Attributes);
     try {
         for (let i = 0; i < ContactAttributes.length; i++) {
             let x = ContactAttributes[i][1];
-            console.log("The value of x is" + x);
             if (x.includes("$.External.")) {
                 let tmp = x.split("$.External.");
                 if (tmpMap.has(tmp[1])) {
@@ -912,90 +969,95 @@ async function processFlowActionUpdateContactAttributes(smaEvent, action, action
         }
     }
     catch (e) {
-        let nextAction = await getNextActionForError(action, actions, ErrorTypes_1.ErrorTypes.NoMatchingError);
+        let nextAction = await getNextActionForError(action, actions, ErrorTypes_1.ErrorTypes.NoMatchingError, smaEvent);
         return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName);
     }
     tmpMap.clear();
     let nextAction = findActionByID(actions, action.Transitions.NextAction);
-    console.log("Next Action identifier:" + action.Transitions.NextAction);
+    console.log(defaultLogger + callId + " Next Action identifier:" + action.Transitions.NextAction);
     return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName);
 }
 async function processFlowActionCompareContactAttributes(smaEvent, action, actions, amazonConnectInstanceID, bucketName) {
+    const legA = getLegACallDetails(smaEvent);
+    let callId;
+    callId = legA.CallId;
+    if (callId == "NaN")
+        callId = smaEvent.ActionData.Parameters.CallId;
     let comparVariable = action.Parameters.ComparisonValue;
     let nextAction;
     try {
         let ComparisonValue = contextAttributs.get(comparVariable);
         const condition = action.Transitions.Conditions;
         for (let index = 0; index < condition.length; index++) {
-            console.log("Recieved Value " + ComparisonValue);
-            console.log("Expected Value " + condition[index].Condition.Operands[0]);
+            console.log(defaultLogger + callId + "Recieved Value " + ComparisonValue);
+            console.log(defaultLogger + callId + "Expected Value " + condition[index].Condition.Operands[0]);
             switch (condition[index].Condition.Operator) {
                 case ComparisonOperators_1.Operators.Equals:
                     if (condition[index].Condition.Operands[0] === ComparisonValue) {
                         let nextAction_id = condition[index].NextAction;
-                        console.log("Next Action identifier" + nextAction_id);
+                        console.log(defaultLogger + callId + " Next Action identifier" + nextAction_id);
                         nextAction = findActionByID(actions, nextAction_id);
                     }
                     break;
                 case ComparisonOperators_1.Operators.NumberLessThan:
                     if (ComparisonValue < condition[index].Condition.Operands[0]) {
                         let nextAction_id = condition[index].NextAction;
-                        console.log("Next Action identifier" + nextAction_id);
+                        console.log(defaultLogger + callId + " Next Action identifier" + nextAction_id);
                         nextAction = findActionByID(actions, nextAction_id);
                     }
                     break;
                 case ComparisonOperators_1.Operators.NumberLessOrEqualTo:
                     if (ComparisonValue <= condition[index].Condition.Operands[0]) {
                         let nextAction_id = condition[index].NextAction;
-                        console.log("Next Action identifier" + nextAction_id);
+                        console.log(defaultLogger + callId + " Next Action identifier" + nextAction_id);
                         nextAction = findActionByID(actions, nextAction_id);
                     }
                     break;
                 case ComparisonOperators_1.Operators.NumberGreaterThan:
                     if (ComparisonValue > condition[index].Condition.Operands[0]) {
                         let nextAction_id = condition[index].NextAction;
-                        console.log("Next Action identifier" + nextAction_id);
+                        console.log(defaultLogger + callId + " Next Action identifier" + nextAction_id);
                         nextAction = findActionByID(actions, nextAction_id);
                     }
                     break;
                 case ComparisonOperators_1.Operators.NumberLessOrEqualTo:
                     if (ComparisonValue >= condition[index].Condition.Operands[0]) {
                         let nextAction_id = condition[index].NextAction;
-                        console.log("Next Action identifier" + nextAction_id);
+                        console.log(defaultLogger + callId + " Next Action identifier" + nextAction_id);
                         nextAction = findActionByID(actions, nextAction_id);
                     }
                     break;
                 case ComparisonOperators_1.Operators.TextStartsWith:
                     if (ComparisonValue.startsWith(condition[index].Condition.Operands[0])) {
                         let nextAction_id = condition[index].NextAction;
-                        console.log("Next Action identifier" + nextAction_id);
+                        console.log(defaultLogger + callId + " Next Action identifier" + nextAction_id);
                         nextAction = findActionByID(actions, nextAction_id);
                     }
                     break;
                 case ComparisonOperators_1.Operators.TextEndsWith:
                     if (ComparisonValue.endsWith(condition[index].Condition.Operands[0])) {
                         let nextAction_id = condition[index].NextAction;
-                        console.log("Next Action identifier" + nextAction_id);
+                        console.log(defaultLogger + callId + " Next Action identifier" + nextAction_id);
                         nextAction = findActionByID(actions, nextAction_id);
                     }
                     break;
                 case ComparisonOperators_1.Operators.TextContains:
                     if (ComparisonValue.includes(condition[index].Condition.Operands[0])) {
                         let nextAction_id = condition[index].NextAction;
-                        console.log("Next Action identifier" + nextAction_id);
+                        console.log(defaultLogger + callId + " Next Action identifier" + nextAction_id);
                         nextAction = findActionByID(actions, nextAction_id);
                     }
                     break;
             }
         }
         if (nextAction === null || !nextAction || nextAction === "undefined") {
-            console.log("Next Action is inValid");
-            let nextAction = await getNextActionForError(action, actions, ErrorTypes_1.ErrorTypes.NoMatchingCondition);
+            console.log(defaultLogger + callId + " Next Action is inValid");
+            let nextAction = await getNextActionForError(action, actions, ErrorTypes_1.ErrorTypes.NoMatchingCondition, smaEvent);
             return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName);
         }
     }
     catch (e) {
-        let nextAction = await getNextActionForError(action, actions, ErrorTypes_1.ErrorTypes.NoMatchingCondition);
+        let nextAction = await getNextActionForError(action, actions, ErrorTypes_1.ErrorTypes.NoMatchingCondition, smaEvent);
         return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName);
     }
     return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName);
@@ -1009,21 +1071,26 @@ async function processFlowActionCompareContactAttributes(smaEvent, action, actio
   * @param bucketName
   * @returns SMA Action
   */
-function getNextActionForError(currentAction, contactFlow, ErrorType) {
+function getNextActionForError(currentAction, contactFlow, ErrorType, smaEvent) {
+    const legA = getLegACallDetails(smaEvent);
+    let callId;
+    callId = legA.CallId;
+    if (callId == "NaN")
+        callId = smaEvent.ActionData.Parameters.CallId;
     let nextAction;
-    console.log("Error Action Count:" + currentAction.Transitions.Errors);
-    console.log("Next Action Validation:" + currentAction.Transitions.Errors.length);
+    console.log(defaultLogger + callId + " Error Action Count:" + currentAction.Transitions.Errors);
+    console.log(defaultLogger + callId + " Next Action Validation:" + currentAction.Transitions.Errors.length);
     if (currentAction.Transitions.Errors.length > 2 && currentAction.Transitions.Errors[2].ErrorType.includes(ErrorType)) {
         nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[2].NextAction);
-        console.log("Next Action identifier:" + currentAction.Transitions.Errors[2].NextAction);
+        console.log(defaultLogger + callId + " Next Action identifier:" + currentAction.Transitions.Errors[2].NextAction);
     }
     else if (currentAction.Transitions.Errors.length > 1 && currentAction.Transitions.Errors[1].ErrorType.includes(ErrorType)) {
         nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[1].NextAction);
-        console.log("Next Action identifier:" + currentAction.Transitions.Errors[1].NextAction);
+        console.log(defaultLogger + callId + " Next Action identifier:" + currentAction.Transitions.Errors[1].NextAction);
     }
     else if (currentAction.Transitions.Errors.length > 0 && currentAction.Transitions.Errors[0].ErrorType.includes(ErrorType)) {
         nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[0].NextAction);
-        console.log("Next Action identifier:" + currentAction.Transitions.Errors[0].NextAction);
+        console.log(defaultLogger + callId + " Next Action identifier:" + currentAction.Transitions.Errors[0].NextAction);
     }
     return nextAction;
 }
@@ -1037,6 +1104,11 @@ function getNextActionForError(currentAction, contactFlow, ErrorType) {
   * @returns SMA Action
   */
 async function processFlowActionUpdateContactTextToSpeechVoice(smaEvent, action, actions, amazonConnectInstanceID, bucketName) {
+    let callId;
+    const legA = getLegACallDetails(smaEvent);
+    callId = legA.CallId;
+    if (callId == "NaN")
+        callId = smaEvent.ActionData.Parameters.CallId;
     let SpeechParameters = action.Parameters;
     let smaAction;
     const keys = Object.keys(SpeechParameters);
@@ -1044,16 +1116,16 @@ async function processFlowActionUpdateContactTextToSpeechVoice(smaEvent, action,
         SpeechAttributeMap.set(key, SpeechParameters[key]);
     });
     let nextAction = findActionByID(actions, action.Transitions.NextAction);
-    console.log("Next Action identifier:" + action.Transitions.NextAction);
+    console.log(defaultLogger + callId + " Next Action identifier:" + action.Transitions.NextAction);
     if (nextAction.Type == "UpdateContactData") {
-        console.log("Next Action Type:" + nextAction.Type);
+        console.log(defaultLogger + callId + " Next Action Type:" + nextAction.Type);
         let SpeechParameter = nextAction.Parameters;
         const keys = Object.keys(SpeechParameter);
         keys.forEach((key, index) => {
             SpeechAttributeMap.set(key, SpeechParameter[key]);
         });
         nextAction = findActionByID(actions, nextAction.Transitions.NextAction);
-        console.log("Next Action identifier:" + action.Transitions.NextAction);
+        console.log(defaultLogger + callId + " Next Action identifier:" + action.Transitions.NextAction);
     }
     smaAction = await (await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName)).Actions[0];
     return {

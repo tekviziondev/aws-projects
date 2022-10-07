@@ -5,25 +5,36 @@ const aws_sdk_1 = require("aws-sdk");
 const aws_sdk_2 = require("aws-sdk");
 let s3Bucket;
 const cacheTimeInMilliseconds = 5000;
-async function loadContactFlow(amazonConnectInstanceID, amazonConnectContactFlowID, bucket) {
+const defaultLogger = "SMA-Contact-Flow-Parser | Call ID - ";
+async function loadContactFlow(amazonConnectInstanceID, amazonConnectContactFlowID, bucket, smaEvent) {
+    const legA = getLegACallDetails(smaEvent);
+    let callId;
+    callId = legA.CallId;
+    if (callId == "NaN")
+        callId = smaEvent.ActionData.Parameters.CallId;
     s3Bucket = bucket;
     const describeContactFlowParams = {
         ContactFlowId: amazonConnectContactFlowID,
         InstanceId: amazonConnectInstanceID
     };
-    let rv = await checkFlowCache(amazonConnectInstanceID, amazonConnectContactFlowID);
+    let rv = await checkFlowCache(amazonConnectInstanceID, amazonConnectContactFlowID, smaEvent);
     if (rv == null) {
-        console.log("Loading Contact Flow Details from Connect ");
+        console.log(defaultLogger + callId + " Loading Contact Flow Details from Connect ");
         const connect = new aws_sdk_1.Connect();
         const contactFlowResponse = await connect.describeContactFlow(describeContactFlowParams).promise();
         rv = JSON.parse(contactFlowResponse.ContactFlow.Content);
-        await writeFlowCache(rv, amazonConnectInstanceID, amazonConnectContactFlowID);
+        await writeFlowCache(rv, amazonConnectInstanceID, amazonConnectContactFlowID, smaEvent);
     }
     return rv;
 }
 exports.loadContactFlow = loadContactFlow;
-async function writeFlowCache(flow, amazonConnectInstanceID, amazonConnectContactFlowID) {
-    console.log("Writing Contact flow Details to S3 Bucket ");
+async function writeFlowCache(flow, amazonConnectInstanceID, amazonConnectContactFlowID, smaEvent) {
+    const legA = getLegACallDetails(smaEvent);
+    let callId;
+    callId = legA.CallId;
+    if (callId == "NaN")
+        callId = smaEvent.ActionData.Parameters.CallId;
+    console.log(defaultLogger + callId + " Writing Contact flow Details to S3 Bucket ");
     let flowBinary = Buffer.from(JSON.stringify(flow), 'binary');
     const s3Params = {
         Bucket: s3Bucket,
@@ -33,19 +44,24 @@ async function writeFlowCache(flow, amazonConnectInstanceID, amazonConnectContac
     const s3 = new aws_sdk_2.S3();
     await s3.putObject(s3Params).promise();
 }
-async function checkFlowCache(amazonConnectInstanceID, amazonConnectContactFlowID) {
+async function checkFlowCache(amazonConnectInstanceID, amazonConnectContactFlowID, smaEvent) {
     let rv = null;
     const s3Params = {
         Bucket: s3Bucket,
         Key: amazonConnectContactFlowID
     };
+    const legA = getLegACallDetails(smaEvent);
+    let callId;
+    callId = legA.CallId;
+    if (callId == "NaN")
+        callId = smaEvent.ActionData.Parameters.CallId;
     const s3 = new aws_sdk_2.S3();
     try {
         let s3Head = await s3.headObject(s3Params).promise();
         var deltaTimeInMs = new Date().getTime() - s3Head.LastModified.getTime();
-        console.log("Delta Time of Last updated Flow Cache: " + deltaTimeInMs);
+        console.log(defaultLogger + callId + " Delta Time of Last updated Flow Cache: " + deltaTimeInMs);
         if (deltaTimeInMs < cacheTimeInMilliseconds) {
-            console.log("Loading Contact Flow from Flow cache");
+            console.log(defaultLogger + callId + " Loading Contact Flow from Flow cache");
             let s3Result = await s3.getObject(s3Params).promise();
             rv = JSON.parse(s3Result.Body.toString());
         }
@@ -56,6 +72,18 @@ async function checkFlowCache(amazonConnectInstanceID, amazonConnectContactFlowI
         }
         else {
             throw error;
+        }
+    }
+    return rv;
+}
+function getLegACallDetails(event) {
+    let rv = null;
+    if (event && event.CallDetails && event.CallDetails.Participants && event.CallDetails.Participants.length > 0) {
+        for (let i = 0; i < event.CallDetails.Participants.length; i++) {
+            if (event.CallDetails.Participants[i].ParticipantTag === 'LEG-A') {
+                rv = event.CallDetails.Participants[i];
+                break;
+            }
         }
     }
     return rv;
