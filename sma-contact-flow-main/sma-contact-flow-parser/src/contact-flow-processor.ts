@@ -12,7 +12,7 @@ let ContactFlowARNMap=new Map<string, string>();
 const SpeechAttributeMap:Map<string, string>=new Map<string, string>();
 const contextAttributs:Map<any, any>=new Map<any, any>();
 let tmpMap:Map<any, any>=new Map<any, any>();
-const defaultLogger="SMA-Contact-Flow-Parser | Call ID - "
+const defaultLogger="SMA-Contact-Flow-Builder | Call ID - "
 /**
   * This function get connect flow data from contact flow loader 
   * and send the connect flow data to respective functions.
@@ -112,6 +112,7 @@ async function processRootFlowBlock(smaEvent: any, contactFlow: any, transaction
   * @returns SMA Action
   */
 async function processFlowAction(smaEvent: any, action: any,actions:any,amazonConnectInstanceID: string,bucketName:string) {
+    console.log("ProcessFlowAction:"+action);
     switch (action.Type) {
         case AmazonConnectActions.GetParticipantInput:
             return await processFlowActionGetParticipantInput(smaEvent, action);
@@ -673,25 +674,17 @@ async function processFlowConditionValidation(smaEvent:any, actionObj:any, conta
                 }
             }
           
-        if(nextAction_id===null && nextAction_id==="undefined" && !nextAction_id && actionObj.Parameters && actionObj.Parameters.StoreInput == "false") {
+        if(!nextAction_id  && actionObj.Parameters.StoreInput == "False") {
             nextAction=await getNextActionForError(currentAction,contactFlow.Actions,ErrorTypes.NoMatchingCondition,smaEvent);
             console.log(defaultLogger+callId+" Conditions are not matching with Recieved Digits ");
            
-        }else if((nextAction_id===null && nextAction_id==="undefined" && !nextAction_id && actionObj.Parameters && actionObj.Parameters.StoreInput == "true")){
+        }else if((!nextAction_id  && actionObj.Parameters.StoreInput == "True")){
             nextAction=await getNextActionForError(currentAction,contactFlow.Actions,ErrorTypes.NoMatchingError,smaEvent);
             console.log(defaultLogger+callId+" Conditions are not matching with Recieved Digits ");
         }
         console.log(defaultLogger+callId+" Next Action identifier:"+nextAction_id);
-        smaAction =await (await processFlowAction(smaEvent, nextAction,contactFlow.Actions,amazonConnectInstanceID,bucketName)).Actions[0];
-        return {
-            "SchemaVersion": "1.0",
-            "Actions": [
-                smaAction
-            ],
-            "TransactionAttributes": {
-                "currentFlowBlock": nextAction
-            }
-        }
+       return await processFlowAction(smaEvent, nextAction,contactFlow.Actions,amazonConnectInstanceID,bucketName);
+       
     }
 }
 
@@ -1116,14 +1109,14 @@ function getNextActionForError(currentAction:any,contactFlow:any,ErrorType:any,s
     console.log(defaultLogger+callId+" Error Action Count:"+currentAction.Transitions.Errors);
     console.log(defaultLogger+callId+" Next Action Validation:"+currentAction.Transitions.Errors.length);
     if(currentAction.Transitions.Errors.length>2 && currentAction.Transitions.Errors[2].ErrorType.includes(ErrorType)){
-        nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[2].NextAction);
+        nextAction = findActionByID(contactFlow, currentAction.Transitions.Errors[2].NextAction);
         console.log(defaultLogger+callId+" Next Action identifier:"+currentAction.Transitions.Errors[2].NextAction);
         }else if(currentAction.Transitions.Errors.length>1 && currentAction.Transitions.Errors[1].ErrorType.includes(ErrorType)){
-            nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[1].NextAction);
+            nextAction = findActionByID(contactFlow, currentAction.Transitions.Errors[1].NextAction);
         console.log(defaultLogger+callId+" Next Action identifier:"+currentAction.Transitions.Errors[1].NextAction);
         }
         else if(currentAction.Transitions.Errors.length>0 && currentAction.Transitions.Errors[0].ErrorType.includes(ErrorType)){
-            nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[0].NextAction);
+            nextAction = findActionByID(contactFlow, currentAction.Transitions.Errors[0].NextAction);
         console.log(defaultLogger+callId+" Next Action identifier:"+currentAction.Transitions.Errors[0].NextAction);
         }
         return nextAction;
