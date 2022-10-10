@@ -358,13 +358,12 @@ async function processFlowActionWait(smaEvent, action, actions, amazonConnectIns
     };
     const nextAction = findActionByID(actions, action.Transitions.Conditions[0].NextAction);
     console.log(defaultLogger + callId + " Next Action identifier:" + action.Transitions.Conditions[0].NextAction);
-    let smaAction1 = await (await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName)).Actions[0];
-    let smaAction1_Type = smaAction1.Actions.Type;
-    if (ConstantValues_1.constActions.includes(smaAction1_Type)) {
-        await this.delay(Number(timeLimit));
+    if (ConstantValues_1.constActions.includes(nextAction.Type)) {
+        await sleep(Number(timeLimit));
         console.log(defaultLogger + callId + " Pause action is Performed for " + timeLimit + " Milliseconds");
-        return await processFlowAction(smaEvent, smaAction1, actions, amazonConnectInstanceID, bucketName);
+        return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName);
     }
+    let smaAction1 = await (await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName)).Actions[0];
     console.log(defaultLogger + callId + "Next Action Data:" + smaAction1);
     return {
         "SchemaVersion": "1.0",
@@ -375,13 +374,12 @@ async function processFlowActionWait(smaEvent, action, actions, amazonConnectIns
             "currentFlowBlock": nextAction
         }
     };
-}
-/**
-  * Making a SMA action to perform Delivers an audio or chat message.
-  * @param smaEvent
-  * @param action
-  * @returns SMA Action
-  */
+} /**
+* Making a SMA action to perform Delivers an audio or chat message.
+* @param smaEvent
+* @param action
+* @returns SMA Action
+*/
 async function processFlowActionMessageParticipant(smaEvent, action) {
     let callId;
     const legA = getLegACallDetails(smaEvent);
@@ -1147,4 +1145,7 @@ function getLegACallDetails(event) {
         }
     }
     return rv;
+}
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }

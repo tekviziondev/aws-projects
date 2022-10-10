@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ConstData = void 0;
+exports.constActions = exports.ConstData = void 0;
 exports.ConstData = {
     voiceId: "Joanna",
     engine: "neural",
@@ -18,3 +18,4 @@ exports.ConstData = {
     dialogType: "ElicitIntent",
     ContentType: "PlainText",
 };
+exports.constActions = ["Wait", "Loop", "TransferToFlow", "ConnectParticipantWithLexBot", "UpdateContactTextToSpeechVoice", "InvokeLambdaFunction", "UpdateContactAttributes", "Compare"];
