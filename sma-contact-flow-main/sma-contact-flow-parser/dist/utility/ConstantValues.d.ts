@@ -16,4 +16,5 @@ declare type Data = {
     ContentType: string;
 };
 export declare const ConstData: Data;
+export declare const constActions: string[];
 export {};

@@ -349,15 +349,22 @@ async function processFlowActionWait(smaEvent, action, actions, amazonConnectIns
     if (callId == "NaN")
         callId = smaEvent.ActionData.Parameters.CallId;
     console.log(defaultLogger + callId + " Pause Action");
+    let timeLimit = getWaitTimeParameter(action);
     let smaAction = {
         Type: ChimeActionTypes_1.ChimeActions.Pause,
         Parameters: {
-            "DurationInMilliseconds": getWaitTimeParameter(action)
+            "DurationInMilliseconds": timeLimit
         }
     };
     const nextAction = findActionByID(actions, action.Transitions.Conditions[0].NextAction);
-    console.log(defaultLogger + callId + "Next Action identifier:" + action.Transitions.Conditions[0].NextAction);
+    console.log(defaultLogger + callId + " Next Action identifier:" + action.Transitions.Conditions[0].NextAction);
     let smaAction1 = await (await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName)).Actions[0];
+    let smaAction1_Type = smaAction1.Actions.Type;
+    if (ConstantValues_1.constActions.includes(smaAction1_Type)) {
+        await this.delay(Number(timeLimit));
+        console.log(defaultLogger + callId + " Pause action is Performed for " + timeLimit + " Milliseconds");
+        return await processFlowAction(smaEvent, smaAction1, actions, amazonConnectInstanceID, bucketName);
+    }
     console.log(defaultLogger + callId + "Next Action Data:" + smaAction1);
     return {
         "SchemaVersion": "1.0",
@@ -777,7 +784,7 @@ async function processFlowActionConnectParticipantWithLexBot(smaEvent, action) {
             Type: ChimeActionTypes_1.ChimeActions.StartBotConversation,
             Parameters: {
                 BotAliasArn: action.Parameters.LexV2Bot.AliasArn,
-                LocaleId: ConstantValues_1.ConstData.languageCode,
+                LocaleId: 'en_US',
                 Configuration: {
                     SessionState: {
                         SessionAttributes: action.Parameters.LexSessionAttributes,
@@ -800,7 +807,7 @@ async function processFlowActionConnectParticipantWithLexBot(smaEvent, action) {
             Type: ChimeActionTypes_1.ChimeActions.StartBotConversation,
             Parameters: {
                 BotAliasArn: action.Parameters.LexV2Bot.AliasArn,
-                LocaleId: ConstantValues_1.ConstData.languageCode,
+                LocaleId: 'en_US',
                 Configuration: {
                     SessionState: {
                         DialogAction: {
