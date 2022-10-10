@@ -4,7 +4,7 @@ import { ErrorTypes } from "./utility/ErrorTypes";
 import { Operators } from "./utility/ComparisonOperators";
 import { ChimeActions } from "./utility/ChimeActionTypes";
 import { AmazonConnectActions } from "./utility/AmazonConnectActionTypes";
-import { ConstData } from "./utility/ConstantValues";
+import { constActions, ConstData } from "./utility/ConstantValues";
 
 const connectContextStore: string = "ConnectContextStore";
 let loop = new Map<string, string>();
@@ -359,15 +359,22 @@ async function processFlowActionWait(smaEvent:any, action:any,actions:any,amazon
     if(callId=="NaN")
      callId=  smaEvent.ActionData.Parameters.CallId;
     console.log(defaultLogger+callId+" Pause Action");
+    let timeLimit=getWaitTimeParameter(action)
     let smaAction = {
         Type: ChimeActions.Pause,
         Parameters: {
-            "DurationInMilliseconds": getWaitTimeParameter(action)
+            "DurationInMilliseconds": timeLimit
         }
     };
     const nextAction = findActionByID(actions, action.Transitions.Conditions[0].NextAction);
-    console.log(defaultLogger+callId+"Next Action identifier:"+action.Transitions.Conditions[0].NextAction);
+    console.log(defaultLogger+callId+" Next Action identifier:"+action.Transitions.Conditions[0].NextAction);
     let smaAction1 =await (await processFlowAction(smaEvent, nextAction,actions,amazonConnectInstanceID,bucketName)).Actions[0];
+    let smaAction1_Type:string=smaAction1.Actions.Type
+    if(constActions.includes(smaAction1_Type)){
+        await this.delay(Number(timeLimit));
+        console.log(defaultLogger+callId+" Pause action is Performed for "+timeLimit+ " Milliseconds");
+        return await processFlowAction(smaEvent, smaAction1,actions,amazonConnectInstanceID,bucketName)
+    }
     console.log(defaultLogger+callId+"Next Action Data:"+smaAction1);
     return {
         "SchemaVersion": "1.0",

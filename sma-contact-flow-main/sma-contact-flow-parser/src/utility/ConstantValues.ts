@@ -35,3 +35,4 @@
     ContentType: "PlainText",
     
   }
+  export const constActions = ["Wait","Loop","TransferToFlow","ConnectParticipantWithLexBot","UpdateContactTextToSpeechVoice","InvokeLambdaFunction","UpdateContactAttributes","Compare"];
