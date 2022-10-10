@@ -809,7 +809,7 @@ async function processFlowActionConnectParticipantWithLexBot(smaEvent:any, actio
             Type: ChimeActions.StartBotConversation,
             Parameters: {
               BotAliasArn:action.Parameters.LexV2Bot.AliasArn,
-              LocaleId: ConstData.languageCode,
+              LocaleId: 'en_US',
               Configuration: {
                 SessionState: {
                   SessionAttributes:action.Parameters.LexSessionAttributes,
@@ -832,7 +832,7 @@ async function processFlowActionConnectParticipantWithLexBot(smaEvent:any, actio
             Type: ChimeActions.StartBotConversation,
             Parameters: {
               BotAliasArn:action.Parameters.LexV2Bot.AliasArn,
-              LocaleId: ConstData.languageCode,
+              LocaleId: 'en_US',
               Configuration: {
                 SessionState: { 
                   DialogAction: {
