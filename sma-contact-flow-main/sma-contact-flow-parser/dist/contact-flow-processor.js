@@ -95,6 +95,10 @@ async function processRootFlowBlock(smaEvent, contactFlow, transactionAttributes
         console.log(defaultLogger + callId + " ConnectInstanceId:" + amazonConnectInstanceID + " Root Flow Block The actions are" + actions);
         if (actions !== null && actions.length > 0) {
             const currentAction = findActionByID(actions, contactFlow.StartAction);
+            let actionType = currentAction.Type;
+            if (!AmazonConnectActionTypes_1.AmazonConnectActions.hasOwnProperty(actionType)) {
+                return await terminatingFlowAction(smaEvent, actionType);
+            }
             console.log(defaultLogger + callId + " ConnectInstanceId:" + amazonConnectInstanceID + " Root Flow Block The current Action is " + currentAction.Type);
             if (currentAction !== null) {
                 return await processFlowAction(smaEvent, currentAction, actions, amazonConnectInstanceID, bucketName);
@@ -290,6 +294,10 @@ async function processFlowActionSuccess(smaEvent, action, contactFlow, amazonCon
         return await processFlowConditionValidation(smaEvent, transactionAttributes.currentFlowBlock, contactFlow, intentName, amazonConnectInstanceID, bucketName);
     }
     const nextAction = findActionByID(contactFlow.Actions, action.Transitions.NextAction);
+    let actionType = nextAction.Type;
+    if (!AmazonConnectActionTypes_1.AmazonConnectActions.hasOwnProperty(actionType)) {
+        return await terminatingFlowAction(smaEvent, actionType);
+    }
     return await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName);
 }
 function updateConnectContextStore(transactionAttributes, key, value) {
@@ -358,12 +366,13 @@ async function processFlowActionWait(smaEvent, action, actions, amazonConnectIns
     };
     const nextAction = findActionByID(actions, action.Transitions.Conditions[0].NextAction);
     console.log(defaultLogger + callId + " Next Action identifier:" + action.Transitions.Conditions[0].NextAction);
-    if (ConstantValues_1.constActions.includes(nextAction.Type)) {
-        await sleep(Number(timeLimit));
-        console.log(defaultLogger + callId + " Pause action is Performed for " + timeLimit + " Milliseconds");
-        return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName);
-    }
     let smaAction1 = await (await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName)).Actions[0];
+    let smaAction1_Type = smaAction1.Actions.Type;
+    if (ConstantValues_1.constActions.includes(smaAction1_Type)) {
+        await this.delay(Number(timeLimit));
+        console.log(defaultLogger + callId + " Pause action is Performed for " + timeLimit + " Milliseconds");
+        return await processFlowAction(smaEvent, smaAction1, actions, amazonConnectInstanceID, bucketName);
+    }
     console.log(defaultLogger + callId + "Next Action Data:" + smaAction1);
     return {
         "SchemaVersion": "1.0",
@@ -374,12 +383,13 @@ async function processFlowActionWait(smaEvent, action, actions, amazonConnectIns
             "currentFlowBlock": nextAction
         }
     };
-} /**
-* Making a SMA action to perform Delivers an audio or chat message.
-* @param smaEvent
-* @param action
-* @returns SMA Action
-*/
+}
+/**
+  * Making a SMA action to perform Delivers an audio or chat message.
+  * @param smaEvent
+  * @param action
+  * @returns SMA Action
+  */
 async function processFlowActionMessageParticipant(smaEvent, action) {
     let callId;
     const legA = getLegACallDetails(smaEvent);
@@ -406,7 +416,7 @@ async function processFlowActionMessageParticipant(smaEvent, action) {
     }
     if (action.Parameters.Text !== null && action.Parameters.Text !== "" && action.Parameters.Text && action.Parameters.Text !== "undefined") {
         text = action.Parameters.Text;
-        if (text.includes("$.External.") || text.includes("$.Attributes.")) {
+        if (text.includes("$.External.") || text.includes("$.Attributes.") || text.includes("$.")) {
             //text=textConvertor(text);
             contextAttributs.forEach((value, key) => {
                 if (text.includes(key))
@@ -417,6 +427,13 @@ async function processFlowActionMessageParticipant(smaEvent, action) {
     }
     else if (action.Parameters.SSML !== null && action.Parameters.SSML && action.Parameters.SSML !== "undefined") {
         text = action.Parameters.SSML;
+        if (text.includes("$.External.") || text.includes("$.Attributes.") || text.includes("$.")) {
+            //text=textConvertor(text);
+            contextAttributs.forEach((value, key) => {
+                if (text.includes(key))
+                    text = text.replace(key, value);
+            });
+        }
         type = ConstantValues_1.ConstData.ssml;
     }
     let smaAction = {
@@ -464,7 +481,8 @@ function getSpeechParameters(smaEvent, action) {
         let type;
         if (action.Parameters.Text !== null && action.Parameters.Text !== "" && action.Parameters.Text && action.Parameters.Text !== "undefined") {
             text = action.Parameters.Text;
-            if (text.includes("$.External.") || text.includes("$.Attributes.")) {
+            if (text.includes("$.External.") || text.includes("$.Attributes.") || text.includes("$.")) {
+                //text=textConvertor(text);
                 contextAttributs.forEach((value, key) => {
                     if (text.includes(key))
                         text = text.replace(key, value);
@@ -474,6 +492,13 @@ function getSpeechParameters(smaEvent, action) {
         }
         else if (action.Parameters.SSML !== null && action.Parameters.SSML && action.Parameters.SSML !== "undefined") {
             text = action.Parameters.SSML;
+            if (text.includes("$.External.") || text.includes("$.Attributes.") || text.includes("$.")) {
+                //text=textConvertor(text);
+                contextAttributs.forEach((value, key) => {
+                    if (text.includes(key))
+                        text = text.replace(key, value);
+                });
+            }
             type = ConstantValues_1.ConstData.ssml;
         }
         rv = {
@@ -615,6 +640,10 @@ async function processFlowActionFailed(smaEvent, actionObj, contactFlow, amazonC
         console.log(defaultLogger + callId + "Next Action identifier:" + currentAction.Transitions.Errors[count].NextAction);
         smaAction = await (await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName)).Actions[0];
     }
+    let actionType = nextAction.Type;
+    if (!AmazonConnectActionTypes_1.AmazonConnectActions.hasOwnProperty(actionType)) {
+        return await terminatingFlowAction(smaEvent, actionType);
+    }
     return {
         "SchemaVersion": "1.0",
         "Actions": [
@@ -667,6 +696,10 @@ async function processFlowConditionValidation(smaEvent, actionObj, contactFlow, 
             console.log(defaultLogger + callId + " Conditions are not matching with Recieved Digits ");
         }
         console.log(defaultLogger + callId + " Next Action identifier:" + nextAction_id);
+        let actionType = nextAction.Type;
+        if (!AmazonConnectActionTypes_1.AmazonConnectActions.hasOwnProperty(actionType)) {
+            return await terminatingFlowAction(smaEvent, actionType);
+        }
         return await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName);
     }
 }
@@ -1148,4 +1181,27 @@ function getLegACallDetails(event) {
 }
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+async function terminatingFlowAction(smaEvent, actionType) {
+    let callId;
+    const legA = getLegACallDetails(smaEvent);
+    callId = legA.CallId;
+    if (callId == "NaN")
+        callId = smaEvent.ActionData.Parameters.CallId;
+    ContactFlowARNMap.delete(callId);
+    contextAttributs.clear();
+    console.log(defaultLogger + callId + "The Action " + actionType + " is not supported , The Flow is going to Terminate");
+    let smaAction = {
+        Type: ChimeActionTypes_1.ChimeActions.Hangup,
+        Parameters: {
+            "SipResponseCode": "0",
+            "CallId": callId
+        }
+    };
+    return {
+        "SchemaVersion": "1.0",
+        "Actions": [
+            smaAction
+        ]
+    };
 }
