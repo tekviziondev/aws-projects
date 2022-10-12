@@ -155,7 +155,6 @@ async function processFlowAction(smaEvent, action, actions, amazonConnectInstanc
   * @returns SMA Action
   */
 async function processFlowActionGetParticipantInput(smaEvent, action) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j;
     let callId;
     const legA = getLegACallDetails(smaEvent);
     callId = legA.CallId;
@@ -172,13 +171,14 @@ async function processFlowActionGetParticipantInput(smaEvent, action) {
             "CallId": legA.CallId,
             "SpeechParameters": getSpeechParameters(smaEvent, action),
             "FailureSpeechParameters": getSpeechParameters(smaEvent, action),
-            "MinNumberOfDigits": 1
+            "MinNumberOfDigits": 1,
+            "Repeat": 3
         }
     };
-    if ((_a = action.Parameters) === null || _a === void 0 ? void 0 : _a.InputValidation) {
-        if ((_c = (_b = action.Parameters) === null || _b === void 0 ? void 0 : _b.InputValidation) === null || _c === void 0 ? void 0 : _c.CustomValidation) {
-            if ((_f = (_e = (_d = action.Parameters) === null || _d === void 0 ? void 0 : _d.InputValidation) === null || _e === void 0 ? void 0 : _e.CustomValidation) === null || _f === void 0 ? void 0 : _f.MaximumLength) {
-                smaAction.Parameters['MaxNumberOfDigits'] = (_j = (_h = (_g = action.Parameters) === null || _g === void 0 ? void 0 : _g.InputValidation) === null || _h === void 0 ? void 0 : _h.CustomValidation) === null || _j === void 0 ? void 0 : _j.MaximumLength;
+    if (action.Parameters?.InputValidation) {
+        if (action.Parameters?.InputValidation?.CustomValidation) {
+            if (action.Parameters?.InputValidation?.CustomValidation?.MaximumLength) {
+                smaAction.Parameters['MaxNumberOfDigits'] = action.Parameters?.InputValidation?.CustomValidation?.MaximumLength;
             }
         }
     }
@@ -236,7 +236,6 @@ async function processPlayAudio(smaEvent, action) {
   * @returns SMA Action
   */
 async function processPlayAudioAndGetDigits(smaEvent, action) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j;
     let callId;
     const legA = getLegACallDetails(smaEvent);
     callId = legA.CallId;
@@ -252,10 +251,10 @@ async function processPlayAudioAndGetDigits(smaEvent, action) {
             "MinNumberOfDigits": 5
         }
     };
-    if ((_a = action.Parameters) === null || _a === void 0 ? void 0 : _a.InputValidation) {
-        if ((_c = (_b = action.Parameters) === null || _b === void 0 ? void 0 : _b.InputValidation) === null || _c === void 0 ? void 0 : _c.CustomValidation) {
-            if ((_f = (_e = (_d = action.Parameters) === null || _d === void 0 ? void 0 : _d.InputValidation) === null || _e === void 0 ? void 0 : _e.CustomValidation) === null || _f === void 0 ? void 0 : _f.MaximumLength) {
-                smaAction.Parameters['MaxNumberOfDigits'] = (_j = (_h = (_g = action.Parameters) === null || _g === void 0 ? void 0 : _g.InputValidation) === null || _h === void 0 ? void 0 : _h.CustomValidation) === null || _j === void 0 ? void 0 : _j.MaximumLength;
+    if (action.Parameters?.InputValidation) {
+        if (action.Parameters?.InputValidation?.CustomValidation) {
+            if (action.Parameters?.InputValidation?.CustomValidation?.MaximumLength) {
+                smaAction.Parameters['MaxNumberOfDigits'] = action.Parameters?.InputValidation?.CustomValidation?.MaximumLength;
             }
         }
     }

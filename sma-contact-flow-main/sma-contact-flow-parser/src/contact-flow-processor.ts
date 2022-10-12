@@ -172,7 +172,8 @@ async function processFlowActionGetParticipantInput(smaEvent: any, action: any) 
             "CallId": legA.CallId,
             "SpeechParameters": getSpeechParameters(smaEvent,action),
             "FailureSpeechParameters": getSpeechParameters(smaEvent,action),
-            "MinNumberOfDigits": 1
+            "MinNumberOfDigits": 1,
+            "Repeat": 3
         }
     };
 
