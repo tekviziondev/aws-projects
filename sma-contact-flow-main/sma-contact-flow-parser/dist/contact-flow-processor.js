@@ -248,7 +248,8 @@ async function processPlayAudioAndGetDigits(smaEvent, action) {
             "CallId": callId,
             "AudioSource": getAudioParameters(smaEvent, action),
             "FailureAudioSource": getAudioParameters(smaEvent, action),
-            "MinNumberOfDigits": 5
+            "MinNumberOfDigits": 5,
+            "Repeat": 3
         }
     };
     if (action.Parameters?.InputValidation) {
@@ -419,7 +420,7 @@ async function processFlowActionMessageParticipant(smaEvent, action) {
             //text=textConvertor(text);
             contextAttributs.forEach((value, key) => {
                 if (text.includes(key))
-                    text = text.replace(key, value);
+                    text = text.replaceAll(key, value);
             });
         }
         type = ConstantValues_1.ConstData.text;
@@ -430,7 +431,7 @@ async function processFlowActionMessageParticipant(smaEvent, action) {
             //text=textConvertor(text);
             contextAttributs.forEach((value, key) => {
                 if (text.includes(key))
-                    text = text.replace(key, value);
+                    text = text.replaceAll(key, value);
             });
         }
         type = ConstantValues_1.ConstData.ssml;
@@ -484,7 +485,7 @@ function getSpeechParameters(smaEvent, action) {
                 //text=textConvertor(text);
                 contextAttributs.forEach((value, key) => {
                     if (text.includes(key))
-                        text = text.replace(key, value);
+                        text = text.replaceAll(key, value);
                 });
             }
             type = ConstantValues_1.ConstData.text;
@@ -495,7 +496,7 @@ function getSpeechParameters(smaEvent, action) {
                 //text=textConvertor(text);
                 contextAttributs.forEach((value, key) => {
                     if (text.includes(key))
-                        text = text.replace(key, value);
+                        text = text.replaceAll(key, value);
                 });
             }
             type = ConstantValues_1.ConstData.ssml;
@@ -607,7 +608,7 @@ async function processFlowActionFailed(smaEvent, actionObj, contactFlow, amazonC
     let currentAction = contactFlow.Actions.find((action) => action.Identifier === actionObj.Identifier);
     let smaAction;
     let nextAction;
-    if (smaEvent != null && smaEvent.ActionData.ErrorType.includes(ErrorTypes_1.ErrorTypes.InputTimeLimitExceeded)) {
+    if (smaEvent != null && smaEvent.ActionData.ErrorType.includes(ErrorTypes_1.ErrorTypes.InputTimeLimitExceeded) || smaEvent.ActionData.ErrorType.includes(ErrorTypes_1.ErrorTypes.InvalidDigitsReceived)) {
         nextAction = await getNextActionForError(currentAction, contactFlow.Actions, ErrorTypes_1.ErrorTypes.InputTimeLimitExceeded, smaEvent);
         smaAction = await (await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName)).Actions[0];
     }

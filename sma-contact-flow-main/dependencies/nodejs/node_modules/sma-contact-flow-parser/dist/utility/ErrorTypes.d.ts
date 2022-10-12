@@ -1,5 +1,6 @@
 export declare enum ErrorTypes {
     InputTimeLimitExceeded = "InputTimeLimitExceeded",
+    InvalidDigitsReceived = "InvalidDigitsReceived",
     NoMatchingCondition = "NoMatchingCondition",
     ConnectionTimeLimitExceeded = "ConnectionTimeLimitExceeded",
     CallFailed = "CallFailed",
