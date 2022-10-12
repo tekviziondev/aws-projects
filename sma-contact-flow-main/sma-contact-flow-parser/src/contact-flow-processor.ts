@@ -360,7 +360,7 @@ async function processFlowActionDisconnectParticipant(smaEvent:any, action:any){
   * @param bucketName
   * @returns SMA Action
   */
-async function processFlowActionWait(smaEvent:any, action:any,actions:any,amazonConnectInstanceID: string,bucketName:string){
+ async function processFlowActionWait(smaEvent:any, action:any,actions:any,amazonConnectInstanceID: string,bucketName:string){
     let callId:string;
     const legA = getLegACallDetails(smaEvent);
      callId=legA.CallId;
@@ -377,11 +377,11 @@ async function processFlowActionWait(smaEvent:any, action:any,actions:any,amazon
     const nextAction = findActionByID(actions, action.Transitions.Conditions[0].NextAction);
     console.log(defaultLogger+callId+" Next Action identifier:"+action.Transitions.Conditions[0].NextAction);
     let smaAction1 =await (await processFlowAction(smaEvent, nextAction,actions,amazonConnectInstanceID,bucketName)).Actions[0];
-    let smaAction1_Type:string=smaAction1.Actions.Type
+    let smaAction1_Type:string=nextAction.Type
     if(constActions.includes(smaAction1_Type)){
-        await this.delay(Number(timeLimit));
+        await sleep(Number(timeLimit));
         console.log(defaultLogger+callId+" Pause action is Performed for "+timeLimit+ " Milliseconds");
-        return await processFlowAction(smaEvent, smaAction1,actions,amazonConnectInstanceID,bucketName)
+        return await processFlowAction(smaEvent, nextAction,actions,amazonConnectInstanceID,bucketName)
     }
     console.log(defaultLogger+callId+"Next Action Data:"+smaAction1);
     return {
@@ -765,17 +765,7 @@ async function processFlowActionLoop(smaEvent:any, action:any,actions:any, amazo
         loop.delete(callId);
         let nextAction = findActionByID(actions, action.Transitions.Conditions[0].NextAction);
     console.log(defaultLogger+callId+" Next Action identifier:"+action.Transitions.Conditions[0].NextAction);
-    smaAction= await (await processFlowAction(smaEvent, nextAction,actions,amazonConnectInstanceID,bucketName)).Actions[0];
-    console.log(defaultLogger+callId+" Next Action Data:"+smaAction);
-    return {
-        "SchemaVersion": "1.0",
-        "Actions": [
-              smaAction
-        ],
-        "TransactionAttributes": {
-        "currentFlowBlock": nextAction,
-         }
-    }
+   return await processFlowAction(smaEvent, nextAction,actions,amazonConnectInstanceID,bucketName);
      }    
 }
 

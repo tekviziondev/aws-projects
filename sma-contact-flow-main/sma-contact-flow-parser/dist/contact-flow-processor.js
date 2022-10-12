@@ -367,11 +367,11 @@ async function processFlowActionWait(smaEvent, action, actions, amazonConnectIns
     const nextAction = findActionByID(actions, action.Transitions.Conditions[0].NextAction);
     console.log(defaultLogger + callId + " Next Action identifier:" + action.Transitions.Conditions[0].NextAction);
     let smaAction1 = await (await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName)).Actions[0];
-    let smaAction1_Type = smaAction1.Actions.Type;
+    let smaAction1_Type = nextAction.Type;
     if (ConstantValues_1.constActions.includes(smaAction1_Type)) {
-        await this.delay(Number(timeLimit));
+        await sleep(Number(timeLimit));
         console.log(defaultLogger + callId + " Pause action is Performed for " + timeLimit + " Milliseconds");
-        return await processFlowAction(smaEvent, smaAction1, actions, amazonConnectInstanceID, bucketName);
+        return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName);
     }
     console.log(defaultLogger + callId + "Next Action Data:" + smaAction1);
     return {
@@ -743,17 +743,7 @@ async function processFlowActionLoop(smaEvent, action, actions, amazonConnectIns
         loop.delete(callId);
         let nextAction = findActionByID(actions, action.Transitions.Conditions[0].NextAction);
         console.log(defaultLogger + callId + " Next Action identifier:" + action.Transitions.Conditions[0].NextAction);
-        smaAction = await (await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName)).Actions[0];
-        console.log(defaultLogger + callId + " Next Action Data:" + smaAction);
-        return {
-            "SchemaVersion": "1.0",
-            "Actions": [
-                smaAction
-            ],
-            "TransactionAttributes": {
-                "currentFlowBlock": nextAction,
-            }
-        };
+        return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName);
     }
 }
 /**
