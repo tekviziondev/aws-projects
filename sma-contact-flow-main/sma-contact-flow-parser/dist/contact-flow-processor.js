@@ -402,6 +402,7 @@ async function processFlowActionMessageParticipant(smaEvent, action) {
     }
     let text;
     let type;
+    let x;
     let voiceId = ConstantValues_1.ConstData.voiceId;
     let engine = ConstantValues_1.ConstData.engine;
     let languageCode = ConstantValues_1.ConstData.languageCode;
@@ -419,8 +420,12 @@ async function processFlowActionMessageParticipant(smaEvent, action) {
         if (text.includes("$.External.") || text.includes("$.Attributes.") || text.includes("$.")) {
             //text=textConvertor(text);
             contextAttributs.forEach((value, key) => {
-                if (text.includes(key))
-                    text = text.replaceAll(key, value);
+                if (text.includes(key)) {
+                    x = count(text, key);
+                    for (let index = 0; index < x; index++) {
+                        text = text.replace(key, value);
+                    }
+                }
             });
         }
         type = ConstantValues_1.ConstData.text;
@@ -430,8 +435,12 @@ async function processFlowActionMessageParticipant(smaEvent, action) {
         if (text.includes("$.External.") || text.includes("$.Attributes.") || text.includes("$.")) {
             //text=textConvertor(text);
             contextAttributs.forEach((value, key) => {
-                if (text.includes(key))
-                    text = text.replaceAll(key, value);
+                if (text.includes(key)) {
+                    x = count(text, key);
+                    for (let index = 0; index < x; index++) {
+                        text = text.replace(key, value);
+                    }
+                }
             });
         }
         type = ConstantValues_1.ConstData.ssml;
@@ -479,13 +488,18 @@ function getSpeechParameters(smaEvent, action) {
     if (action.Text !== null || action.SSML !== null) {
         let text;
         let type;
+        let x;
         if (action.Parameters.Text !== null && action.Parameters.Text !== "" && action.Parameters.Text && action.Parameters.Text !== "undefined") {
             text = action.Parameters.Text;
             if (text.includes("$.External.") || text.includes("$.Attributes.") || text.includes("$.")) {
                 //text=textConvertor(text);
                 contextAttributs.forEach((value, key) => {
-                    if (text.includes(key))
-                        text = text.replaceAll(key, value);
+                    if (text.includes(key)) {
+                        x = count(text, key);
+                        for (let index = 0; index < x; index++) {
+                            text = text.replace(key, value);
+                        }
+                    }
                 });
             }
             type = ConstantValues_1.ConstData.text;
@@ -495,8 +509,12 @@ function getSpeechParameters(smaEvent, action) {
             if (text.includes("$.External.") || text.includes("$.Attributes.") || text.includes("$.")) {
                 //text=textConvertor(text);
                 contextAttributs.forEach((value, key) => {
-                    if (text.includes(key))
-                        text = text.replaceAll(key, value);
+                    if (text.includes(key)) {
+                        x = count(text, key);
+                        for (let index = 0; index < x; index++) {
+                            text = text.replace(key, value);
+                        }
+                    }
                 });
             }
             type = ConstantValues_1.ConstData.ssml;
@@ -1171,6 +1189,9 @@ function getLegACallDetails(event) {
 }
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+function count(str, find) {
+    return (str.split(find)).length - 1;
 }
 async function terminatingFlowAction(smaEvent, actionType) {
     let callId;
