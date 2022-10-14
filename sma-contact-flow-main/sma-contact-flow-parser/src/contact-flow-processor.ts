@@ -176,6 +176,10 @@ async function processFlowActionGetParticipantInput(smaEvent: any, action: any) 
             "Repeat": 3
         }
     };
+    let text=smaAction.Parameters.SpeechParameters.Text
+    if(text.includes("$.")){
+        return await terminatingFlowAction(smaEvent,"Invalid_Text")
+    }
 
     if (action.Parameters?.InputValidation) {
         if (action.Parameters?.InputValidation?.CustomValidation) {
@@ -258,7 +262,6 @@ async function processPlayAudioAndGetDigits(smaEvent: any, action: any) {
             "Repeat": 3
         }
     };
-
     if (action.Parameters?.InputValidation) {
         if (action.Parameters?.InputValidation?.CustomValidation) {
             if (action.Parameters?.InputValidation?.CustomValidation?.MaximumLength) {
@@ -456,6 +459,9 @@ async function processFlowActionMessageParticipant(smaEvent: any, action: any) {
               })
         }
         type = ConstData.ssml;
+    }
+    if(text.includes("$.")){
+        return await terminatingFlowAction(smaEvent,"Invalid_Text")
     }
     let smaAction = {
         Type: ChimeActions.Speak,
@@ -1235,6 +1241,21 @@ function count(str, find) {
     return (str.split(find)).length - 1;
 }
  async function terminatingFlowAction(smaEvent:any, actionType:any){
+    let text:string;
+    let type:string;
+    let x:Number;
+    let voiceId=ConstData.voiceId
+    let engine=ConstData.engine
+    let languageCode=ConstData.languageCode
+    if(SpeechAttributeMap.has("TextToSpeechVoice")){
+        voiceId=SpeechAttributeMap.get("TextToSpeechVoice")
+    }
+    if(SpeechAttributeMap.has("TextToSpeechEngine")){
+        engine=SpeechAttributeMap.get("TextToSpeechEngine").toLowerCase();
+    }
+	if(SpeechAttributeMap.has("LanguageCode")){
+        languageCode=SpeechAttributeMap.get("LanguageCode")
+    }
     let callId:string;
     const legA = getLegACallDetails(smaEvent);
      callId=legA.CallId;
@@ -1242,8 +1263,27 @@ function count(str, find) {
     callId=  smaEvent.ActionData.Parameters.CallId;
     ContactFlowARNMap.delete(callId);
     contextAttributs.clear();
-    console.log(defaultLogger+callId+ "The Action "+ actionType +" is not supported , The Flow is going to Terminate");
+    if(actionType=="Invalid_Text"){
+        console.log(defaultLogger+callId+ "The Text to Speak has Invalid Attributes. The Flow is going to Terminate, Please Check the Flow");
+        text="There is an Invalid Attribute Present, your call is going to disconnect"
+    }
+    else{
+        console.log(defaultLogger+callId+ "The Action "+ actionType +" is not supported , The Flow is going to Terminate, Please use only the Supported Action");
+        text="The action "+actionType+" is unsupported Action defined in the Contact flow, your call is going to disconnect"
+    }
     let smaAction = {
+        Type: ChimeActions.Speak,
+        Parameters: {
+                 Engine: engine,
+                CallId: legA.CallId,
+                Text: text,
+                TextType: type,
+                LanguageCode:languageCode,
+                VoiceId: voiceId
+                
+        }
+    }
+    let smaAction1 = {
      Type: ChimeActions.Hangup,
      Parameters: { 
         "SipResponseCode": "0",
@@ -1252,9 +1292,6 @@ function count(str, find) {
     };
   return {
     "SchemaVersion": "1.0",
-    "Actions": [
-        smaAction
-    ]
-}
-
+    "Actions": [smaAction,smaAction1]
+    }
  }
