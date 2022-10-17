@@ -18,8 +18,8 @@ export async function loadContactFlow(amazonConnectInstanceID: string, amazonCon
     InstanceId: amazonConnectInstanceID
   };
   const describeContactFlowModuleParams = {
-    InstanceId: amazonConnectContactFlowID,
-    ContactFlowModuleId: amazonConnectInstanceID
+    InstanceId: amazonConnectInstanceID,
+    ContactFlowModuleId: amazonConnectContactFlowID
   };
   let rv = await checkFlowCache(amazonConnectInstanceID, amazonConnectContactFlowID,smaEvent);
   if (rv == null) {

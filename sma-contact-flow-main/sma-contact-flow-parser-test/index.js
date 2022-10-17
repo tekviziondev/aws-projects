@@ -6,7 +6,7 @@ const amazonConnectFlowID = "arn:aws:connect:us-east-1:664887287655:instance/a2a
 (async () => {
     try {
         console.log("Got Here");
-        const flowObject = await (0, sma_contact_flow_parser_1.processFlow)("",amazonConnectInstanceID, amazonConnectFlowID,"flow-cache1");
+        const flowObject = await (0, sma_contact_flow_parser_1.loadContactFlow)(amazonConnectInstanceID,"f26b880e-d61f-4428-b043-c568d54cdfdf","flow-cache1","","Invoke_Module");
         console.dir(flowObject, { depth: null });
     }
     catch (e) {
