@@ -5,8 +5,6 @@ import { Operators } from "./utility/ComparisonOperators";
 import { ChimeActions } from "./utility/ChimeActionTypes";
 import { AmazonConnectActions } from "./utility/AmazonConnectActionTypes";
 import { constActions, ConstData } from "./utility/ConstantValues";
-import { Connect } from 'aws-sdk';
-import { S3 } from 'aws-sdk';
 
 
 const connectContextStore: string = "ConnectContextStore";
@@ -1183,9 +1181,7 @@ async function processFlowActionInvokeFlowModule(smaEvent: any, action: any,acti
 }
 
 async function processFlowActionEndFlowModuleExecution(smaEvent: any, action: any,actions:any, amazonConnectInstanceID: string, bucketName:string){
-    let rv =null;
     let callId:string;
-
         const legA = getLegACallDetails(smaEvent);
          callId=legA.CallId;
         if(callId=="NaN")
@@ -1193,18 +1189,10 @@ async function processFlowActionEndFlowModuleExecution(smaEvent: any, action: an
     InvokeModuleARNMap.delete(callId)
     let nextaction_id=InvokationModuleNextAction.get(callId)
     let contactFlow_id=ActualFlowARN.get(callId)
-    let describeContactFlowParams = {
-        ContactFlowId: contactFlow_id,
-        InstanceId: amazonConnectInstanceID
-      };
-      const connect = new Connect();
-      let contactFlowResponse = await connect.describeContactFlow(describeContactFlowParams).promise();
-      let contactFlow = JSON.parse(contactFlowResponse.ContactFlow.Content) as any;
-      //await writeFlowCache(rv, amazonConnectInstanceID, contactFlow_id,smaEvent);
-      let nextAction = findActionByID(contactFlow, nextaction_id);
+      const contactFlow = await loadContactFlow(amazonConnectInstanceID, contactFlow_id,bucketName,smaEvent,"Contact_Flow");
+      let nextAction = findActionByID(contactFlow.Actions, nextaction_id);
+      InvokationModuleNextAction.delete(callId);
       return await processFlowAction(smaEvent, nextAction,contactFlow.Actions,amazonConnectInstanceID,bucketName);
-      
-
 }
 /**
   * Based on the Error condition, the Next action performed

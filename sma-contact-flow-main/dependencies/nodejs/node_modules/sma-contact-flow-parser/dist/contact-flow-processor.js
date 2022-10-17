@@ -8,7 +8,6 @@ const ComparisonOperators_1 = require("./utility/ComparisonOperators");
 const ChimeActionTypes_1 = require("./utility/ChimeActionTypes");
 const AmazonConnectActionTypes_1 = require("./utility/AmazonConnectActionTypes");
 const ConstantValues_1 = require("./utility/ConstantValues");
-const aws_sdk_1 = require("aws-sdk");
 const connectContextStore = "ConnectContextStore";
 let loop = new Map();
 let ContactFlowARNMap = new Map();
@@ -1141,7 +1140,6 @@ async function processFlowActionInvokeFlowModule(smaEvent, action, actions, amaz
     return await processRootFlowBlock(smaEvent, contactFlow, smaEvent.CallDetails.TransactionAttributes, amazonConnectInstanceID, bucketName);
 }
 async function processFlowActionEndFlowModuleExecution(smaEvent, action, actions, amazonConnectInstanceID, bucketName) {
-    let rv = null;
     let callId;
     const legA = getLegACallDetails(smaEvent);
     callId = legA.CallId;
@@ -1150,15 +1148,9 @@ async function processFlowActionEndFlowModuleExecution(smaEvent, action, actions
     InvokeModuleARNMap.delete(callId);
     let nextaction_id = InvokationModuleNextAction.get(callId);
     let contactFlow_id = ActualFlowARN.get(callId);
-    let describeContactFlowParams = {
-        ContactFlowId: contactFlow_id,
-        InstanceId: amazonConnectInstanceID
-    };
-    const connect = new aws_sdk_1.Connect();
-    let contactFlowResponse = await connect.describeContactFlow(describeContactFlowParams).promise();
-    let contactFlow = JSON.parse(contactFlowResponse.ContactFlow.Content);
-    //await writeFlowCache(rv, amazonConnectInstanceID, contactFlow_id,smaEvent);
-    let nextAction = findActionByID(contactFlow, nextaction_id);
+    const contactFlow = await (0, contact_flow_loader_1.loadContactFlow)(amazonConnectInstanceID, contactFlow_id, bucketName, smaEvent, "Contact_Flow");
+    let nextAction = findActionByID(contactFlow.Actions, nextaction_id);
+    InvokationModuleNextAction.delete(callId);
     return await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName);
 }
 /**
