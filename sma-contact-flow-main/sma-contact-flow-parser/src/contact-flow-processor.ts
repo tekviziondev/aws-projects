@@ -353,6 +353,8 @@ async function processFlowActionDisconnectParticipant(smaEvent:any, action:any){
         callId=  smaEvent.ActionData.Parameters.CallId;
     ContactFlowARNMap.delete(callId);
     contextAttributs.clear();
+    ActualFlowARN.delete(callId);
+    SpeechAttributeMap.clear();
     console.log(defaultLogger+callId+" is going to Hang up");
     let smaAction = {
         Type: ChimeActions.Hangup,
