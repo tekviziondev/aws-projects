@@ -6,7 +6,7 @@ const aws_sdk_2 = require("aws-sdk");
 let s3Bucket;
 const cacheTimeInMilliseconds = 5000;
 const defaultLogger = "SMA-Contact-Flow-Parser | Call ID - ";
-async function loadContactFlow(amazonConnectInstanceID, amazonConnectContactFlowID, bucket, smaEvent) {
+async function loadContactFlow(amazonConnectInstanceID, amazonConnectContactFlowID, bucket, smaEvent, type) {
     const legA = getLegACallDetails(smaEvent);
     let callId;
     callId = legA.CallId;
@@ -17,13 +17,24 @@ async function loadContactFlow(amazonConnectInstanceID, amazonConnectContactFlow
         ContactFlowId: amazonConnectContactFlowID,
         InstanceId: amazonConnectInstanceID
     };
+    const describeContactFlowModuleParams = {
+        InstanceId: amazonConnectContactFlowID,
+        ContactFlowModuleId: amazonConnectInstanceID
+    };
     let rv = await checkFlowCache(amazonConnectInstanceID, amazonConnectContactFlowID, smaEvent);
     if (rv == null) {
         console.log(defaultLogger + callId + " Loading Contact Flow Details from Connect ");
         const connect = new aws_sdk_1.Connect();
-        const contactFlowResponse = await connect.describeContactFlow(describeContactFlowParams).promise();
-        rv = JSON.parse(contactFlowResponse.ContactFlow.Content);
-        await writeFlowCache(rv, amazonConnectInstanceID, amazonConnectContactFlowID, smaEvent);
+        if (type === "Invoke_Module") {
+            const contactModuleResponse = await connect.describeContactFlowModule(describeContactFlowModuleParams).promise();
+            rv = JSON.parse(contactModuleResponse.ContactFlowModule.Content);
+            await writeFlowCache(rv, amazonConnectInstanceID, amazonConnectContactFlowID, smaEvent);
+        }
+        else {
+            const contactFlowResponse = await connect.describeContactFlow(describeContactFlowParams).promise();
+            rv = JSON.parse(contactFlowResponse.ContactFlow.Content);
+            await writeFlowCache(rv, amazonConnectInstanceID, amazonConnectContactFlowID, smaEvent);
+        }
     }
     return rv;
 }

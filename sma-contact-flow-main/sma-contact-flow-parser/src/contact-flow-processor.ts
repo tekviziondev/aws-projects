@@ -5,10 +5,16 @@ import { Operators } from "./utility/ComparisonOperators";
 import { ChimeActions } from "./utility/ChimeActionTypes";
 import { AmazonConnectActions } from "./utility/AmazonConnectActionTypes";
 import { constActions, ConstData } from "./utility/ConstantValues";
+import { Connect } from 'aws-sdk';
+import { S3 } from 'aws-sdk';
+
 
 const connectContextStore: string = "ConnectContextStore";
 let loop = new Map<string, string>();
 let ContactFlowARNMap=new Map<string, string>();
+let InvokeModuleARNMap=new Map<string, string>();
+let InvokationModuleNextAction=new Map<string,string>();
+let ActualFlowARN=new Map<string,string>();
 const SpeechAttributeMap:Map<string, string>=new Map<string, string>();
 const contextAttributs:Map<any, any>=new Map<any, any>();
 let tmpMap:Map<any, any>=new Map<any, any>();
@@ -23,15 +29,23 @@ const defaultLogger="SMA-Contact-Flow-Builder | Call ID - "
   * @returns SMA Action
   */
 export async function processFlow(smaEvent: any, amazonConnectInstanceID: string, amazonConnectFlowID: string,bucketName:string) {    
+        let type="Contact_Flow";
         let callId:string;
         const legA = getLegACallDetails(smaEvent);
          callId=legA.CallId;
         if(callId=="NaN")
          callId=  smaEvent.ActionData.Parameters.CallId;
+    if(!ActualFlowARN.has(callId)){
+        ActualFlowARN.set(callId, amazonConnectFlowID)
+    }
     if(ContactFlowARNMap.has(callId)){
         amazonConnectFlowID =(ContactFlowARNMap.get(callId)) 
     }
-    const contactFlow = await loadContactFlow(amazonConnectInstanceID, amazonConnectFlowID,bucketName,smaEvent);
+    if(InvokeModuleARNMap.has(callId)){
+        type="Invoke_Module"
+        amazonConnectFlowID =(InvokeModuleARNMap.get(callId)) 
+    }
+    const contactFlow = await loadContactFlow(amazonConnectInstanceID, amazonConnectFlowID,bucketName,smaEvent,type);
     console.log(defaultLogger+callId+" ConnectInstanceId:"+amazonConnectInstanceID+" Loaded Contact Flow"+contactFlow);
     console.log(defaultLogger+callId+" ConnectInstanceId:"+amazonConnectInstanceID+" CallDetails:"+smaEvent.CallDetails);
     const transactionAttributes = smaEvent.CallDetails.TransactionAttributes;
@@ -144,6 +158,10 @@ async function processFlowAction(smaEvent: any, action: any,actions:any,amazonCo
             return await processFlowActionUpdateContactAttributes(smaEvent, action,actions,amazonConnectInstanceID,bucketName)
         case AmazonConnectActions.Compare:
             return await processFlowActionCompareContactAttributes(smaEvent, action,actions,amazonConnectInstanceID,bucketName)
+        case AmazonConnectActions.InvokeFlowModule:
+            return await processFlowActionInvokeFlowModule(smaEvent, action,actions,amazonConnectInstanceID,bucketName)
+        case AmazonConnectActions.EndFlowModuleExecution:
+            return await processFlowActionEndFlowModuleExecution(smaEvent, action,actions,amazonConnectInstanceID,bucketName)
         default:
             null;
     }
@@ -604,7 +622,11 @@ function findActionByID(actions: any[], identifier: string) {
   * @returns SMA Action
   */
 async function processFlowActionUpdateContactRecordingBehavior(smaEvent:any, action:any){
+    let callId: string;
     const legA = getLegACallDetails(smaEvent);
+     callId=legA.CallId;
+    if(callId=="NaN")
+     callId=  smaEvent.ActionData.Parameters.CallId;
     if(action.Parameters.RecordingBehavior.RecordedParticipants.length<1){
         let smaAction={
             Type: ChimeActions.StopCallRecording,
@@ -925,7 +947,7 @@ async function processFlowActionTransferToFlow(smaEvent:any, action:any, amazonC
         if(callId=="NaN")
          callId=  smaEvent.ActionData.Parameters.CallId;
     ContactFlowARNMap.set(callId,TransferFlowARN)
-    const contactFlow = await loadContactFlow(amazonConnectInstanceID, TransferFlowARN,bucketName,smaEvent);
+    const contactFlow = await loadContactFlow(amazonConnectInstanceID, TransferFlowARN,bucketName,smaEvent,"Contact_Flow");
     console.log(defaultLogger+callId+" Transfering to Another contact FLow function")
      return await processRootFlowBlock(smaEvent,contactFlow,smaEvent.CallDetails.TransactionAttributes, amazonConnectInstanceID,bucketName);
 
@@ -1144,6 +1166,46 @@ async function processFlowActionCompareContactAttributes(smaEvent: any, action: 
         return await processFlowAction(smaEvent, nextAction,actions,amazonConnectInstanceID,bucketName);
     }
 
+async function processFlowActionInvokeFlowModule(smaEvent: any, action: any,actions:any, amazonConnectInstanceID: string, bucketName:string){
+    let ModuleARN=action.Parameters.FlowModuleId;
+    let callId:string;
+        const legA = getLegACallDetails(smaEvent);
+         callId=legA.CallId;
+        if(callId=="NaN")
+         callId=  smaEvent.ActionData.Parameters.CallId;
+
+    InvokeModuleARNMap.set(callId,ModuleARN)
+    let endModuleNextAction=action.Transitions.NextAction;
+    InvokationModuleNextAction.set(callId,endModuleNextAction);
+    const contactFlow = await loadContactFlow(amazonConnectInstanceID, ModuleARN,bucketName,smaEvent,"Invoke_Module");
+    console.log(defaultLogger+callId+" Transfering to Another contact FLow function")
+     return await processRootFlowBlock(smaEvent,contactFlow,smaEvent.CallDetails.TransactionAttributes, amazonConnectInstanceID,bucketName);
+}
+
+async function processFlowActionEndFlowModuleExecution(smaEvent: any, action: any,actions:any, amazonConnectInstanceID: string, bucketName:string){
+    let rv =null;
+    let callId:string;
+
+        const legA = getLegACallDetails(smaEvent);
+         callId=legA.CallId;
+        if(callId=="NaN")
+         callId=  smaEvent.ActionData.Parameters.CallId;
+    InvokeModuleARNMap.delete(callId)
+    let nextaction_id=InvokationModuleNextAction.get(callId)
+    let contactFlow_id=ActualFlowARN.get(callId)
+    let describeContactFlowParams = {
+        ContactFlowId: contactFlow_id,
+        InstanceId: amazonConnectInstanceID
+      };
+      const connect = new Connect();
+      let contactFlowResponse = await connect.describeContactFlow(describeContactFlowParams).promise();
+      let contactFlow = JSON.parse(contactFlowResponse.ContactFlow.Content) as any;
+      //await writeFlowCache(rv, amazonConnectInstanceID, contactFlow_id,smaEvent);
+      let nextAction = findActionByID(contactFlow, nextaction_id);
+      return await processFlowAction(smaEvent, nextAction,contactFlow.Actions,amazonConnectInstanceID,bucketName);
+      
+
+}
 /**
   * Based on the Error condition, the Next action performed
   * @param smaEvent 

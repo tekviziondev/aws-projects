@@ -5,7 +5,8 @@ let s3Bucket: string;
 const cacheTimeInMilliseconds: number = 5000;
 const defaultLogger="SMA-Contact-Flow-Parser | Call ID - "
 
-export async function loadContactFlow(amazonConnectInstanceID: string, amazonConnectContactFlowID: string,bucket:string,smaEvent:any) { 
+export async function loadContactFlow(amazonConnectInstanceID: string, amazonConnectContactFlowID: string,bucket:string,smaEvent:any,type:string) { 
+
   const legA = getLegACallDetails(smaEvent);
     let callId:string;
      callId=legA.CallId;
@@ -16,14 +17,25 @@ export async function loadContactFlow(amazonConnectInstanceID: string, amazonCon
     ContactFlowId: amazonConnectContactFlowID,
     InstanceId: amazonConnectInstanceID
   };
-
+  const describeContactFlowModuleParams = {
+    InstanceId: amazonConnectContactFlowID,
+    ContactFlowModuleId: amazonConnectInstanceID
+  };
   let rv = await checkFlowCache(amazonConnectInstanceID, amazonConnectContactFlowID,smaEvent);
   if (rv == null) {
     console.log(defaultLogger+callId+" Loading Contact Flow Details from Connect ");
     const connect = new Connect();
-    const contactFlowResponse = await connect.describeContactFlow(describeContactFlowParams).promise();
-    rv = JSON.parse(contactFlowResponse.ContactFlow.Content) as any;
-    await writeFlowCache(rv, amazonConnectInstanceID, amazonConnectContactFlowID,smaEvent);
+    if(type==="Invoke_Module"){
+      const contactModuleResponse = await connect.describeContactFlowModule(describeContactFlowModuleParams).promise();
+      rv = JSON.parse(contactModuleResponse.ContactFlowModule.Content) as any;
+      await writeFlowCache(rv, amazonConnectInstanceID, amazonConnectContactFlowID,smaEvent);
+    }
+    else{
+      const contactFlowResponse = await connect.describeContactFlow(describeContactFlowParams).promise();
+      rv = JSON.parse(contactFlowResponse.ContactFlow.Content) as any;
+      await writeFlowCache(rv, amazonConnectInstanceID, amazonConnectContactFlowID,smaEvent);
+    }
+    
   }
   return rv;
 }

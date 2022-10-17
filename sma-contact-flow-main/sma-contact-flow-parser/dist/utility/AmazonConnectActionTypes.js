@@ -16,4 +16,6 @@ var AmazonConnectActions;
     AmazonConnectActions["InvokeLambdaFunction"] = "InvokeLambdaFunction";
     AmazonConnectActions["UpdateContactAttributes"] = "UpdateContactAttributes";
     AmazonConnectActions["Compare"] = "Compare";
+    AmazonConnectActions["InvokeFlowModule"] = "InvokeFlowModule";
+    AmazonConnectActions["EndFlowModuleExecution"] = "EndFlowModuleExecution";
 })(AmazonConnectActions = exports.AmazonConnectActions || (exports.AmazonConnectActions = {}));

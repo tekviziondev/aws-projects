@@ -11,5 +11,7 @@ export declare enum AmazonConnectActions {
     UpdateContactTextToSpeechVoice = "UpdateContactTextToSpeechVoice",
     InvokeLambdaFunction = "InvokeLambdaFunction",
     UpdateContactAttributes = "UpdateContactAttributes",
-    Compare = "Compare"
+    Compare = "Compare",
+    InvokeFlowModule = "InvokeFlowModule",
+    EndFlowModuleExecution = "EndFlowModuleExecution"
 }
