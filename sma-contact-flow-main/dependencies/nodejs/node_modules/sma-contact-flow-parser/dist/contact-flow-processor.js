@@ -1272,6 +1272,8 @@ async function terminatingFlowAction(smaEvent, actionType) {
         callId = smaEvent.ActionData.Parameters.CallId;
     ContactFlowARNMap.delete(callId);
     contextAttributs.clear();
+    ActualFlowARN.delete(callId);
+    SpeechAttributeMap.clear();
     if (actionType == "Invalid_Text") {
         console.log(defaultLogger + callId + "The Text to Speak has Invalid Attributes. The Flow is going to Terminate, Please Check the Flow");
         text = "There is an Invalid Attribute Present, your call is going to disconnect";
