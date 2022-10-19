@@ -17,6 +17,7 @@ const SpeechAttributeMap:Map<string, string>=new Map<string, string>();
 const contextAttributs:Map<any, any>=new Map<any, any>();
 let tmpMap:Map<any, any>=new Map<any, any>();
 const defaultLogger="SMA-Contact-Flow-Builder | Call ID - "
+let puaseAction:any;
 /**
   * This function get connect flow data from contact flow loader 
   * and send the connect flow data to respective functions.
@@ -173,6 +174,7 @@ async function processFlowAction(smaEvent: any, action: any,actions:any,amazonCo
   */
 async function processFlowActionGetParticipantInput(smaEvent: any, action: any) {
     let callId:string;
+    let smaAction1:any;
         const legA = getLegACallDetails(smaEvent);
          callId=legA.CallId;
         if(callId=="NaN")
@@ -211,7 +213,20 @@ async function processFlowActionGetParticipantInput(smaEvent: any, action: any) 
         const timeLimit: number = Number.parseInt(action.Parameters.InputTimeLimitSeconds);
         smaAction.Parameters["RepeatDurationInMilliseconds"] = timeLimit * 1000;
     }
-
+    if(puaseAction!=null && puaseAction && puaseAction!=""){
+        smaAction1=puaseAction;
+        puaseAction=null;
+        return {
+            "SchemaVersion": "1.0",
+            "Actions": [
+                smaAction1,smaAction
+            ],
+            "TransactionAttributes": {
+                "currentFlowBlock": action
+            }
+        } 
+        
+    }
     return {
         "SchemaVersion": "1.0",
         "Actions": [
@@ -231,6 +246,7 @@ async function processFlowActionGetParticipantInput(smaEvent: any, action: any) 
   */
 async function processPlayAudio(smaEvent: any, action: any) {
     let callId:string;
+    let smaAction1:any;
     const legA = getLegACallDetails(smaEvent);
      callId=legA.CallId;
     if(callId=="NaN")
@@ -243,6 +259,20 @@ async function processPlayAudio(smaEvent: any, action: any) {
             "AudioSource": getAudioParameters(smaEvent,action)
         }
     };
+    if(puaseAction!=null && puaseAction && puaseAction!=""){
+        smaAction1=puaseAction;
+        puaseAction=null;
+        return {
+            "SchemaVersion": "1.0",
+            "Actions": [
+                smaAction1,smaAction
+            ],
+            "TransactionAttributes": {
+                "currentFlowBlock": action
+            }
+        } 
+        
+    }
  return {
         "SchemaVersion": "1.0",
         "Actions": [
@@ -263,6 +293,7 @@ async function processPlayAudio(smaEvent: any, action: any) {
 
 async function processPlayAudioAndGetDigits(smaEvent: any, action: any) {
     let callId:string;
+    let smaAction1:any;
     const legA = getLegACallDetails(smaEvent);
      callId=legA.CallId;
     if(callId=="NaN")
@@ -292,7 +323,20 @@ async function processPlayAudioAndGetDigits(smaEvent: any, action: any) {
         const timeLimit: number = Number.parseInt(action.Parameters.InputTimeLimitSeconds);
         smaAction.Parameters["RepeatDurationInMilliseconds"] = timeLimit * 1000;
     }
-
+    if(puaseAction!=null && puaseAction && puaseAction!=""){
+        smaAction1=puaseAction;
+        puaseAction=null;
+        return {
+            "SchemaVersion": "1.0",
+            "Actions": [
+                smaAction1,smaAction
+            ],
+            "TransactionAttributes": {
+                "currentFlowBlock": action
+            }
+        } 
+        
+    }
     return {
         "SchemaVersion": "1.0",
         "Actions": [
@@ -347,6 +391,7 @@ function updateConnectContextStore(transactionAttributes: any, key: string, valu
   */
 async function processFlowActionDisconnectParticipant(smaEvent:any, action:any){
     let callId:string;
+    let smaAction1:any;
         const legA = getLegACallDetails(smaEvent);
          callId=legA.CallId;
         if(callId=="NaN")
@@ -363,6 +408,20 @@ async function processFlowActionDisconnectParticipant(smaEvent:any, action:any){
             "CallId":callId
         }
     };
+    if(puaseAction!=null && puaseAction && puaseAction!=""){
+        smaAction1=puaseAction;
+        puaseAction=null;
+        return {
+            "SchemaVersion": "1.0",
+            "Actions": [
+                smaAction1,smaAction
+            ],
+            "TransactionAttributes": {
+                "currentFlowBlock": action
+            }
+        } 
+        
+    }
     return {
         "SchemaVersion": "1.0",
         "Actions": [
@@ -402,8 +461,8 @@ async function processFlowActionDisconnectParticipant(smaEvent:any, action:any){
     let smaAction1 =await (await processFlowAction(smaEvent, nextAction,actions,amazonConnectInstanceID,bucketName)).Actions[0];
     let smaAction1_Type:string=nextAction.Type
     if(constActions.includes(smaAction1_Type)){
-        await sleep(Number(timeLimit));
         console.log(defaultLogger+callId+" Pause action is Performed for "+timeLimit+ " Milliseconds");
+        puaseAction=smaAction;
         return await processFlowAction(smaEvent, nextAction,actions,amazonConnectInstanceID,bucketName)
     }
     console.log(defaultLogger+callId+"Next Action Data:"+smaAction1);
@@ -436,6 +495,7 @@ async function processFlowActionMessageParticipant(smaEvent: any, action: any) {
     let text:string;
     let type:string;
     let x:Number;
+    let smaAction1:any;
     let voiceId=ConstData.voiceId
     let engine=ConstData.engine
     let languageCode=ConstData.languageCode
@@ -493,6 +553,20 @@ async function processFlowActionMessageParticipant(smaEvent: any, action: any) {
                 
         }
     };
+    if(puaseAction!=null && puaseAction && puaseAction!=""){
+        smaAction1=puaseAction;
+        puaseAction=null;
+        return {
+            "SchemaVersion": "1.0",
+            "Actions": [
+                smaAction1,smaAction
+            ],
+            "TransactionAttributes": {
+                "currentFlowBlock": action
+            }
+        } 
+        
+    }
     return {
         "SchemaVersion": "1.0",
         "Actions": [
@@ -623,6 +697,7 @@ function findActionByID(actions: any[], identifier: string) {
   */
 async function processFlowActionUpdateContactRecordingBehavior(smaEvent:any, action:any){
     let callId: string;
+    let smaAction1:any;
     const legA = getLegACallDetails(smaEvent);
      callId=legA.CallId;
     if(callId=="NaN")
@@ -634,6 +709,21 @@ async function processFlowActionUpdateContactRecordingBehavior(smaEvent:any, act
                 "CallId": legA.CallId 
             }
         };
+        if(puaseAction!=null && puaseAction && puaseAction!=""){
+            smaAction1=puaseAction;
+            puaseAction=null;
+            return {
+                "SchemaVersion": "1.0",
+                "Actions": [
+                    smaAction1,smaAction
+                ],
+                "TransactionAttributes": {
+                    "currentFlowBlock": action
+                }
+            } 
+            
+        }
+        
         return {
             "SchemaVersion": "1.0",
             "Actions": [
@@ -655,6 +745,20 @@ async function processFlowActionUpdateContactRecordingBehavior(smaEvent:any, act
         }
     } 
 };
+if(puaseAction!=null && puaseAction && puaseAction!=""){
+    smaAction1=puaseAction;
+    puaseAction=null;
+    return {
+        "SchemaVersion": "1.0",
+        "Actions": [
+            smaAction1,smaAction
+        ],
+        "TransactionAttributes": {
+            "currentFlowBlock": action
+        }
+    } 
+    
+}
     return {
         "SchemaVersion": "1.0",
         "Actions": [
@@ -667,6 +771,7 @@ async function processFlowActionUpdateContactRecordingBehavior(smaEvent:any, act
 }
 async function processFlowActionFailed(smaEvent:any, actionObj:any,contactFlow:any,amazonConnectInstanceID: string,bucketName:string){
     let callId:string;
+    let smaAction1:any;
     const legA = getLegACallDetails(smaEvent);
      callId=legA.CallId;
     if(callId=="NaN")
@@ -710,6 +815,20 @@ else{
     let actionType=nextAction.Type;
     if(!AmazonConnectActions.hasOwnProperty(actionType)){
         return await terminatingFlowAction(smaEvent, actionType)
+    }
+    if(puaseAction!=null && puaseAction && puaseAction!=""){
+        smaAction1=puaseAction;
+        puaseAction=null;
+        return {
+            "SchemaVersion": "1.0",
+            "Actions": [
+                smaAction1,smaAction
+            ],
+            "TransactionAttributes": {
+                "currentFlowBlock": nextAction
+            }
+        } 
+        
     }
     return {
         "SchemaVersion": "1.0",
@@ -785,6 +904,7 @@ async function processFlowConditionValidation(smaEvent:any, actionObj:any, conta
   */
 async function processFlowActionLoop(smaEvent:any, action:any,actions:any, amazonConnectInstanceID: string, bucketName:string){
     let smaAction:any;
+    let smaAction1:any;
     let callId:string;
         const legA = getLegACallDetails(smaEvent);
          callId=legA.CallId;
@@ -800,6 +920,22 @@ async function processFlowActionLoop(smaEvent:any, action:any,actions:any, amazo
     else
     loop.set(callId,count);
     console.log("Next Action Data:"+smaAction);
+    
+    if(puaseAction!=null && puaseAction && puaseAction!=""){
+        smaAction1=puaseAction;
+        puaseAction=null;
+        return {
+            "SchemaVersion": "1.0",
+            "Actions": [
+                smaAction1,smaAction
+            ],
+            "TransactionAttributes": {
+                "currentFlowBlock": nextAction
+            }
+        } 
+        
+    }
+  
     return {
         "SchemaVersion": "1.0",
         "Actions": [
@@ -826,6 +962,7 @@ async function processFlowActionLoop(smaEvent:any, action:any,actions:any, amazo
 async function processFlowActionTransferParticipantToThirdParty(smaEvent:any, action:any){
     const legA = getLegACallDetails(smaEvent);
     let callId:string;
+    let smaAction1:any;
      callId=legA.CallId;
     if(callId=="NaN")
      callId=  smaEvent.ActionData.Parameters.CallId;
@@ -848,6 +985,21 @@ async function processFlowActionTransferParticipantToThirdParty(smaEvent:any, ac
         }
         
     };
+    if(puaseAction!=null && puaseAction && puaseAction!=""){
+        smaAction1=puaseAction;
+        puaseAction=null;
+        return {
+            "SchemaVersion": "1.0",
+            "Actions": [
+                smaAction1,smaAction
+            ],
+            "TransactionAttributes": {
+                "currentFlowBlock": action
+            }
+        } 
+        
+    }
+  
     return {
         "SchemaVersion": "1.0",
         "Actions": [
@@ -868,6 +1020,7 @@ async function processFlowActionTransferParticipantToThirdParty(smaEvent:any, ac
 async function processFlowActionConnectParticipantWithLexBot(smaEvent:any, action:any){
     let smaAction;
     const legA = getLegACallDetails(smaEvent);
+    let smaAction1:any;
     let callId:string;
      callId=legA.CallId;
     if(callId=="NaN")
@@ -918,7 +1071,21 @@ async function processFlowActionConnectParticipantWithLexBot(smaEvent:any, actio
             }
           }
     }
-
+    if(puaseAction!=null && puaseAction && puaseAction!=""){
+        smaAction1=puaseAction;
+        puaseAction=null;
+        return {
+            "SchemaVersion": "1.0",
+            "Actions": [
+                smaAction1,smaAction
+            ],
+            "TransactionAttributes": {
+                "currentFlowBlock": action
+            }
+        } 
+        
+    }
+  
       return {
         "SchemaVersion": "1.0",
         "Actions": [
@@ -1240,6 +1407,7 @@ function getNextActionForError(currentAction:any,contactFlow:any,ErrorType:any,s
   */
  async function processFlowActionUpdateContactTextToSpeechVoice(smaEvent:any, action:any,actions:any, amazonConnectInstanceID: string, bucketName:string){
     let callId:string;
+    let smaAction1:any;
     const legA = getLegACallDetails(smaEvent);
      callId=legA.CallId;
     if(callId=="NaN")
@@ -1263,6 +1431,21 @@ function getNextActionForError(currentAction:any,contactFlow:any,ErrorType:any,s
         console.log(defaultLogger+callId+" Next Action identifier:"+action.Transitions.NextAction);
     }
     smaAction= await (await processFlowAction(smaEvent, nextAction,actions,amazonConnectInstanceID,bucketName)).Actions[0];
+    if(puaseAction!=null && puaseAction && puaseAction!=""){
+        smaAction1=puaseAction;
+        puaseAction=null;
+        return {
+            "SchemaVersion": "1.0",
+            "Actions": [
+                smaAction1,smaAction
+            ],
+            "TransactionAttributes": {
+                "currentFlowBlock": nextAction
+            }
+        } 
+        
+    }
+  
     return {
         "SchemaVersion": "1.0",
         "Actions": [
