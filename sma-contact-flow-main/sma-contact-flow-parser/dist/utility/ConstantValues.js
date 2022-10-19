@@ -18,4 +18,4 @@ exports.ConstData = {
     dialogType: "ElicitIntent",
     ContentType: "PlainText",
 };
-exports.constActions = ["Wait", "Loop", "TransferToFlow", "UpdateContactTextToSpeechVoice", "InvokeLambdaFunction", "UpdateContactAttributes", "Compare"];
+exports.constActions = ["Wait", "Loop", "TransferToFlow", "UpdateContactTextToSpeechVoice", "InvokeLambdaFunction", "UpdateContactAttributes", "Compare", "InvokeFlowModule", "EndFlowModuleExecution"];

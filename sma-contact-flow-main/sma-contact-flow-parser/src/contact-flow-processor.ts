@@ -1430,31 +1430,8 @@ function getNextActionForError(currentAction:any,contactFlow:any,ErrorType:any,s
         nextAction = findActionByID(actions, nextAction.Transitions.NextAction);
         console.log(defaultLogger+callId+" Next Action identifier:"+action.Transitions.NextAction);
     }
-    smaAction= await (await processFlowAction(smaEvent, nextAction,actions,amazonConnectInstanceID,bucketName)).Actions[0];
-    if(puaseAction!=null && puaseAction && puaseAction!=""){
-        smaAction1=puaseAction;
-        puaseAction=null;
-        return {
-            "SchemaVersion": "1.0",
-            "Actions": [
-                smaAction1,smaAction
-            ],
-            "TransactionAttributes": {
-                "currentFlowBlock": nextAction
-            }
-        } 
-        
-    }
-  
-    return {
-        "SchemaVersion": "1.0",
-        "Actions": [
-             smaAction
-        ],
-        "TransactionAttributes": {
-        "currentFlowBlock": nextAction
-        }
-        }
+    return await processFlowAction(smaEvent, nextAction,actions,amazonConnectInstanceID,bucketName);
+    
 }
 
 function getLegACallDetails(event: any) {
