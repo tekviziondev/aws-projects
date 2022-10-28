@@ -10,7 +10,7 @@ async function loadContactFlow(amazonConnectInstanceID, amazonConnectContactFlow
     const legA = getLegACallDetails(smaEvent);
     let callId;
     callId = legA.CallId;
-    if (!callId)
+    if (callId == "NaN")
         callId = smaEvent.ActionData.Parameters.CallId;
     s3Bucket = bucket;
     const describeContactFlowParams = {
@@ -43,7 +43,7 @@ async function writeFlowCache(flow, amazonConnectInstanceID, amazonConnectContac
     const legA = getLegACallDetails(smaEvent);
     let callId;
     callId = legA.CallId;
-    if (!callId)
+    if (callId == "NaN")
         callId = smaEvent.ActionData.Parameters.CallId;
     console.log(defaultLogger + callId + " Writing Contact flow Details to S3 Bucket ");
     let flowBinary = Buffer.from(JSON.stringify(flow), 'binary');
