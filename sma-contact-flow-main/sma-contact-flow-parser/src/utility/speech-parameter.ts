@@ -109,4 +109,3 @@ export function FailureSpeechParameters(smaEvent:any,SpeechAttributeMap:Map<stri
     console.log(defaultLogger+callId+"Speech Parameters are : "+rv);
     return rv;
 }
-

@@ -32,4 +32,3 @@ export function getNextActionForError(currentAction: any, contactFlow: any, Erro
     }
     return nextAction;
 }
-

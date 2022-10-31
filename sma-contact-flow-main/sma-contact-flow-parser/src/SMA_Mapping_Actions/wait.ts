@@ -64,4 +64,3 @@ function getWaitTimeParameter(action: any) {
     console.log("Wait Parameter : " + rv);
     return rv;
 }
-
