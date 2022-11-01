@@ -21,7 +21,7 @@ export function getAudioParameters(smaEvent: any, action: any, defaultLogger: st
     let uri: string;
     let uriObj: string[];
     let key: string;
-    if (action.Parameters.SourceType !== null) {
+    if (action.Parameters.SourceType) {
         console.log(defaultLogger + callId + " Audio Parameters SourceType Exists");
         uri = action.Parameters.Media.Uri;
         uriObj = uri.split("/");
@@ -58,7 +58,7 @@ export function failureAudioParameters(smaEvent: any, action: any, defaultLogger
     let uri: string;
     let uriObj: string[];
     let key: string;
-    if (action.Parameters.SourceType !== null) {
+    if (action.Parameters.SourceType) {
         console.log(defaultLogger + callId + " Audio Parameters SourceType Exists");
         uri = "s3://smabridgingdemo-wavfiles98e3397d-3rx7w2754wlc/greeting.wav";
         uriObj = uri.split("/");

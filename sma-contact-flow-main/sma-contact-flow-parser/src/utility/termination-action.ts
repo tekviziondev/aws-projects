@@ -1,6 +1,6 @@
-import { ChimeActions } from "./ChimeActionTypes";
+import { ChimeActions } from "./chime-action-types";
 import { getLegACallDetails } from "./call-details";
-import { constActions, ConstData } from "./ConstantValues";
+import { Supported_Actions, Attributes } from "./constant-values";
 /**
   * This Terminates the existing call if there are any error occured in the Flow execution
   * @param smaEvent 
@@ -16,9 +16,9 @@ export async function terminatingFlowAction(smaEvent: any, SpeechAttributeMap: M
     let text: string;
     let type: string;
     let x: Number;
-    let voiceId = ConstData.voiceId
-    let engine = ConstData.engine
-    let languageCode = ConstData.languageCode
+    let voiceId = Attributes.VOICE_ID
+    let engine = Attributes.ENGINE
+    let languageCode = Attributes.LANGUAGE_CODE
     if (SpeechAttributeMap.has("TextToSpeechVoice")) {
         voiceId = SpeechAttributeMap.get("TextToSpeechVoice")
     }
@@ -49,7 +49,7 @@ export async function terminatingFlowAction(smaEvent: any, SpeechAttributeMap: M
         text = "The action " + actionType + " is unsupported Action defined in the Contact flow, your call is going to disconnect"
     }
     let smaAction = {
-        Type: ChimeActions.Speak,
+        Type: ChimeActions.SPEAK,
         Parameters: {
             Engine: engine,
             CallId: legA.CallId,
@@ -61,14 +61,14 @@ export async function terminatingFlowAction(smaEvent: any, SpeechAttributeMap: M
         }
     }
     let smaAction1 = {
-        Type: ChimeActions.Hangup,
+        Type: ChimeActions.HANGUP,
         Parameters: {
             "SipResponseCode": "0",
             "CallId": callId
         }
     };
     return {
-        "SchemaVersion": "1.0",
+        "SchemaVersion": Attributes.SCHEMA_VERSION,
         "Actions": [smaAction, smaAction1]
     }
 }

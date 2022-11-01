@@ -1,8 +1,8 @@
 import { getLegACallDetails } from "../utility/call-details";
-import { ConstData } from "../utility/ConstantValues"
+import { Attributes } from "../utility/constant-values"
 import { count } from "../utility/count";
-import { ChimeActions } from "../utility/ChimeActionTypes";
-import { terminatingFlowAction } from "../utility/termination-event";
+import { ChimeActions } from "../utility/chime-action-types";
+import { terminatingFlowAction } from "../utility/termination-action";
 import { PlayAudio } from "./play-audio";
 /**
   * Making a SMA action to perform Delivers an audio or chat message.
@@ -11,25 +11,25 @@ import { PlayAudio } from "./play-audio";
   * @returns SMA Action
   */
 export class MessageParticipant {
-    async processFlowActionMessageParticipant(smaEvent: any, action: any, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>, defaultLogger: string, puaseAction: any) {
+    async processFlowActionMessageParticipant(smaEvent: any, action: any, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>, defaultLogger: string, pauseAction: any) {
         let callId: string;
         const legA = getLegACallDetails(smaEvent);
-        callId = legA.CallId;
+        try {
+            callId = legA.CallId;
         if (!callId)
             callId = smaEvent.ActionData.Parameters.CallId;
-        try {
             if (action.Parameters.Media != null) {
                 console.log(defaultLogger + callId + "Play Audio Action");
                 let playAudio = new PlayAudio();
-                return await playAudio.processPlayAudio(smaEvent, action, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, puaseAction);
+                return await playAudio.processPlayAudio(smaEvent, action, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction);
             }
             let text: string;
             let type: string;
             let x: Number;
             let smaAction1: any;
-            let voiceId = ConstData.voiceId
-            let engine = ConstData.engine
-            let languageCode = ConstData.languageCode
+            let voiceId = Attributes.VOICE_ID
+            let engine = Attributes.ENGINE
+            let languageCode = Attributes.LANGUAGE_CODE
             if (SpeechAttributeMap.has("TextToSpeechVoice")) {
                 voiceId = SpeechAttributeMap.get("TextToSpeechVoice")
             }
@@ -39,7 +39,7 @@ export class MessageParticipant {
             if (SpeechAttributeMap.has("LanguageCode")) {
                 languageCode = SpeechAttributeMap.get("LanguageCode")
             }
-            if (action.Parameters.Text !== null && action.Parameters.Text !== "" && action.Parameters.Text) {
+            if (action.Parameters.Text) {
                 text = action.Parameters.Text;
                 if (text.includes("$.External.") || text.includes("$.Attributes.") || text.includes("$.")) {
                     //text=textConvertor(text);
@@ -53,9 +53,9 @@ export class MessageParticipant {
 
                     })
                 }
-                type = ConstData.text;
+                type = Attributes.TEXT;
             }
-            else if (action.Parameters.SSML !== null && action.Parameters.SSML) {
+            else if (action.Parameters.SSML) {
                 text = action.Parameters.SSML;
                 if (text.includes("$.External.") || text.includes("$.Attributes.") || text.includes("$.")) {
                     //text=textConvertor(text);
@@ -69,13 +69,13 @@ export class MessageParticipant {
 
                     })
                 }
-                type = ConstData.ssml;
+                type = Attributes.SSML;
             }
             if (text.includes("$.")) {
-                return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, puaseAction, "Invalid_Text")
+                return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "Invalid_Text")
             }
             let smaAction = {
-                Type: ChimeActions.Speak,
+                Type: ChimeActions.SPEAK,
                 Parameters: {
                     Engine: engine,
                     CallId: legA.CallId,
@@ -86,11 +86,11 @@ export class MessageParticipant {
 
                 }
             };
-            if (puaseAction != null && puaseAction && puaseAction != "") {
-                smaAction1 = puaseAction;
-                puaseAction = null;
+            if (pauseAction) {
+                smaAction1 = pauseAction;
+                pauseAction = null;
                 return {
-                    "SchemaVersion": "1.0",
+                    "SchemaVersion": Attributes.SCHEMA_VERSION,
                     "Actions": [
                         smaAction1, smaAction
                     ],
@@ -101,7 +101,7 @@ export class MessageParticipant {
 
             }
             return {
-                "SchemaVersion": "1.0",
+                "SchemaVersion": Attributes.SCHEMA_VERSION,
                 "Actions": [
                     smaAction
                 ],
@@ -111,7 +111,7 @@ export class MessageParticipant {
             }
         } catch (error) {
             console.log(defaultLogger + callId + " There is an Error in execution of MessageParticipant " + error.message);
-            return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, puaseAction, "error")
+            return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "error")
         }
 
     }

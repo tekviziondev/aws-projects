@@ -1,5 +1,5 @@
 import { getLegACallDetails } from "./call-details";
-import { ConstData} from "./ConstantValues"
+import { Attributes} from "./constant-values"
 import { count} from "./count";
 /**
   * This function process SMA Event and returns the Speech Parameters for SpeakAndGetDigits
@@ -17,9 +17,9 @@ export function getSpeechParameters(smaEvent:any,action: any,contextAttributs:Ma
     if(!callId)
      callId=  smaEvent.ActionData.Parameters.CallId;
     let rv = null;
-    let voiceId=ConstData.voiceId
-        let engine=ConstData.engine
-        let languageCode=ConstData.languageCode
+    let voiceId=Attributes.VOICE_ID
+        let engine=Attributes.ENGINE
+        let languageCode=Attributes.LANGUAGE_CODE
         if(SpeechAttributeMap.has("TextToSpeechVoice")){
             voiceId=SpeechAttributeMap.get("TextToSpeechVoice")
         }
@@ -29,11 +29,11 @@ export function getSpeechParameters(smaEvent:any,action: any,contextAttributs:Ma
         if(SpeechAttributeMap.has("LanguageCode")){
             languageCode=SpeechAttributeMap.get("LanguageCode")
         }
-    if (action.Text !== null || action.SSML !== null) {
+    if (action.Text  || action.SSML) {
         let text: string;
         let type: string;
         let x:Number;
-        if (action.Parameters.Text !== null && action.Parameters.Text !== "" && action.Parameters.Text ) {
+        if (action.Parameters.Text) {
             text = action.Parameters.Text;
             if(text.includes("$.External.") || text.includes("$.Attributes.") || text.includes("$.") ){
                 contextAttributs.forEach((value, key) => {
@@ -45,9 +45,9 @@ export function getSpeechParameters(smaEvent:any,action: any,contextAttributs:Ma
 
                   })
             }
-            type = ConstData.text;
+            type = Attributes.TEXT;
         }
-       else if (action.Parameters.SSML !== null && action.Parameters.SSML ) {
+       else if (action.Parameters.SSML ) {
             text = action.Parameters.SSML;
             if(text.includes("$.External.") || text.includes("$.Attributes.") || text.includes("$.") ){
                 contextAttributs.forEach((value, key) => {
@@ -59,7 +59,7 @@ export function getSpeechParameters(smaEvent:any,action: any,contextAttributs:Ma
 
                   })
             }
-            type = ConstData.ssml;
+            type = Attributes.SSML;
         }
         rv = {
             Text: text,
@@ -86,9 +86,9 @@ export function FailureSpeechParameters(smaEvent:any,SpeechAttributeMap:Map<stri
     if(!callId)
      callId=  smaEvent.ActionData.Parameters.CallId;
     let rv = null;
-    let voiceId=ConstData.voiceId
-        let engine=ConstData.engine
-        let languageCode=ConstData.languageCode
+    let voiceId=Attributes.VOICE_ID
+        let engine=Attributes.ENGINE
+        let languageCode=Attributes.LANGUAGE_CODE
         if(SpeechAttributeMap.has("TextToSpeechVoice")){
             voiceId=SpeechAttributeMap.get("TextToSpeechVoice")
         }
@@ -101,7 +101,7 @@ export function FailureSpeechParameters(smaEvent:any,SpeechAttributeMap:Map<stri
    
         rv = {
             Text: "<speak>  We're sorry.  We didn't get that. Please try again. <break time=\"200ms\"/></speak>",
-            TextType: ConstData.ssml,
+            TextType: Attributes.SSML,
             Engine: engine,     
             LanguageCode:languageCode, 
             VoiceId:voiceId, 

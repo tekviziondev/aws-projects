@@ -1,7 +1,8 @@
 import { getLegACallDetails } from "../utility/call-details";
-import { ConstData } from "../utility/ConstantValues"
-import { ChimeActions } from "../utility/ChimeActionTypes";
-import { terminatingFlowAction } from "../utility/termination-event";
+import { Attributes } from "../utility/constant-values"
+import { ChimeActions } from "../utility/chime-action-types";
+import { terminatingFlowAction } from "../utility/termination-action";
+
 /**
   * Making a SMA action to perform Transfer a call to a phone number for voice interactions.
   * @param smaEvent 
@@ -11,37 +12,37 @@ import { terminatingFlowAction } from "../utility/termination-event";
 
 export class TransferTOThirdParty {
     async processFlowActionTransferParticipantToThirdParty(smaEvent: any, action: any, defaultLogger: string, puaseAction: any, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>) {
-        const legA = getLegACallDetails(smaEvent);
         let callId: string;
         let smaAction1: any;
-        callId = legA.CallId;
-        if (!callId)
-            callId = smaEvent.ActionData.Parameters.CallId;
-        let fromNumber = legA.From;
-        if (action.Parameters.hasOwnProperty("CallerId")) {
-            fromNumber = action.Parameters.CallerId.Number;
-        }
         try {
+            const legA = getLegACallDetails(smaEvent);
+            callId = legA.CallId;
+            if (!callId)
+                callId = smaEvent.ActionData.Parameters.CallId;
+            let fromNumber = legA.From;
+            if (action.Parameters.hasOwnProperty("CallerId")) {
+                fromNumber = action.Parameters.CallerId.Number;
+            }
             console.log(defaultLogger + callId + " Transfering call to Third Party Number");
             let smaAction = {
-                Type: ChimeActions.CallAndBridge,
+                Type: ChimeActions.CALL_AND_BRIDGE,
                 Parameters: {
                     "CallTimeoutSeconds": action.Parameters.ThirdPartyConnectionTimeLimitSeconds,
                     "CallerIdNumber": fromNumber,
                     "Endpoints": [
                         {
-                            "BridgeEndpointType": ConstData.BridgeEndpointType,
+                            "BridgeEndpointType": Attributes.BRDIGE_ENDPOINT_TYPE,
                             "Uri": action.Parameters.ThirdPartyPhoneNumber
                         }
                     ]
                 }
 
             };
-            if (puaseAction != null && puaseAction && puaseAction != "") {
+            if (puaseAction) {
                 smaAction1 = puaseAction;
                 puaseAction = null;
                 return {
-                    "SchemaVersion": "1.0",
+                    "SchemaVersion": Attributes.SCHEMA_VERSION,
                     "Actions": [
                         smaAction1, smaAction
                     ],
@@ -53,7 +54,7 @@ export class TransferTOThirdParty {
             }
 
             return {
-                "SchemaVersion": "1.0",
+                "SchemaVersion": Attributes.SCHEMA_VERSION,
                 "Actions": [
                     smaAction
                 ],

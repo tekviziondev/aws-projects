@@ -14,15 +14,15 @@ import { TrasferToFlow } from "./SMA_Mapping_Actions/transfer-flow";
 import { TransferTOThirdParty } from "./SMA_Mapping_Actions/transfer-to-thirdparty";
 import { UpdateContactAttrbts } from "./SMA_Mapping_Actions/update-contact-attributes";
 import { Wait } from "./SMA_Mapping_Actions/wait";
-import { AmazonConnectActions } from "./utility/AmazonConnectActionTypes";
+import { AmazonConnectActions } from "./utility/amazon-connect-actionTypes";
 import { getLegACallDetails } from "./utility/call-details";
 import { processFlowConditionValidation } from "./utility/condition-validation";
-import { ConstData } from "./utility/ConstantValues";
-import { ErrorTypes } from "./utility/ErrorTypes";
-import { EventTypes } from "./utility/EventTypes";
+import { Attributes } from "./utility/constant-values";
+import { ErrorTypes } from "./utility/error-types";
+import { EventTypes } from "./utility/event-types";
 import { findActionByID } from "./utility/find-action-id";
 import { getNextActionForError } from "./utility/next-action-error";
-import { terminatingFlowAction } from "./utility/termination-event";
+import { terminatingFlowAction } from "./utility/termination-action";
 
 const connectContextStore: string = "ConnectContextStore";
 let loopMap = new Map<string, string>();
@@ -34,7 +34,7 @@ const SpeechAttributeMap: Map<string, string> = new Map<string, string>();
 const contextAttributes: Map<any, any> = new Map<any, any>();
 let tmpMap: Map<any, any> = new Map<any, any>();
 const defaultLogger = "SMA-Contact-Flow-Builder | Call ID - "
-let puaseAction: any;
+let pauseAction: any;
 
 /**
   * This function get connect flow data from contact flow loader 
@@ -72,7 +72,7 @@ export async function processFlow(smaEvent: any, amazonConnectInstanceID: string
         if (smaEvent.InvocationEventType === EventTypes.ACTION_SUCCESSFUL || smaEvent.InvocationEventType === EventTypes.CALL_ANSWERED) {
             if (smaEvent.ActionData.ReceivedDigits != null) {
                 const recieved_digits = smaEvent.ActionData.ReceivedDigits;
-                return await processFlowConditionValidation(smaEvent, transactionAttributes.currentFlowBlock, contactFlow, recieved_digits, amazonConnectInstanceID, bucketName, defaultLogger, puaseAction, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap);
+                return await processFlowConditionValidation(smaEvent, transactionAttributes.currentFlowBlock, contactFlow, recieved_digits, amazonConnectInstanceID, bucketName, defaultLogger, pauseAction, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap);
             }
             return await processFlowActionSuccess(smaEvent, transactionAttributes.currentFlowBlock, contactFlow, amazonConnectInstanceID, bucketName);
         }
@@ -80,7 +80,7 @@ export async function processFlow(smaEvent: any, amazonConnectInstanceID: string
             return await processFlowActionFailed(smaEvent, transactionAttributes.currentFlowBlock, contactFlow, amazonConnectInstanceID, bucketName);
         } else {
             let disconnect = new DisconnectParticipant();
-            return await disconnect.processFlowActionDisconnectParticipant(smaEvent, transactionAttributes.currentFlowBlock, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, puaseAction)
+            return await disconnect.processFlowActionDisconnectParticipant(smaEvent, transactionAttributes.currentFlowBlock, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction)
             // processFlowActionDisconnectParticipant(smaEvent, transactionAttributes.currentFlowBlock);
         }
     }
@@ -106,9 +106,9 @@ async function storeSystemAttributs(smaEvent: any, amazonConnectFlowID: any, ama
     contextAttributes.set("$.InitiationMethod", legA.Direction)
     contextAttributes.set("$.ContactId", amazonConnectFlowID)
     contextAttributes.set("$.InstanceARN", amazonConnectInstanceID)
-    contextAttributes.set("$.Channel", ConstData.channel)
-    contextAttributes.set("$.CustomerEndpoint.Type", ConstData.customerEndpointType)
-    contextAttributes.set("$.SystemEndpoint.Type", ConstData.systemEndpointType)
+    contextAttributes.set("$.Channel", Attributes.CHANNEL)
+    contextAttributes.set("$.CustomerEndpoint.Type", Attributes.CUSTOMER_ENDPOINT_TYPE)
+    contextAttributes.set("$.SystemEndpoint.Type", Attributes.SYSTEM_ENDPOINT_TYPE)
 }
 
 /**
@@ -128,17 +128,17 @@ export async function processRootFlowBlock(smaEvent: any, contactFlow: any, _tra
     callId = legA.CallId;
     if (!callId)
         callId = smaEvent.ActionData.Parameters.CallId;
-    if (contactFlow.StartAction !== null) {
+    if (contactFlow.StartAction) {
         const actions: any[] = contactFlow.Actions;
         console.log(defaultLogger + callId + " ConnectInstanceId:" + amazonConnectInstanceID + " Root Flow Block The actions are" + actions)
-        if (actions !== null && actions.length > 0) {
+        if (actions && actions.length > 0) {
             const currentAction = findActionByID(actions, contactFlow.StartAction);
             let actionType = currentAction.Type;
             if (!AmazonConnectActions.hasOwnProperty(actionType)) {
-                return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, puaseAction, actionType)
+                return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, actionType)
             }
             console.log(defaultLogger + callId + " ConnectInstanceId:" + amazonConnectInstanceID + " Root Flow Block The current Action is " + currentAction.Type)
-            if (currentAction !== null) {
+            if (currentAction) {
                 return await processFlowAction(smaEvent, currentAction, actions, amazonConnectInstanceID, bucketName);
             }
         }
@@ -159,37 +159,37 @@ export async function processFlowAction(smaEvent: any, action: any, actions: any
     switch (action.Type) {
         case AmazonConnectActions.GetParticipantInput:
             let getParticipantInput = new GetParticipantInput();
-            return await getParticipantInput.processFlowActionGetParticipantInput(smaEvent, action, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, puaseAction);
+            return await getParticipantInput.processFlowActionGetParticipantInput(smaEvent, action, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction);
         case AmazonConnectActions.MessageParticipant:
             let message_participant = new MessageParticipant();
-            return await message_participant.processFlowActionMessageParticipant(smaEvent, action, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, puaseAction);
+            return await message_participant.processFlowActionMessageParticipant(smaEvent, action, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction);
         case AmazonConnectActions.DisconnectParticipant:
             let disconnect = new DisconnectParticipant();
-            return await disconnect.processFlowActionDisconnectParticipant(smaEvent, action, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, puaseAction);
+            return await disconnect.processFlowActionDisconnectParticipant(smaEvent, action, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction);
         case AmazonConnectActions.Wait:
             let wait = new Wait();
-            return await wait.processFlowActionWait(smaEvent, action, actions, amazonConnectInstanceID, bucketName, defaultLogger, puaseAction, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap);
+            return await wait.processFlowActionWait(smaEvent, action, actions, amazonConnectInstanceID, bucketName, defaultLogger, pauseAction, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap);
         case AmazonConnectActions.UpdateContactRecordingBehavior:
             let callRecording = new CallRecording();
-            return await callRecording.processFlowActionUpdateContactRecordingBehavior(smaEvent, action, puaseAction, defaultLogger, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap)
+            return await callRecording.processFlowActionUpdateContactRecordingBehavior(smaEvent, action, pauseAction, defaultLogger, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap)
         case AmazonConnectActions.Loop:
             let loop = new Loop();
-            return await loop.processFlowActionLoop(smaEvent, action, actions, amazonConnectInstanceID, bucketName, defaultLogger, puaseAction, loopMap, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap)
+            return await loop.processFlowActionLoop(smaEvent, action, actions, amazonConnectInstanceID, bucketName, defaultLogger, pauseAction, loopMap, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap)
         case AmazonConnectActions.TransferParticipantToThirdParty:
             let transferThirdParty = new TransferTOThirdParty();
-            return await transferThirdParty.processFlowActionTransferParticipantToThirdParty(smaEvent, action, defaultLogger, puaseAction, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap)
+            return await transferThirdParty.processFlowActionTransferParticipantToThirdParty(smaEvent, action, defaultLogger, pauseAction, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap)
         case AmazonConnectActions.ConnectParticipantWithLexBot:
             let lexbot = new LexBot();
-            return await lexbot.processFlowActionConnectParticipantWithLexBot(smaEvent, action, defaultLogger, puaseAction, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap)
+            return await lexbot.processFlowActionConnectParticipantWithLexBot(smaEvent, action, defaultLogger, pauseAction, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap)
         case AmazonConnectActions.TransferToFlow:
             let transferToFlow = new TrasferToFlow()
-            return await transferToFlow.processFlowActionTransferToFlow(smaEvent, action, amazonConnectInstanceID, bucketName, defaultLogger, ContactFlowARNMap, puaseAction, SpeechAttributeMap, contextAttributes, ActualFlowARN)
+            return await transferToFlow.processFlowActionTransferToFlow(smaEvent, action, amazonConnectInstanceID, bucketName, defaultLogger, ContactFlowARNMap, pauseAction, SpeechAttributeMap, contextAttributes, ActualFlowARN)
         case AmazonConnectActions.UpdateContactTextToSpeechVoice:
             let updateVoice = new SetVoice();
-            return await updateVoice.processFlowActionUpdateContactTextToSpeechVoice(smaEvent, action, actions, amazonConnectInstanceID, bucketName, defaultLogger, SpeechAttributeMap, puaseAction, contextAttributes, ActualFlowARN, ContactFlowARNMap)
+            return await updateVoice.processFlowActionUpdateContactTextToSpeechVoice(smaEvent, action, actions, amazonConnectInstanceID, bucketName, defaultLogger, SpeechAttributeMap, pauseAction, contextAttributes, ActualFlowARN, ContactFlowARNMap)
         case AmazonConnectActions.InvokeLambdaFunction:
             let invokeLambda = new InvokeLambda();
-            return await invokeLambda.processFlowActionInvokeLambdaFunction(smaEvent, action, actions, amazonConnectInstanceID, bucketName, defaultLogger, contextAttributes, loopMap, tmpMap, puaseAction, SpeechAttributeMap, ContactFlowARNMap, ActualFlowARN)
+            return await invokeLambda.processFlowActionInvokeLambdaFunction(smaEvent, action, actions, amazonConnectInstanceID, bucketName, defaultLogger, contextAttributes, loopMap, tmpMap, pauseAction, SpeechAttributeMap, ContactFlowARNMap, ActualFlowARN)
         case AmazonConnectActions.UpdateContactAttributes:
             let update = new UpdateContactAttrbts();
             return await update.processFlowActionUpdateContactAttributes(smaEvent, action, actions, amazonConnectInstanceID, bucketName, defaultLogger, tmpMap, contextAttributes)
@@ -198,10 +198,10 @@ export async function processFlowAction(smaEvent: any, action: any, actions: any
             return await compare.processFlowActionCompareContactAttributes(smaEvent, action, actions, amazonConnectInstanceID, bucketName, defaultLogger, contextAttributes)
         case AmazonConnectActions.InvokeFlowModule:
             let invoke = new InvokeModule();
-            return await invoke.processFlowActionInvokeFlowModule(smaEvent, action, actions, amazonConnectInstanceID, bucketName, defaultLogger, InvokeModuleARNMap, InvokationModuleNextAction, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, puaseAction)
+            return await invoke.processFlowActionInvokeFlowModule(smaEvent, action, actions, amazonConnectInstanceID, bucketName, defaultLogger, InvokeModuleARNMap, InvokationModuleNextAction, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, pauseAction)
         case AmazonConnectActions.EndFlowModuleExecution:
             let endModule = new EndModule()
-            return await endModule.processFlowActionEndFlowModuleExecution(smaEvent, action, actions, amazonConnectInstanceID, bucketName, InvokeModuleARNMap, InvokationModuleNextAction, ActualFlowARN, defaultLogger, puaseAction, SpeechAttributeMap, contextAttributes, ContactFlowARNMap)
+            return await endModule.processFlowActionEndFlowModuleExecution(smaEvent, action, actions, amazonConnectInstanceID, bucketName, InvokeModuleARNMap, InvokationModuleNextAction, ActualFlowARN, defaultLogger, pauseAction, SpeechAttributeMap, contextAttributes, ContactFlowARNMap)
         default:
             null;
     }
@@ -221,14 +221,14 @@ async function processFlowActionSuccess(smaEvent: any, action: any, contactFlow:
     if (action.Parameters && action.Parameters.StoreInput == "True") {
         smaEvent.CallDetails.TransactionAttributes = updateConnectContextStore(transactionAttributes, "StoredCustomerInput", smaEvent.ActionData.ReceivedDigits);
     }
-    if (smaEvent.ActionData.IntentResult != null) {
+    if (smaEvent.ActionData.IntentResult) {
         let intentName = smaEvent.ActionData.IntentResult.SessionState.Intent.Name;
-        return await processFlowConditionValidation(smaEvent, transactionAttributes.currentFlowBlock, contactFlow, intentName, amazonConnectInstanceID, bucketName, defaultLogger, puaseAction, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap);
+        return await processFlowConditionValidation(smaEvent, transactionAttributes.currentFlowBlock, contactFlow, intentName, amazonConnectInstanceID, bucketName, defaultLogger, pauseAction, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap);
     }
     const nextAction = findActionByID(contactFlow.Actions, action.Transitions.NextAction);
     let actionType = nextAction.Type;
     if (!AmazonConnectActions.hasOwnProperty(actionType)) {
-        return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, puaseAction, actionType)
+        return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, actionType)
     }
     return await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName);
 }
@@ -260,30 +260,30 @@ async function processFlowActionFailed(smaEvent: any, actionObj: any, contactFlo
     let currentAction = contactFlow.Actions.find((action: any) => action.Identifier === actionObj.Identifier);
     let smaAction: any;
     let nextAction: any;
-    if (smaEvent != null && smaEvent.ActionData.ErrorType.includes(ErrorTypes.InputTimeLimitExceeded) || smaEvent.ActionData.ErrorType.includes(ErrorTypes.InvalidDigitsReceived)) {
-        nextAction = await getNextActionForError(currentAction, contactFlow.Actions, ErrorTypes.InputTimeLimitExceeded, smaEvent, defaultLogger);
+    if (smaEvent && smaEvent.ActionData.ErrorType.includes(ErrorTypes.INPUT_TIME_LIMIT_EXCEEDS) || smaEvent.ActionData.ErrorType.includes(ErrorTypes.INVALID_DIGITS_RECEIVED)) {
+        nextAction = await getNextActionForError(currentAction, contactFlow.Actions, ErrorTypes.INPUT_TIME_LIMIT_EXCEEDS, smaEvent, defaultLogger);
         smaAction = await (await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName)).Actions[0];
-    } else if (smaEvent != null && smaEvent.ActionData.ErrorType.includes(ErrorTypes.NoMatchingCondition)) {
-        nextAction = await getNextActionForError(currentAction, contactFlow, ErrorTypes.NoMatchingCondition, smaEvent, defaultLogger);
-        smaAction = await (await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName)).Actions[0];
-    }
-    else if (smaEvent != null && smaEvent.ActionData.ErrorType.includes(ErrorTypes.ConnectionTimeLimitExceeded)) {
-        nextAction = await getNextActionForError(currentAction, contactFlow, ErrorTypes.ConnectionTimeLimitExceeded, smaEvent, defaultLogger);
+    } else if (smaEvent && smaEvent.ActionData.ErrorType.includes(ErrorTypes.NO_MATCHING_CONDITION)) {
+        nextAction = await getNextActionForError(currentAction, contactFlow, ErrorTypes.NO_MATCHING_CONDITION, smaEvent, defaultLogger);
         smaAction = await (await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName)).Actions[0];
     }
-    else if (smaEvent != null && smaEvent.ActionData.ErrorType.includes(ErrorTypes.CallFailed)) {
-        nextAction = await getNextActionForError(currentAction, contactFlow, ErrorTypes.CallFailed, smaEvent, defaultLogger);
+    else if (smaEvent && smaEvent.ActionData.ErrorType.includes(ErrorTypes.CONNECTION_TIME_LIMIT_EXCEEDED)) {
+        nextAction = await getNextActionForError(currentAction, contactFlow, ErrorTypes.CONNECTION_TIME_LIMIT_EXCEEDED, smaEvent, defaultLogger);
+        smaAction = await (await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName)).Actions[0];
+    }
+    else if (smaEvent && smaEvent.ActionData.ErrorType.includes(ErrorTypes.CALL_FAILED)) {
+        nextAction = await getNextActionForError(currentAction, contactFlow, ErrorTypes.CALL_FAILED, smaEvent, defaultLogger);
         smaAction = await (await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName)).Actions[0];
 
-    } else if (smaEvent != null && smaEvent.ActionData.ErrorType.includes(ErrorTypes.InvalidPhoneNumber)) {
-        nextAction = await getNextActionForError(currentAction, contactFlow, ErrorTypes.InvalidPhoneNumber, smaEvent, defaultLogger);
+    } else if (smaEvent && smaEvent.ActionData.ErrorType.includes(ErrorTypes.INVALID_PHONE_NUMBER)) {
+        nextAction = await getNextActionForError(currentAction, contactFlow, ErrorTypes.INVALID_PHONE_NUMBER, smaEvent, defaultLogger);
         smaAction = await (await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName)).Actions[0];
 
     }
     else {
         let count: number;
         for (let i = 0; i < currentAction.Transitions.Errors.length; i++) {
-            if (currentAction.Transitions.Errors[i].ErrorType == ErrorTypes.NoMatchingError) {
+            if (currentAction.Transitions.Errors[i].ErrorType == ErrorTypes.NO_MATCHING_ERROR) {
                 count = i;
                 break;
             }
@@ -295,13 +295,13 @@ async function processFlowActionFailed(smaEvent: any, actionObj: any, contactFlo
     }
     let actionType = nextAction.Type;
     if (!AmazonConnectActions.hasOwnProperty(actionType)) {
-        return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, puaseAction, actionType)
+        return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, actionType)
     }
-    if (puaseAction != null && puaseAction && puaseAction != "") {
-        smaAction1 = puaseAction;
-        puaseAction = null;
+    if (pauseAction) {
+        smaAction1 = pauseAction;
+        pauseAction = null;
         return {
-            "SchemaVersion": "1.0",
+            "SchemaVersion": Attributes.SCHEMA_VERSION,
             "Actions": [
                 smaAction1, smaAction
             ],
@@ -312,7 +312,7 @@ async function processFlowActionFailed(smaEvent: any, actionObj: any, contactFlo
 
     }
     return {
-        "SchemaVersion": "1.0",
+        "SchemaVersion": Attributes.SCHEMA_VERSION,
         "Actions": [
             smaAction
         ],

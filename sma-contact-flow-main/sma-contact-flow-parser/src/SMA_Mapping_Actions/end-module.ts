@@ -1,8 +1,8 @@
 import { getLegACallDetails } from "../utility/call-details";
-import { ConstData } from "../utility/ConstantValues"
+import { Attributes } from "../utility/constant-values"
 import { count } from "../utility/count";
-import { ChimeActions } from "../utility/ChimeActionTypes";
-import { terminatingFlowAction } from "../utility/termination-event";
+import { ChimeActions } from "../utility/chime-action-types";
+import { terminatingFlowAction } from "../utility/termination-action";
 import { findActionByID } from "../utility/find-action-id";
 import { processFlowAction } from "../contact-flow-processor"
 import { loadContactFlow } from "../contact-flow-loader"
@@ -17,11 +17,11 @@ import { loadContactFlow } from "../contact-flow-loader"
 export class EndModule {
   async processFlowActionEndFlowModuleExecution(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, InvokeModuleARNMap: Map<string, string>, InvokationModuleNextAction: Map<string, string>, ActualFlowARN: Map<string, string>, defaultLogger: string, puaseAction: any, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ContactFlowARNMap: Map<string, string>) {
     let callId: string;
-    const legA = getLegACallDetails(smaEvent);
+    try {
+      const legA = getLegACallDetails(smaEvent);
     callId = legA.CallId;
     if (!callId)
       callId = smaEvent.ActionData.Parameters.CallId;
-    try {
       InvokeModuleARNMap.delete(callId)
       let nextaction_id = InvokationModuleNextAction.get(callId)
       let contactFlow_id = ActualFlowARN.get(callId)

@@ -1,10 +1,10 @@
 import { getLegACallDetails } from "./call-details";
 import { findActionByID } from "./find-action-id";
-import { terminatingFlowAction } from "./termination-event"
+import { terminatingFlowAction } from "./termination-action"
 import { processFlowAction } from "../contact-flow-processor";
-import { AmazonConnectActions} from "./AmazonConnectActionTypes"
+import { AmazonConnectActions} from "./amazon-connect-actionTypes"
 import { getNextActionForError} from "./next-action-error"
-import {ErrorTypes }from "./ErrorTypes"
+import {ErrorTypes }from "./error-types"
 /**
   * This function will validate the Recieved digits based on the condition defined in the Block
   * @param smaEvent 
@@ -26,7 +26,7 @@ export async function processFlowConditionValidation(smaEvent: any, actionObj: a
     callId = legA.CallId;
     if (!callId)
         callId = smaEvent.ActionData.Parameters.CallId;
-    if (smaEvent != null && condition.length > 0) {
+    if (smaEvent && condition.length > 0) {
         for (let index = 0; index < condition.length; index++) {
             console.log(defaultLogger + callId + " Recieved Digits " + recieved_digits);
             console.log(defaultLogger + callId + " Condition Operands " + condition[index].Condition.Operands[0]);
@@ -40,11 +40,11 @@ export async function processFlowConditionValidation(smaEvent: any, actionObj: a
         }
 
         if (!nextAction_id && actionObj.Parameters.StoreInput == "False") {
-            nextAction = await getNextActionForError(currentAction, contactFlow.Actions, ErrorTypes.NoMatchingCondition, smaEvent,defaultLogger);
+            nextAction = await getNextActionForError(currentAction, contactFlow.Actions, ErrorTypes.NO_MATCHING_CONDITION, smaEvent,defaultLogger);
             console.log(defaultLogger + callId + " Conditions are not matching with Recieved Digits ");
 
         } else if ((!nextAction_id && actionObj.Parameters.StoreInput == "True")) {
-            nextAction = await getNextActionForError(currentAction, contactFlow.Actions, ErrorTypes.NoMatchingError, smaEvent,defaultLogger);
+            nextAction = await getNextActionForError(currentAction, contactFlow.Actions, ErrorTypes.NO_MATCHING_ERROR, smaEvent,defaultLogger);
             console.log(defaultLogger + callId + " Conditions are not matching with Recieved Digits ");
         }
         console.log(defaultLogger + callId + " Next Action identifier:" + nextAction_id);

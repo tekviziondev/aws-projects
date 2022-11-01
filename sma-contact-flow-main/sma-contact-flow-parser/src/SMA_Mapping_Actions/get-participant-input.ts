@@ -1,8 +1,9 @@
 import { getLegACallDetails } from "../utility/call-details";
-import { ChimeActions } from "../utility/ChimeActionTypes";
-import { terminatingFlowAction } from "../utility/termination-event";
+import { ChimeActions } from "../utility/chime-action-types";
+import { terminatingFlowAction } from "../utility/termination-action";
 import { getSpeechParameters ,FailureSpeechParameters} from "../utility/speech-parameter";
 import { PlayAudioAndGetDigits } from "./play-audio-getdigits";
+import { Attributes } from "../utility/constant-values";
 /**
   * Making a SMA action to perform delivering an audio message to obtain customer input.
   * @param smaEvent 
@@ -10,23 +11,23 @@ import { PlayAudioAndGetDigits } from "./play-audio-getdigits";
   * @returns SMA Action
   */
 export class GetParticipantInput {
-    async processFlowActionGetParticipantInput(smaEvent: any, action: any, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>, defaultLogger: string, puaseAction: any) {
+    async processFlowActionGetParticipantInput(smaEvent: any, action: any, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>, defaultLogger: string, pauseAction: any) {
         
         let callId: string;
-        let smaAction1: any;
+        try {
+            let smaAction1: any;
         const legA = getLegACallDetails(smaEvent);
         callId = legA.CallId;
         if (!callId)
             callId = smaEvent.ActionData.Parameters.CallId;
-        try {
-            if (action.Parameters.Media != null) {
+            if (action.Parameters.Media) {
                 console.log(defaultLogger + callId + " Play Audio And Get Digits");
                 let playAudioGetDigits = new PlayAudioAndGetDigits();
-                return await playAudioGetDigits.processPlayAudioAndGetDigits(smaEvent, action, defaultLogger, puaseAction, SpeechAttributeMap, contextAttributes, ActualFlowARN, ActualFlowARN);
+                return await playAudioGetDigits.processPlayAudioAndGetDigits(smaEvent, action, defaultLogger, pauseAction, SpeechAttributeMap, contextAttributes, ActualFlowARN, ActualFlowARN);
             }
             console.log(defaultLogger + callId + " Speak and Get Digits Action");
             let smaAction = {
-                Type: ChimeActions.SpeakAndGetDigits,
+                Type: ChimeActions.SPEAK_AND_GET_DIGITS,
                 Parameters: {
                     "CallId": legA.CallId,
                     "SpeechParameters": getSpeechParameters(smaEvent, action, contextAttributes, SpeechAttributeMap, defaultLogger),
@@ -37,7 +38,7 @@ export class GetParticipantInput {
             };
             let text = smaAction.Parameters.SpeechParameters.Text
             if (text.includes("$.")) {
-                return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, puaseAction, "Invalid_Text")
+                return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "Invalid_Text")
             }
 
             if (action.Parameters?.InputValidation) {
@@ -54,11 +55,11 @@ export class GetParticipantInput {
                 const timeLimit: number = Number.parseInt(action.Parameters.InputTimeLimitSeconds);
                 smaAction.Parameters["RepeatDurationInMilliseconds"] = timeLimit * 1000;
             }
-            if (puaseAction != null && puaseAction && puaseAction != "") {
-                smaAction1 = puaseAction;
-                puaseAction = null;
+            if (pauseAction) {
+                smaAction1 = pauseAction;
+                pauseAction = null;
                 return {
-                    "SchemaVersion": "1.0",
+                    "SchemaVersion": Attributes.SCHEMA_VERSION,
                     "Actions": [
                         smaAction1, smaAction
                     ],
@@ -69,7 +70,7 @@ export class GetParticipantInput {
 
             }
             return {
-                "SchemaVersion": "1.0",
+                "SchemaVersion": Attributes.SCHEMA_VERSION,
                 "Actions": [
                     smaAction
                 ],
@@ -79,7 +80,7 @@ export class GetParticipantInput {
             }
         } catch (error) {
             console.log(defaultLogger + callId + " There is an Error in execution of GetParticipantInput" + error.message);
-            return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, puaseAction, "error")
+            return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "error")
         }
     }
 }

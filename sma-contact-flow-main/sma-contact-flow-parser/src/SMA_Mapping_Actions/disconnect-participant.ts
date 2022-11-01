@@ -1,5 +1,6 @@
-import { ChimeActions } from "../utility/ChimeActionTypes";
+import { ChimeActions } from "../utility/chime-action-types";
 import { getLegACallDetails } from "../utility/call-details";
+import { Attributes } from "../utility/constant-values";
 /**
   * Making a SMA action to perform Ends the interaction.
   * @param smaEvent 
@@ -7,7 +8,7 @@ import { getLegACallDetails } from "../utility/call-details";
   * @returns SMA Action
   */
 export class DisconnectParticipant {
-    async processFlowActionDisconnectParticipant(smaEvent: any, action: any, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>, defaultLogger: string, puaseAction: any) {
+    async processFlowActionDisconnectParticipant(smaEvent: any, action: any, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>, defaultLogger: string, pauseAction: any) {
         let callId: string;
         let smaAction1: any;
         const legA = getLegACallDetails(smaEvent);
@@ -18,19 +19,19 @@ export class DisconnectParticipant {
         contextAttributes.clear();
         ActualFlowARN.delete(callId);
         SpeechAttributeMap.clear();
-        console.log(defaultLogger + callId + " is going to Hang up");
+        console.log(defaultLogger + callId + "| is going to Hang up");
         let smaAction = {
-            Type: ChimeActions.Hangup,
+            Type: ChimeActions.HANGUP,
             Parameters: {
                 "SipResponseCode": "0",
                 "CallId": callId
             }
         };
-        if (puaseAction != null && puaseAction && puaseAction != "") {
-            smaAction1 = puaseAction;
-            puaseAction = null;
+        if (pauseAction) {
+            smaAction1 = pauseAction;
+            pauseAction = null;
             return {
-                "SchemaVersion": "1.0",
+                "SchemaVersion": Attributes.SCHEMA_VERSION,
                 "Actions": [
                     smaAction1, smaAction
                 ],
@@ -41,7 +42,7 @@ export class DisconnectParticipant {
 
         }
         return {
-            "SchemaVersion": "1.0",
+            "SchemaVersion": Attributes.SCHEMA_VERSION,
             "Actions": [
                 smaAction
             ],

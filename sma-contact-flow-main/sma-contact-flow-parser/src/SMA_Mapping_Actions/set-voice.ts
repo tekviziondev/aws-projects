@@ -1,7 +1,8 @@
 import { getLegACallDetails } from "../utility/call-details";
-import { terminatingFlowAction } from "../utility/termination-event";
+import { terminatingFlowAction } from "../utility/termination-action";
 import { findActionByID } from "../utility/find-action-id";
 import { processFlowAction } from "../contact-flow-processor";
+
 
 /**
   * Sets the voice parameters to interact with the customer
@@ -13,13 +14,13 @@ import { processFlowAction } from "../contact-flow-processor";
   * @returns SMA Action
   */
 export class SetVoice {
-    async processFlowActionUpdateContactTextToSpeechVoice(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, defaultLogger: string, SpeechAttributeMap: Map<string, string>, puaseAction: any, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>) {
+    async processFlowActionUpdateContactTextToSpeechVoice(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, defaultLogger: string, SpeechAttributeMap: Map<string, string>, pauseAction: any, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>) {
         let callId: string;
-        const legA = getLegACallDetails(smaEvent);
-        callId = legA.CallId;
-        if (!callId)
-            callId = smaEvent.ActionData.Parameters.CallId;
         try {
+            const legA = getLegACallDetails(smaEvent);
+            callId = legA.CallId;
+            if (!callId)
+                callId = smaEvent.ActionData.Parameters.CallId;
             let SpeechParameters = action.Parameters
             const keys = Object.keys(SpeechParameters);
             keys.forEach((key, index) => {
@@ -40,7 +41,7 @@ export class SetVoice {
             return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName);
         } catch (error) {
             console.log(defaultLogger + callId + " There is an Error in execution of UpdateContactTextToSpeechVoice " + error.message);
-            return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, puaseAction, "error")
+            return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "error")
         }
     }
 }

@@ -1,7 +1,8 @@
 import { getLegACallDetails } from "../utility/call-details";
 import { processFlowAction } from "../contact-flow-processor";
 import { findActionByID } from "../utility/find-action-id";
-import { terminatingFlowAction } from "../utility/termination-event";
+import { terminatingFlowAction } from "../utility/termination-action";
+import { Attributes } from "../utility/constant-values";
 
 /**
   * Making a SMA action to perform Repeats the looping branch for the specified number of times. After which, the complete branch is followed.
@@ -13,15 +14,16 @@ import { terminatingFlowAction } from "../utility/termination-event";
   * @returns SMA Action
   */
 export class Loop {
-    async processFlowActionLoop(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, defaultLogger: string, puaseAction: any, loopMap: Map<string, string>, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>) {
+    async processFlowActionLoop(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, defaultLogger: string, pauseAction: any, loopMap: Map<string, string>, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>) {
         let smaAction: any;
         let smaAction1: any;
         let callId: string;
-        const legA = getLegACallDetails(smaEvent);
-        callId = legA.CallId;
-        if (!callId)
-            callId = smaEvent.ActionData.Parameters.CallId;
+       
         try {
+            const legA = getLegACallDetails(smaEvent);
+            callId = legA.CallId;
+            if (!callId)
+                callId = smaEvent.ActionData.Parameters.CallId;
             if (!loopMap.has(callId) || loopMap.get(callId) != action.Parameters.LoopCount) {
                 const nextAction = findActionByID(actions, action.Transitions.Conditions[1].NextAction);
                 console.log(defaultLogger + callId + " Next Action identifier:" + action.Transitions.Conditions[1].NextAction);
@@ -32,11 +34,11 @@ export class Loop {
                 else
                     loopMap.set(callId, count);
                 console.log("Next Action Data:" + smaAction);
-                if (puaseAction != null && puaseAction && puaseAction != "") {
-                    smaAction1 = puaseAction;
-                    puaseAction = null;
+                if (pauseAction) {
+                    smaAction1 = pauseAction;
+                    pauseAction = null;
                     return {
-                        "SchemaVersion": "1.0",
+                        "SchemaVersion": Attributes.SCHEMA_VERSION,
                         "Actions": [
                             smaAction1, smaAction
                         ],
@@ -46,7 +48,7 @@ export class Loop {
                     }
                 }
                 return {
-                    "SchemaVersion": "1.0",
+                    "SchemaVersion": Attributes.SCHEMA_VERSION,
                     "Actions": [
                         smaAction
                     ],
@@ -62,7 +64,7 @@ export class Loop {
             }
         } catch (error) {
             console.log(defaultLogger + callId + " There is an Error in execution of Loop " + error.message);
-            return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, puaseAction, "error")
+            return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "error")
         }
 
     }

@@ -1,6 +1,6 @@
 
 import { getLegACallDetails } from "../utility/call-details";
-import { terminatingFlowAction } from "../utility/termination-event";
+import { terminatingFlowAction } from "../utility/termination-action";
 import { loadContactFlow } from "../contact-flow-loader"
 import { processRootFlowBlock } from "../contact-flow-processor"
 
@@ -15,11 +15,11 @@ export class InvokeModule {
     async processFlowActionInvokeFlowModule(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, defaultLogger: string, InvokeModuleARNMap: Map<string, string>, InvokationModuleNextAction: Map<string, string>, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>, puaseAction: any) {
         let ModuleARN = action.Parameters.FlowModuleId;
         let callId: string;
-        const legA = getLegACallDetails(smaEvent);
+        try {
+            const legA = getLegACallDetails(smaEvent);
         callId = legA.CallId;
         if (!callId)
             callId = smaEvent.ActionData.Parameters.CallId;
-        try {
             InvokeModuleARNMap.set(callId, ModuleARN)
             let endModuleNextAction = action.Transitions.NextAction;
             InvokationModuleNextAction.set(callId, endModuleNextAction);

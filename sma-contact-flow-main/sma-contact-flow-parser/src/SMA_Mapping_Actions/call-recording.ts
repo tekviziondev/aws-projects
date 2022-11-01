@@ -1,7 +1,8 @@
 import { getLegACallDetails } from "../utility/call-details";
-import { ChimeActions } from "../utility/ChimeActionTypes";
-import { constActions, ConstData } from "../utility/ConstantValues";
-import { terminatingFlowAction } from "../utility/termination-event";
+import { ChimeActions } from "../utility/chime-action-types";
+import { Attributes } from "../utility/constant-values";
+import { terminatingFlowAction } from "../utility/termination-action";
+
 /**
   * Making a SMA action to perform Call Recording.
   * @param smaEvent 
@@ -10,26 +11,26 @@ import { terminatingFlowAction } from "../utility/termination-event";
   */
 
 export class CallRecording {
-    async processFlowActionUpdateContactRecordingBehavior(smaEvent: any, action: any, puaseAction: any, defaultLogger: string, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>) {
+    async processFlowActionUpdateContactRecordingBehavior(smaEvent: any, action: any, pauseAction: any, defaultLogger: string, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>) {
         let callId: string;
-        let smaAction1: any;
-        const legA = getLegACallDetails(smaEvent);
-        callId = legA.CallId;
-        if (!callId)
-            callId = smaEvent.ActionData.Parameters.CallId;
         try {
+            let smaAction1: any;
+            const legA = getLegACallDetails(smaEvent);
+            callId = legA.CallId;
+            if (!callId)
+                callId = smaEvent.ActionData.Parameters.CallId;
             if (action.Parameters.RecordingBehavior.RecordedParticipants.length < 1) {
                 let smaAction = {
-                    Type: ChimeActions.StopCallRecording,
+                    Type: ChimeActions.STOP_CALL_RECORDING,
                     Parameters: {
                         "CallId": legA.CallId
                     }
                 };
-                if (puaseAction != null && puaseAction && puaseAction != "") {
-                    smaAction1 = puaseAction;
-                    puaseAction = null;
+                if (pauseAction) {
+                    smaAction1 = pauseAction;
+                    pauseAction = null;
                     return {
-                        "SchemaVersion": "1.0",
+                        "SchemaVersion": Attributes.SCHEMA_VERSION,
                         "Actions": [
                             smaAction1, smaAction
                         ],
@@ -41,7 +42,7 @@ export class CallRecording {
                 }
 
                 return {
-                    "SchemaVersion": "1.0",
+                    "SchemaVersion": Attributes.SCHEMA_VERSION,
                     "Actions": [
                         smaAction
                     ],
@@ -51,21 +52,21 @@ export class CallRecording {
                 }
             }
             let smaAction = {
-                Type: ChimeActions.StartCallRecording,
+                Type: ChimeActions.START_CALL_RECORDING,
                 Parameters: {
                     "CallId": legA.CallId,
-                    "Track": ConstData.Track,
+                    "Track": Attributes.TRACK,
                     Destination: {
-                        "Type": ConstData.destinationType,
-                        "Location": ConstData.destinationLocation
+                        "Type": Attributes.DESTINATION_TYPE,
+                        "Location": Attributes.destinationLocation
                     }
                 }
             };
-            if (puaseAction != null && puaseAction && puaseAction != "") {
-                smaAction1 = puaseAction;
-                puaseAction = null;
+            if (pauseAction) {
+                smaAction1 = pauseAction;
+                pauseAction = null;
                 return {
-                    "SchemaVersion": "1.0",
+                    "SchemaVersion": Attributes.SCHEMA_VERSION,
                     "Actions": [
                         smaAction1, smaAction
                     ],
@@ -76,7 +77,7 @@ export class CallRecording {
 
             }
             return {
-                "SchemaVersion": "1.0",
+                "SchemaVersion": Attributes.SCHEMA_VERSION,
                 "Actions": [
                     smaAction
                 ],
@@ -85,8 +86,8 @@ export class CallRecording {
                 }
             }
         } catch (error) {
-            console.log(defaultLogger + callId + " There is an Error in execution UpdateContactRecordingBehavior" + error.message);
-            return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, puaseAction, "error")
+            console.log(defaultLogger + callId + " There is an Error in execution UpdateContactRecordingBehavior |" + error.message);
+            return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "error")
         }
     }
 }

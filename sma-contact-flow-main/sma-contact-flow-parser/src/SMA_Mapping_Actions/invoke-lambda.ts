@@ -1,8 +1,8 @@
 import { getLegACallDetails } from "../utility/call-details";
-import { ConstData } from "../utility/ConstantValues"
-import { terminatingFlowAction } from "../utility/termination-event";
+import { Attributes } from "../utility/constant-values"
+import { terminatingFlowAction } from "../utility/termination-action";
 import { findActionByID } from "../utility/find-action-id";
-import { ErrorTypes } from "../utility/ErrorTypes";
+import { ErrorTypes } from "../utility/error-types";
 import { processFlowAction } from "../contact-flow-processor"
 import { getNextActionForError} from "../utility/next-action-error"
 
@@ -17,14 +17,14 @@ import { getNextActionForError} from "../utility/next-action-error"
   */
 export class InvokeLambda {
     async processFlowActionInvokeLambdaFunction(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, defaultLogger: string, contextAttributes: Map<any, any>, loopMap: Map<string, string>, tmpMap: Map<any, any>, puaseAction: any, SpeechAttributeMap: Map<string, string>, ContactFlowARNMap: Map<string, string>, ActualFlowARN: Map<string, string>) {
-        const legA = getLegACallDetails(smaEvent);
         let callId: string;
-        callId = legA.CallId;
-        if (!callId)
-            callId = smaEvent.ActionData.Parameters.CallId;
         const AWS = require("aws-sdk")
-        const lambda = new AWS.Lambda({ region: ConstData.region })
+        const lambda = new AWS.Lambda({ region: Attributes.region })
         try {
+            const legA = getLegACallDetails(smaEvent);
+            callId = legA.CallId;
+            if (!callId)
+                callId = smaEvent.ActionData.Parameters.CallId;
             let LambdaARN = action.Parameters.LambdaFunctionARN
 
             let inputForInvoking = await inputForInvokingLambda(action, contextAttributes);
@@ -34,8 +34,8 @@ export class InvokeLambda {
                 Payload: JSON.stringify(inputForInvoking)
             };
             let result = await lambda.invoke(params).promise()
-            if (result === null  && !result) {
-                let nextAction = await getNextActionForError(action, actions, ErrorTypes.NoMatchingError, smaEvent,defaultLogger);
+            if (!result) {
+                let nextAction = await getNextActionForError(action, actions, ErrorTypes.NO_MATCHING_ERROR, smaEvent,defaultLogger);
                 return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName);
             }
             let x = JSON.parse(result.Payload)

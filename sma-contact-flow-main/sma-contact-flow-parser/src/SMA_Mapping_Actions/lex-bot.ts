@@ -1,7 +1,7 @@
 import { getLegACallDetails } from "../utility/call-details";
-import { ChimeActions } from "../utility/ChimeActionTypes";
-import { ConstData } from "../utility/ConstantValues";
-import { terminatingFlowAction } from "../utility/termination-event";
+import { ChimeActions } from "../utility/chime-action-types";
+import { Attributes } from "../utility/constant-values";
+import { terminatingFlowAction } from "../utility/termination-action";
 
 /**
   * Making a SMA action to perform delvier a Chat message and obtain customer input.
@@ -11,19 +11,20 @@ import { terminatingFlowAction } from "../utility/termination-event";
   */
 
 export class LexBot {
-  async processFlowActionConnectParticipantWithLexBot(smaEvent: any, action: any, defaultLogger: string, puaseAction: any, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>) {
+  async processFlowActionConnectParticipantWithLexBot(smaEvent: any, action: any, defaultLogger: string, pauseAction: any, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>) {
     let smaAction;
-    const legA = getLegACallDetails(smaEvent);
     let smaAction1: any;
     let callId: string;
+    
+    try {
+      const legA = getLegACallDetails(smaEvent);
     callId = legA.CallId;
     if (!callId)
       callId = smaEvent.ActionData.Parameters.CallId;
     console.log(defaultLogger + callId + " Start Bot Conversation");
-    try {
       if (action.Parameters.hasOwnProperty("LexSessionAttributes")) {
         smaAction = {
-          Type: ChimeActions.StartBotConversation,
+          Type: ChimeActions.START_BOT_CONVERSATION,
           Parameters: {
             BotAliasArn: action.Parameters.LexV2Bot.AliasArn,
             LocaleId: 'en_US',
@@ -31,12 +32,12 @@ export class LexBot {
               SessionState: {
                 SessionAttributes: action.Parameters.LexSessionAttributes,
                 DialogAction: {
-                  Type: ConstData.dialogType
+                  Type: Attributes.DIALOG_TYPE
                 }
               },
               WelcomeMessages: [
                 {
-                  ContentType: ConstData.ContentType,
+                  ContentType: Attributes.CONTENT_TYPE,
                   Content: action.Parameters.Text
                 },
               ]
@@ -46,19 +47,19 @@ export class LexBot {
       }
       else {
         smaAction = {
-          Type: ChimeActions.StartBotConversation,
+          Type: ChimeActions.START_BOT_CONVERSATION,
           Parameters: {
             BotAliasArn: action.Parameters.LexV2Bot.AliasArn,
             LocaleId: 'en_US',
             Configuration: {
               SessionState: {
                 DialogAction: {
-                  Type: ConstData.dialogType
+                  Type: Attributes.DIALOG_TYPE
                 }
               },
               WelcomeMessages: [
                 {
-                  ContentType: ConstData.ContentType,
+                  ContentType: Attributes.CONTENT_TYPE,
                   Content: action.Parameters.Text
                 },
               ]
@@ -66,11 +67,11 @@ export class LexBot {
           }
         }
       }
-      if (puaseAction != null && puaseAction && puaseAction != "") {
-        smaAction1 = puaseAction;
-        puaseAction = null;
+      if (pauseAction) {
+        smaAction1 = pauseAction;
+        pauseAction = null;
         return {
-          "SchemaVersion": "1.0",
+          "SchemaVersion": Attributes.SCHEMA_VERSION,
           "Actions": [
             smaAction1, smaAction
           ],
@@ -82,7 +83,7 @@ export class LexBot {
       }
 
       return {
-        "SchemaVersion": "1.0",
+        "SchemaVersion": Attributes.SCHEMA_VERSION,
         "Actions": [
           smaAction
         ],
@@ -92,7 +93,7 @@ export class LexBot {
       }
     } catch (error) {
       console.log(defaultLogger + callId + " There is an Error in execution of ConnectParticipantWithLexBot " + error.message);
-      return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, puaseAction, "error")
+      return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "error")
     }
 
   }
