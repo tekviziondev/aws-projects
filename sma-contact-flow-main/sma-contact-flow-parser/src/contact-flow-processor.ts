@@ -157,49 +157,49 @@ export async function processRootFlowBlock(smaEvent: any, contactFlow: any, _tra
 export async function processFlowAction(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string) {
     console.log("ProcessFlowAction:" + action);
     switch (action.Type) {
-        case AmazonConnectActions.GetParticipantInput:
+        case AmazonConnectActions.GET_PARTICIPANT_INPUT:
             let getParticipantInput = new GetParticipantInput();
             return await getParticipantInput.processFlowActionGetParticipantInput(smaEvent, action, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction);
-        case AmazonConnectActions.MessageParticipant:
+        case AmazonConnectActions.MESSAGE_PARTICIPANT:
             let message_participant = new MessageParticipant();
             return await message_participant.processFlowActionMessageParticipant(smaEvent, action, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction);
-        case AmazonConnectActions.DisconnectParticipant:
+        case AmazonConnectActions.DISCONNECT_PARTICIPANT:
             let disconnect = new DisconnectParticipant();
             return await disconnect.processFlowActionDisconnectParticipant(smaEvent, action, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction);
-        case AmazonConnectActions.Wait:
+        case AmazonConnectActions.WAIT:
             let wait = new Wait();
             return await wait.processFlowActionWait(smaEvent, action, actions, amazonConnectInstanceID, bucketName, defaultLogger, pauseAction, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap);
-        case AmazonConnectActions.UpdateContactRecordingBehavior:
+        case AmazonConnectActions.UPDATE_CONTACT_RECORDING_BEHAVIOUR:
             let callRecording = new CallRecording();
             return await callRecording.processFlowActionUpdateContactRecordingBehavior(smaEvent, action, pauseAction, defaultLogger, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap)
-        case AmazonConnectActions.Loop:
+        case AmazonConnectActions.LOOP:
             let loop = new Loop();
             return await loop.processFlowActionLoop(smaEvent, action, actions, amazonConnectInstanceID, bucketName, defaultLogger, pauseAction, loopMap, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap)
-        case AmazonConnectActions.TransferParticipantToThirdParty:
+        case AmazonConnectActions.TRANSFER_PARTICIPANT_TO_THIRD_PARTY:
             let transferThirdParty = new TransferTOThirdParty();
             return await transferThirdParty.processFlowActionTransferParticipantToThirdParty(smaEvent, action, defaultLogger, pauseAction, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap)
-        case AmazonConnectActions.ConnectParticipantWithLexBot:
+        case AmazonConnectActions.CONNECT_PARTICIPANT_WITH_LEX_BOT:
             let lexbot = new LexBot();
             return await lexbot.processFlowActionConnectParticipantWithLexBot(smaEvent, action, defaultLogger, pauseAction, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap)
-        case AmazonConnectActions.TransferToFlow:
+        case AmazonConnectActions.TRANSFER_TO_FLOW:
             let transferToFlow = new TrasferToFlow()
             return await transferToFlow.processFlowActionTransferToFlow(smaEvent, action, amazonConnectInstanceID, bucketName, defaultLogger, ContactFlowARNMap, pauseAction, SpeechAttributeMap, contextAttributes, ActualFlowARN)
-        case AmazonConnectActions.UpdateContactTextToSpeechVoice:
+        case AmazonConnectActions.UPDATE_CONTACT_TEXT_TO_SPEECH:
             let updateVoice = new SetVoice();
             return await updateVoice.processFlowActionUpdateContactTextToSpeechVoice(smaEvent, action, actions, amazonConnectInstanceID, bucketName, defaultLogger, SpeechAttributeMap, pauseAction, contextAttributes, ActualFlowARN, ContactFlowARNMap)
-        case AmazonConnectActions.InvokeLambdaFunction:
+        case AmazonConnectActions.INVOKE_LAMBDA_FUNCTION:
             let invokeLambda = new InvokeLambda();
             return await invokeLambda.processFlowActionInvokeLambdaFunction(smaEvent, action, actions, amazonConnectInstanceID, bucketName, defaultLogger, contextAttributes, loopMap, tmpMap, pauseAction, SpeechAttributeMap, ContactFlowARNMap, ActualFlowARN)
-        case AmazonConnectActions.UpdateContactAttributes:
+        case AmazonConnectActions.UPDATE_CONTACT_ATTRIBUTES:
             let update = new UpdateContactAttrbts();
             return await update.processFlowActionUpdateContactAttributes(smaEvent, action, actions, amazonConnectInstanceID, bucketName, defaultLogger, tmpMap, contextAttributes)
-        case AmazonConnectActions.Compare:
+        case AmazonConnectActions.COMPARE:
             let compare = new CompareAttribute();
             return await compare.processFlowActionCompareContactAttributes(smaEvent, action, actions, amazonConnectInstanceID, bucketName, defaultLogger, contextAttributes)
-        case AmazonConnectActions.InvokeFlowModule:
+        case AmazonConnectActions.INVOKE_FLOW_MODULE:
             let invoke = new InvokeModule();
             return await invoke.processFlowActionInvokeFlowModule(smaEvent, action, actions, amazonConnectInstanceID, bucketName, defaultLogger, InvokeModuleARNMap, InvokationModuleNextAction, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, pauseAction)
-        case AmazonConnectActions.EndFlowModuleExecution:
+        case AmazonConnectActions.END_FLOW_MODULE_EXECUTION:
             let endModule = new EndModule()
             return await endModule.processFlowActionEndFlowModuleExecution(smaEvent, action, actions, amazonConnectInstanceID, bucketName, InvokeModuleARNMap, InvokationModuleNextAction, ActualFlowARN, defaultLogger, pauseAction, SpeechAttributeMap, contextAttributes, ContactFlowARNMap)
         default:
