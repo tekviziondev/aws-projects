@@ -1,7 +1,4 @@
 import { getLegACallDetails } from "../utility/call-details";
-import { Attributes } from "../utility/constant-values"
-import { count } from "../utility/count";
-import { ChimeActions } from "../utility/chime-action-types";
 import { terminatingFlowAction } from "../utility/termination-action";
 import { findActionByID } from "../utility/find-action-id";
 import { processFlowAction } from "../contact-flow-processor"
@@ -19,9 +16,9 @@ export class EndModule {
     let callId: string;
     try {
       const legA = getLegACallDetails(smaEvent);
-    callId = legA.CallId;
-    if (!callId)
-      callId = smaEvent.ActionData.Parameters.CallId;
+      callId = legA.CallId;
+      if (!callId)
+        callId = smaEvent.ActionData.Parameters.CallId;
       InvokeModuleARNMap.delete(callId)
       let nextaction_id = InvokationModuleNextAction.get(callId)
       let contactFlow_id = ActualFlowARN.get(callId)
@@ -30,7 +27,7 @@ export class EndModule {
       InvokationModuleNextAction.delete(callId);
       return await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName);
     } catch (error) {
-      console.log(defaultLogger + callId + " There is an Error in execution EndFlowModule" + error.message);
+      console.error(defaultLogger + callId + " There is an Error in execution EndFlowModule" + error.message);
       return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, puaseAction, "error")
     }
 

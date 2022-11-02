@@ -13,7 +13,7 @@ import { getNextActionForError } from "../utility/next-action-error"
   * @returns The Next SMA Action to perform
   */
 export class UpdateContactAttrbts {
-    async processFlowActionUpdateContactAttributes(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, defaultLogger: string, tmpMap: Map<any, any>, contextAttributes: Map<any, any>) { 
+    async processFlowActionUpdateContactAttributes(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, defaultLogger: string, tmpMap: Map<any, any>, contextAttributes: Map<any, any>, SpeechAttributeMap: Map<string, string>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>, pauseAction: any) {
         let callId: string;
         try {
             const legA = getLegACallDetails(smaEvent);
@@ -40,12 +40,12 @@ export class UpdateContactAttrbts {
                 }
             }
         } catch (e) {
-            let nextAction = await getNextActionForError(action, actions, ErrorTypes.NO_MATCHING_ERROR, smaEvent,defaultLogger);
+            let nextAction = await getNextActionForError(action, actions, ErrorTypes.NO_MATCHING_ERROR, smaEvent, defaultLogger, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, pauseAction);
             return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName);
         }
         tmpMap.clear();
         let nextAction = findActionByID(actions, action.Transitions.NextAction);
-        console.log(defaultLogger + callId + " Next Action identifier:" + action.Transitions.NextAction);
+        console.error(defaultLogger + callId + " Next Action identifier:" + action.Transitions.NextAction);
         return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName);
     }
 }

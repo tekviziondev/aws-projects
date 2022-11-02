@@ -15,13 +15,13 @@ export class LexBot {
     let smaAction;
     let smaAction1: any;
     let callId: string;
-    
+
     try {
       const legA = getLegACallDetails(smaEvent);
-    callId = legA.CallId;
-    if (!callId)
-      callId = smaEvent.ActionData.Parameters.CallId;
-    console.log(defaultLogger + callId + " Start Bot Conversation");
+      callId = legA.CallId;
+      if (!callId)
+        callId = smaEvent.ActionData.Parameters.CallId;
+      console.log(defaultLogger + callId + " Start Bot Conversation");
       if (action.Parameters.hasOwnProperty("LexSessionAttributes")) {
         smaAction = {
           Type: ChimeActions.START_BOT_CONVERSATION,
@@ -92,7 +92,7 @@ export class LexBot {
         }
       }
     } catch (error) {
-      console.log(defaultLogger + callId + " There is an Error in execution of ConnectParticipantWithLexBot " + error.message);
+      console.error(defaultLogger + callId + " There is an Error in execution of ConnectParticipantWithLexBot " + error.message);
       return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "error")
     }
 

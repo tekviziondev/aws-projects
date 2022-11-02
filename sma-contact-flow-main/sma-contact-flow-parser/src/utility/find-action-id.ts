@@ -5,5 +5,5 @@
   * @returns Amazon Connect Action Object
   */
 export function findActionByID(actions: any[], identifier: string) {
-    return actions.find((action: any) => action.Identifier === identifier);
+  return actions.find((action: any) => action.Identifier === identifier);
 }

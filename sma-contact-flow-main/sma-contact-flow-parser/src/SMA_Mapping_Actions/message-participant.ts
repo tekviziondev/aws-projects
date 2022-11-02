@@ -16,8 +16,8 @@ export class MessageParticipant {
         const legA = getLegACallDetails(smaEvent);
         try {
             callId = legA.CallId;
-        if (!callId)
-            callId = smaEvent.ActionData.Parameters.CallId;
+            if (!callId)
+                callId = smaEvent.ActionData.Parameters.CallId;
             if (action.Parameters.Media != null) {
                 console.log(defaultLogger + callId + "Play Audio Action");
                 let playAudio = new PlayAudio();
@@ -110,7 +110,7 @@ export class MessageParticipant {
                 }
             }
         } catch (error) {
-            console.log(defaultLogger + callId + " There is an Error in execution of MessageParticipant " + error.message);
+            console.error(defaultLogger + callId + " There is an Error in execution of MessageParticipant " + error.message);
             return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "error")
         }
 

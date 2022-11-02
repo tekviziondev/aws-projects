@@ -4,7 +4,8 @@ import { terminatingFlowAction } from "../utility/termination-action";
 import { findActionByID } from "../utility/find-action-id";
 import { ErrorTypes } from "../utility/error-types";
 import { processFlowAction } from "../contact-flow-processor"
-import { getNextActionForError} from "../utility/next-action-error"
+import { getNextActionForError } from "../utility/next-action-error"
+import { Lambda } from "aws-sdk"
 
 /**
   * Invokes the External Lambda Function and stores the result of the Lambda function in Key Value Pair
@@ -16,10 +17,9 @@ import { getNextActionForError} from "../utility/next-action-error"
   * @returns The Next SMA Action to perform
   */
 export class InvokeLambda {
-    async processFlowActionInvokeLambdaFunction(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, defaultLogger: string, contextAttributes: Map<any, any>, loopMap: Map<string, string>, tmpMap: Map<any, any>, puaseAction: any, SpeechAttributeMap: Map<string, string>, ContactFlowARNMap: Map<string, string>, ActualFlowARN: Map<string, string>) {
+    async processFlowActionInvokeLambdaFunction(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, defaultLogger: string, contextAttributes: Map<any, any>, loopMap: Map<string, string>, tmpMap: Map<any, any>, pauseAction: any, SpeechAttributeMap: Map<string, string>, ContactFlowARNMap: Map<string, string>, ActualFlowARN: Map<string, string>) {
         let callId: string;
-        const AWS = require("aws-sdk")
-        const lambda = new AWS.Lambda({ region: Attributes.region })
+        const lambda = new Lambda({ region: Attributes.region });
         try {
             const legA = getLegACallDetails(smaEvent);
             callId = legA.CallId;
@@ -35,10 +35,10 @@ export class InvokeLambda {
             };
             let result = await lambda.invoke(params).promise()
             if (!result) {
-                let nextAction = await getNextActionForError(action, actions, ErrorTypes.NO_MATCHING_ERROR, smaEvent,defaultLogger);
+                let nextAction = await getNextActionForError(action, actions, ErrorTypes.NO_MATCHING_ERROR, smaEvent, defaultLogger, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, pauseAction);
                 return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName);
             }
-            let x = JSON.parse(result.Payload)
+            let x = JSON.parse(result.Payload.toString())
             console.log(defaultLogger + callId + " The Result After Invoking Lambda is" + JSON.stringify(x))
             const keys = Object.keys(x);
             keys.forEach((key, index) => {
@@ -52,8 +52,8 @@ export class InvokeLambda {
             console.log(defaultLogger + callId + " Next Action identifier:" + action.Transitions.NextAction);
             return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName);
         } catch (error) {
-            console.log(defaultLogger + callId + " There is an Error in execution InvokeLambda" + error.message);
-            return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, puaseAction, "error")
+            console.error(defaultLogger + callId + " There is an Error in execution InvokeLambda" + error.message);
+            return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "error")
         }
     }
 

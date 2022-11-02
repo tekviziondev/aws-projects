@@ -15,16 +15,16 @@ export class TrasferToFlow {
         let callId: string;
         try {
             let TransferFlowARN = action.Parameters.ContactFlowId;
-        const legA = getLegACallDetails(smaEvent);
-        callId = legA.CallId;
-        if (!callId)
-            callId = smaEvent.ActionData.Parameters.CallId;
+            const legA = getLegACallDetails(smaEvent);
+            callId = legA.CallId;
+            if (!callId)
+                callId = smaEvent.ActionData.Parameters.CallId;
             ContactFlowARNMap.set(callId, TransferFlowARN)
             const contactFlow = await loadContactFlow(amazonConnectInstanceID, TransferFlowARN, bucketName, smaEvent, "Contact_Flow");
             console.log(defaultLogger + callId + " Transfering to Another contact FLow function")
             return await processRootFlowBlock(smaEvent, contactFlow, smaEvent.CallDetails.TransactionAttributes, amazonConnectInstanceID, bucketName);
         } catch (error) {
-            console.log(defaultLogger + callId + " There is an Error in execution of TransferToFlow " + error.message);
+            console.error(defaultLogger + callId + " There is an Error in execution of TransferToFlow " + error.message);
             return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "error")
         }
 

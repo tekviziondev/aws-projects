@@ -40,7 +40,7 @@ export class SetVoice {
             }
             return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName);
         } catch (error) {
-            console.log(defaultLogger + callId + " There is an Error in execution of UpdateContactTextToSpeechVoice " + error.message);
+            console.error(defaultLogger + callId + " There is an Error in execution of UpdateContactTextToSpeechVoice " + error.message);
             return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "error")
         }
     }

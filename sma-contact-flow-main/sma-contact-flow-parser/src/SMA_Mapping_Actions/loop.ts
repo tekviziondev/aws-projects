@@ -18,7 +18,7 @@ export class Loop {
         let smaAction: any;
         let smaAction1: any;
         let callId: string;
-       
+
         try {
             const legA = getLegACallDetails(smaEvent);
             callId = legA.CallId;
@@ -63,7 +63,7 @@ export class Loop {
                 return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName);
             }
         } catch (error) {
-            console.log(defaultLogger + callId + " There is an Error in execution of Loop " + error.message);
+            console.error(defaultLogger + callId + " There is an Error in execution of Loop " + error.message);
             return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "error")
         }
 

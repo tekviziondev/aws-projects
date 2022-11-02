@@ -86,7 +86,7 @@ export class CallRecording {
                 }
             }
         } catch (error) {
-            console.log(defaultLogger + callId + " There is an Error in execution UpdateContactRecordingBehavior |" + error.message);
+            console.error(defaultLogger + callId + " There is an Error in execution UpdateContactRecordingBehavior |" + error.message);
             return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "error")
         }
     }

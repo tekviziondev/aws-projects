@@ -13,9 +13,10 @@ import { getNextActionForError } from "../utility/next-action-error"
   * @param bucketName
   * @returns SMA Action
   */
+ 
 
 export class CompareAttribute {
-    async processFlowActionCompareContactAttributes(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, defaultLogger: string, contextAttributes: Map<any, any>) {
+    async processFlowActionCompareContactAttributes(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, defaultLogger: string, contextAttributes: Map<any, any>,SpeechAttributeMap: Map<string, string>,ActualFlowARN :Map<string, string>,ContactFlowARNMap :Map<string, string>,pauseAction:any) {
         let nextAction: any;
         try {
             let callId: string;
@@ -91,11 +92,11 @@ export class CompareAttribute {
             }
             if (!nextAction) {
                 console.log(defaultLogger + callId + "| Next Action is inValid");
-                let nextAction = await getNextActionForError(action, actions, ErrorTypes.NO_MATCHING_CONDITION, smaEvent, defaultLogger);
+                let nextAction = await getNextActionForError(action, actions, ErrorTypes.NO_MATCHING_CONDITION, smaEvent, defaultLogger,SpeechAttributeMap,contextAttributes,ActualFlowARN,ContactFlowARNMap,pauseAction);
                 return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName);
             }
         } catch (e) {
-            let nextAction = await getNextActionForError(action, actions, ErrorTypes.NO_MATCHING_CONDITION, smaEvent, defaultLogger);
+            let nextAction = await getNextActionForError(action, actions, ErrorTypes.NO_MATCHING_CONDITION, smaEvent, defaultLogger,SpeechAttributeMap,contextAttributes,ActualFlowARN,ContactFlowARNMap,pauseAction);
             return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName);
         }
         return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName);

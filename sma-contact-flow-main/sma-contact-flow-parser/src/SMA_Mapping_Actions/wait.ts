@@ -19,9 +19,9 @@ export class Wait {
         let callId: string;
         try {
             const legA = getLegACallDetails(smaEvent);
-        callId = legA.CallId;
-        if (!callId)
-            callId = smaEvent.ActionData.Parameters.CallId;
+            callId = legA.CallId;
+            if (!callId)
+                callId = smaEvent.ActionData.Parameters.CallId;
             console.log(defaultLogger + callId + " Pause Action");
             let timeLimit = getWaitTimeParameter(action)
             let smaAction = {
@@ -50,7 +50,7 @@ export class Wait {
                 }
             }
         } catch (error) {
-            console.log(defaultLogger + callId + " There is an Error in execution of TransferToThirdParty " + error.message);
+            console.error(defaultLogger + callId + " There is an Error in execution of TransferToThirdParty " + error.message);
             return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "error")
         }
 

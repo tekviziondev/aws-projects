@@ -17,15 +17,15 @@ export class PlayAudio {
         let smaAction1: any;
         try {
             const legA = getLegACallDetails(smaEvent);
-        callId = legA.CallId;
-        if (!callId)
-            callId = smaEvent.ActionData.Parameters.CallId;
+            callId = legA.CallId;
+            if (!callId)
+                callId = smaEvent.ActionData.Parameters.CallId;
             console.log(defaultLogger + callId + "Play Audio Action");
             let smaAction = {
                 Type: ChimeActions.PLAY_AUDIO,
                 Parameters: {
                     "CallId": callId,
-                    "AudioSource": getAudioParameters(smaEvent, action, defaultLogger)
+                    "AudioSource": getAudioParameters(smaEvent, action, defaultLogger, pauseAction, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap)
                 }
             };
             if (pauseAction) {
@@ -52,7 +52,7 @@ export class PlayAudio {
                 }
             }
         } catch (error) {
-            console.log(defaultLogger + callId + " There is an Error in execution of PlayAudio " + error.message);
+            console.error(defaultLogger + callId + " There is an Error in execution of PlayAudio " + error.message);
             return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "error")
         }
     }

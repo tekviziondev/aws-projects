@@ -1,6 +1,6 @@
 import { getLegACallDetails } from "../utility/call-details";
 import { ChimeActions } from "../utility/chime-action-types";
-import { getAudioParameters,failureAudioParameters } from "../utility/audio-parameters";
+import { getAudioParameters, failureAudioParameters } from "../utility/audio-parameters";
 import { terminatingFlowAction } from "../utility/termination-action";
 import { Attributes } from "../utility/constant-values";
 /**
@@ -19,12 +19,14 @@ export class PlayAudioAndGetDigits {
             if (!callId)
                 callId = smaEvent.ActionData.Parameters.CallId;
             console.log(defaultLogger + callId + " Action| Play Audio Action and Get Digits");
+            let audio_parameters = await getAudioParameters(smaEvent, action, defaultLogger, pauseAction, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap)
+            let failure_audio = await failureAudioParameters(smaEvent, action, defaultLogger, pauseAction, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap)
             let smaAction = {
                 Type: ChimeActions.PLAY_AUDIO_AND_GET_DIGITS,
                 Parameters: {
                     "CallId": callId,
-                    "AudioSource": getAudioParameters(smaEvent, action, defaultLogger),
-                    "FailureAudioSource": failureAudioParameters(smaEvent, action, defaultLogger),
+                    "AudioSource": audio_parameters,
+                    "FailureAudioSource": failure_audio,
                     "MinNumberOfDigits": 5,
                     "Repeat": 3
                 }
@@ -68,7 +70,7 @@ export class PlayAudioAndGetDigits {
             }
 
         } catch (error) {
-            console.log(defaultLogger + callId + " There is an Error in execution of PlayAudioAndGetDigits " + error.message);
+            console.error(defaultLogger + callId + " There is an Error in execution of PlayAudioAndGetDigits " + error.message);
             return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "error")
         }
 
