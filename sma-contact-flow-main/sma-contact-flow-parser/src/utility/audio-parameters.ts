@@ -1,4 +1,5 @@
 import { getLegACallDetails } from "./call-details";
+import { Attributes } from "./constant-values";
 import { terminatingFlowAction } from "./termination-action";
 
 /**
@@ -67,7 +68,7 @@ export async function failureAudioParameters(smaEvent: any, action: any, default
         let key: string;
         if (action.Parameters.SourceType) {
             console.log(defaultLogger + callId + " Audio Parameters SourceType Exists");
-            uri = "s3://smabridgingdemo-wavfiles98e3397d-3rx7w2754wlc/greeting.wav";
+            uri = Attributes.Failure_Audio_Location;
             uriObj = uri.split("/");
             bucketName = uriObj[2];
             key = uriObj[3];

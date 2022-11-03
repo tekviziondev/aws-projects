@@ -110,7 +110,7 @@ export async function FailureSpeechParameters(smaEvent: any, action: any, contex
         }
 
         rv = {
-            Text: "<speak>  We're sorry.  We didn't get that. Please try again. <break time=\"200ms\"/></speak>",
+            Text: Attributes.Failure_Speech_SSML,
             TextType: Attributes.SSML,
             Engine: engine,
             LanguageCode: languageCode,
