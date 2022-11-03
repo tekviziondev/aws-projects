@@ -11,7 +11,7 @@ import { terminatingFlowAction } from "../utility/termination-action";
   */
 
 export class TransferTOThirdParty {
-    async processFlowActionTransferParticipantToThirdParty(smaEvent: any, action: any, defaultLogger: string, puaseAction: any, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>) {
+    async processFlowActionTransferParticipantToThirdParty(smaEvent: any, action: any, defaultLogger: string, pauseAction: any, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>) {
         let callId: string;
         let smaAction1: any;
         try {
@@ -38,9 +38,9 @@ export class TransferTOThirdParty {
                 }
 
             };
-            if (puaseAction) {
-                smaAction1 = puaseAction;
-                puaseAction = null;
+            if (pauseAction) {
+                smaAction1 = pauseAction;
+                pauseAction = null;
                 return {
                     "SchemaVersion": Attributes.SCHEMA_VERSION,
                     "Actions": [
@@ -64,7 +64,7 @@ export class TransferTOThirdParty {
             }
         } catch (error) {
             console.error(defaultLogger + callId + " There is an Error in execution of TransferToThirdParty " + error.message);
-            return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, puaseAction, "error")
+            return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "error")
         }
 
     }
