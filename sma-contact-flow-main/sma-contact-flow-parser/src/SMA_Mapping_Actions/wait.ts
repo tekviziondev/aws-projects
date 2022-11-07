@@ -56,6 +56,7 @@ export class Wait {
 
     }
 }
+
 function getWaitTimeParameter(action: any) {
     let rv: string;
     if (action.TimeLimitSeconds !== null) {

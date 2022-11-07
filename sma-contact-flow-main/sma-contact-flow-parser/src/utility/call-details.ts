@@ -1,3 +1,7 @@
+/**
+  * This function process SMA Event and returns the Call Details like Call ID, From Phone number and To Phone Number
+  * @param smaEvent 
+  */
 export function getLegACallDetails(event: any) {
     try {
         let rv = null;

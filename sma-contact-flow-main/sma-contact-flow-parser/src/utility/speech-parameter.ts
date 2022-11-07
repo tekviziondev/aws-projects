@@ -37,6 +37,7 @@ export async function getSpeechParameters(smaEvent: any, action: any, contextAtt
             let x: Number;
             if (action.Parameters.Text) {
                 text = action.Parameters.Text;
+                // checking if the text contains any user defined, system or External attributes to replace with corresponding values
                 if (text.includes("$.External.") || text.includes("$.Attributes.") || text.includes("$.")) {
                     contextAttributes.forEach((value, key) => {
                         if (text.includes(key)) {
@@ -52,6 +53,7 @@ export async function getSpeechParameters(smaEvent: any, action: any, contextAtt
             }
             else if (action.Parameters.SSML) {
                 text = action.Parameters.SSML;
+                // checking if the SSML contains any user defined, system or External attributes to replace with corresponding values
                 if (text.includes("$.External.") || text.includes("$.Attributes.") || text.includes("$.")) {
                     contextAttributes.forEach((value, key) => {
                         if (text.includes(key)) {

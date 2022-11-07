@@ -9,7 +9,6 @@ import { terminatingFlowAction } from "../utility/termination-action";
   * @param action
   * @returns SMA Action
   */
-
 export class LexBot {
   async processFlowActionConnectParticipantWithLexBot(smaEvent: any, action: any, defaultLogger: string, pauseAction: any, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>) {
     let smaAction;

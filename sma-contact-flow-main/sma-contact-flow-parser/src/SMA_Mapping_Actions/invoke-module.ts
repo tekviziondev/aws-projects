@@ -5,7 +5,7 @@ import { loadContactFlow } from "../contact-flow-loader"
 import { processRootFlowBlock } from "../contact-flow-processor"
 
 /**
-  * Invoke the Module for performing opertions
+  * Invoke a Module from the existing contact flow, to perform a particular task
   * @param smaEvent 
   * @param action
   * @returns SMA Action defined in the Module

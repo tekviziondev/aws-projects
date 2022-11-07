@@ -44,8 +44,6 @@ export class InvokeLambda {
             keys.forEach((key, index) => {
                 contextAttributes.set("$.External." + key, x[key]);
                 tmpMap.set(key, x[key]);
-
-
             });
 
             let nextAction = findActionByID(actions, action.Transitions.NextAction);
@@ -59,9 +57,19 @@ export class InvokeLambda {
 
 
 }
+
+/**
+  * Gets the input for invoking the Lambda from the Amazon connect action Block
+  * @param smaEvent 
+  * @param action
+  * @param amazonConnectInstanceID
+  * @param bucketName
+  * @returns Process Flow Action
+  */
 async function inputForInvokingLambda(action: any, contextAttributs: Map<any, any>) {
     let InvocationAttributes: any[][] = Object.entries(action.Parameters.LambdaInvocationAttributes);
     for (let i = 0; i < InvocationAttributes.length; i++) {
+        // checking if the attribute value contains any user defined, system or External attributes for replacing it to the corresponding value
         if (InvocationAttributes[i][1].includes("$.External.") || InvocationAttributes[i][1].includes("$.Attributes.")) {
             contextAttributs.forEach((value, key) => {
                 if (InvocationAttributes[i][1] == key)

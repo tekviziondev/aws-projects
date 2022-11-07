@@ -4,7 +4,7 @@ import { Attributes } from "../utility/constant-values";
 import { terminatingFlowAction } from "../utility/termination-action";
 
 /**
-  * Making a SMA action to perform Call Recording.
+  * Making a SMA action to perform Call Recording and Start storing it in the S3 Bucket Location
   * @param smaEvent 
   * @param action
   * @returns SMA Action

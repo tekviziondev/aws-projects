@@ -2,7 +2,7 @@ import { getLegACallDetails } from "./call-details";
 import { findActionByID } from "./find-action-id";
 import { terminatingFlowAction } from "./termination-action";
 /**
-  * Based on the Error condition, the Next action performed
+  * Based on the Error condition, the Next action will be performed
   * @param smaEvent 
   * @param action
   * @param actions

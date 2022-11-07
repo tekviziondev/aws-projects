@@ -6,6 +6,14 @@ let s3Bucket: string;
 const cacheTimeInMilliseconds: number = 5000;
 const defaultLogger = "SMA-Contact-Flow-Parser | Call ID - "
 
+/**
+  * Get the Amazon contact flow details from the Amazon connect.
+  * @param smaEvent 
+  * @param action
+  * @param amazonConnectInstanceID
+  * @param bucketName
+  * @returns Process Flow Action
+  */
 export async function loadContactFlow(amazonConnectInstanceID: string, amazonConnectContactFlowID: string, bucket: string, smaEvent: any, type: string) {
   let callId: string;
   try {
@@ -45,6 +53,15 @@ export async function loadContactFlow(amazonConnectInstanceID: string, amazonCon
   }
 }
 
+
+/**
+  * Writing the Contact Flow Json Response from Amazon Connect into S3 Bucket
+  * @param smaEvent 
+  * @param action
+  * @param amazonConnectInstanceID
+  * @param bucketName
+  * @returns Process Flow Action
+  */
 async function writeFlowCache(flow: any, amazonConnectInstanceID: string, amazonConnectContactFlowID: string, smaEvent: any) {
   let callId: string;
   try {
@@ -67,6 +84,14 @@ async function writeFlowCache(flow: any, amazonConnectInstanceID: string, amazon
   }
 }
 
+/**
+  * Checking the updated time of Contact Flow Json Response in S3 Bucket, if the Delta time is less than 5 seconds the function will use the stored JSON response in S3 Bucket else it will return null value.
+  * @param smaEvent 
+  * @param action
+  * @param amazonConnectInstanceID
+  * @param bucketName
+  * @returns Process Flow Action
+  */
 async function checkFlowCache(amazonConnectInstanceID: string, amazonConnectContactFlowID: string, smaEvent: any) {
   let rv: any = null;
   const s3Params = {
@@ -76,7 +101,7 @@ async function checkFlowCache(amazonConnectInstanceID: string, amazonConnectCont
   const legA = getLegACallDetails(smaEvent);
   let callId: string;
   callId = legA.CallId;
-  if (callId == "NaN")
+  if (!callId)
     callId = smaEvent.ActionData.Parameters.CallId;
   const s3 = new S3();
   try {

@@ -9,7 +9,7 @@ import { terminatingFlowAction } from "./termination-action";
   * @param contextAttributs
   * @param SpeechAttributeMap
   * @param defaultLogger
-  * @returns Speech Parameters
+  * @returns Audio Parameters
   */
 export async function getAudioParameters(smaEvent: any, action: any, defaultLogger: string, pauseAction: any, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>) {
     let callId: string;
@@ -51,7 +51,7 @@ export async function getAudioParameters(smaEvent: any, action: any, defaultLogg
   * @param smaEvent 
   * @param SpeechAttributeMap
   * @param defaultLogger
-  * @returns Failure Speech Parameters
+  * @returns Failure Audio Parameters
   */
 export async function failureAudioParameters(smaEvent: any, action: any, defaultLogger: string, pauseAction: any, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>) {
     let callId: string;

@@ -25,16 +25,17 @@ import { getNextActionForError } from "./utility/next-action-error";
 import { terminatingFlowAction } from "./utility/termination-action";
 
 const connectContextStore: string = "ConnectContextStore";
-let loopMap = new Map<string, string>();
-let ContactFlowARNMap = new Map<string, string>();
-let InvokeModuleARNMap = new Map<string, string>();
-let InvokationModuleNextAction = new Map<string, string>();
-let ActualFlowARN = new Map<string, string>();
+const defaultLogger = "SMA-Contact-Flow-Builder | Call ID - "
+let loopMap = new Map<string, string>(); // loop count
+let ContactFlowARNMap = new Map<string, string>(); //For Transfer flow maintaing , transfer flow id
+let InvokeModuleARNMap = new Map<string, string>(); // For module arn ind
+let InvokationModuleNextAction = new Map<string, string>(); // next action after module execution 
+let ActualFlowARN = new Map<string, string>(); // orginal contact flow
 const SpeechAttributeMap: Map<string, string> = new Map<string, string>();
 const contextAttributes: Map<any, any> = new Map<any, any>();
 let tmpMap: Map<any, any> = new Map<any, any>();
-const defaultLogger = "SMA-Contact-Flow-Builder | Call ID - "
 let pauseAction: any;
+
 
 /**
   * This function get connect flow data from contact flow loader 
@@ -88,8 +89,21 @@ export async function processFlow(smaEvent: any, amazonConnectInstanceID: string
         else {
             if (smaEvent.InvocationEventType === EventTypes.NEW_INBOUND_CALL)
                 storeSystemAttributs(smaEvent, amazonConnectFlowID, amazonConnectFlowID)
+
+                let callObject={
+                    "loopCount":"",
+                    "ContactFlowARN":"",
+                    "InvokeModuleARN":"",
+                    "InvokationModuleNextAction":"",
+                    "ActualFlowARN":"",
+                    "SpeechAttributeMap":new Map<string, string>(),
+                    "contextAttributes":new Map<any, any>(),
+                    "tmpMap":new Map<any, any>(),  
+                    "pauseAction":null
+                
+                }
             // We're at the root start from there
-            return await processRootFlowBlock(smaEvent, contactFlow, transactionAttributes, amazonConnectInstanceID, bucketName);
+            return await processRootFlowBlock(smaEvent, contactFlow, transactionAttributes, amazonConnectInstanceID, bucketName, callObject);
         }
     } catch (error) {
         console.log(defaultLogger + callId + " There is an Error in processing the SMA Event" + error.message);

@@ -5,7 +5,7 @@ import { processFlowAction } from "../contact-flow-processor";
 import { Operators } from "../utility/comparison-operators";
 import { getNextActionForError } from "../utility/next-action-error"
 /**
-  * Making a SMA action to Ends the current flow and transfers the customer to a flow of type contact flow.
+  * Comparing Contact Attributes and based on the result navigate to the Next Action
   * @param smaEvent 
   * @param action
   * @param actions
