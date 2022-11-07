@@ -31,14 +31,15 @@ export class PlayAudio {
             };
             if (pauseAction) {
                 smaAction1 = pauseAction;
-                pauseAction = null;
+                contextStore['pauseAction']=null
                 return {
                     "SchemaVersion": Attributes.SCHEMA_VERSION,
                     "Actions": [
                         smaAction1, smaAction
                     ],
                     "TransactionAttributes": {
-                        "currentFlowBlock": action
+                        "currentFlowBlock": action,
+                        "connectContextStore":contextStore
                     }
                 }
 
@@ -49,7 +50,8 @@ export class PlayAudio {
                     smaAction
                 ],
                 "TransactionAttributes": {
-                    "currentFlowBlock": action
+                    "currentFlowBlock": action,
+                    "connectContextStore":contextStore
                 }
             }
         } catch (error) {

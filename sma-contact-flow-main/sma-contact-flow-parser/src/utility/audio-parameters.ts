@@ -53,7 +53,7 @@ export async function getAudioParameters(smaEvent: any, action: any, defaultLogg
   * @param defaultLogger
   * @returns Failure Audio Parameters
   */
-export async function failureAudioParameters(smaEvent: any, action: any, defaultLogger: string, pauseAction: any, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>) {
+export async function failureAudioParameters(smaEvent: any, action: any, defaultLogger: string) {
     let callId: string;
     try {
         const legA = getLegACallDetails(smaEvent);

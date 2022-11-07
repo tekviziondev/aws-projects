@@ -15,7 +15,7 @@ import { ErrorTypes } from "./error-types"
   * @param recieved_digits
   * @returns SMA Action
   */
-export async function processFlowConditionValidation(smaEvent: any, actionObj: any, contactFlow: any, recieved_digits: any, amazonConnectInstanceID: string, bucketName: string, defaultLogger: string, pauseAction: any, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>) {
+export async function processFlowConditionValidation(smaEvent: any, actionObj: any, contactFlow: any, recieved_digits: any, amazonConnectInstanceID: string, bucketName: string, defaultLogger: string,contextStore:any) {
     let nextAction: any;
     let nextAction_id: any;
     let callId: string;
@@ -40,22 +40,22 @@ export async function processFlowConditionValidation(smaEvent: any, actionObj: a
             }
 
             if (!nextAction_id && actionObj.Parameters.StoreInput == "False") {
-                nextAction = await getNextActionForError(currentAction, contactFlow.Actions, ErrorTypes.NO_MATCHING_CONDITION, smaEvent, defaultLogger, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, pauseAction);
+                nextAction = await getNextActionForError(currentAction, contactFlow.Actions, ErrorTypes.NO_MATCHING_CONDITION, smaEvent, defaultLogger);
                 console.log(defaultLogger + callId + " Conditions are not matching with Recieved Digits ");
 
             } else if ((!nextAction_id && actionObj.Parameters.StoreInput == "True")) {
-                nextAction = await getNextActionForError(currentAction, contactFlow.Actions, ErrorTypes.NO_MATCHING_ERROR, smaEvent, defaultLogger, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, pauseAction);
+                nextAction = await getNextActionForError(currentAction, contactFlow.Actions, ErrorTypes.NO_MATCHING_ERROR, smaEvent, defaultLogger);
                 console.log(defaultLogger + callId + " Conditions are not matching with Recieved Digits ");
             }
             console.log(defaultLogger + callId + " Next Action identifier:" + nextAction_id);
             let actionType = nextAction.Type;
             if (!AmazonConnectActions.hasOwnProperty(actionType)) {
-                return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, actionType)
+                return await terminatingFlowAction(smaEvent, defaultLogger, actionType)
             }
-            return await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName);
+            return await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName, contextStore);
         }
     } catch (error) {
         console.error(defaultLogger + callId + " There is an Error in execution of validating the Recieved Digits " + error.message);
-        return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "error")
+        return await terminatingFlowAction(smaEvent, defaultLogger, "error")
     }
 }

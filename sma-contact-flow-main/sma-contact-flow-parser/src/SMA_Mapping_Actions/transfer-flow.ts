@@ -11,7 +11,7 @@ import { processRootFlowBlock } from "../contact-flow-processor"
   */
 
 export class TrasferToFlow {
-    async processFlowActionTransferToFlow(smaEvent: any, action: any, amazonConnectInstanceID: string, bucketName: string, defaultLogger: string, ContactFlowARNMap: Map<string, string>, pauseAction: any, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>) {
+    async processFlowActionTransferToFlow(smaEvent: any, action: any, amazonConnectInstanceID: string, bucketName: string, defaultLogger:string, contextStore:any ){
         let callId: string;
         try {
             let TransferFlowARN = action.Parameters.ContactFlowId;
@@ -19,13 +19,13 @@ export class TrasferToFlow {
             callId = legA.CallId;
             if (!callId)
                 callId = smaEvent.ActionData.Parameters.CallId;
-            ContactFlowARNMap.set(callId, TransferFlowARN)
+            contextStore['transferFlowARN']=TransferFlowARN
             const contactFlow = await loadContactFlow(amazonConnectInstanceID, TransferFlowARN, bucketName, smaEvent, "Contact_Flow");
             console.log(defaultLogger + callId + " Transfering to Another contact FLow function")
-            return await processRootFlowBlock(smaEvent, contactFlow, smaEvent.CallDetails.TransactionAttributes, amazonConnectInstanceID, bucketName);
+            return await processRootFlowBlock(smaEvent, contactFlow, smaEvent.CallDetails.TransactionAttributes, amazonConnectInstanceID, bucketName, contextStore);
         } catch (error) {
             console.error(defaultLogger + callId + " There is an Error in execution of TransferToFlow " + error.message);
-            return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "error")
+            return await terminatingFlowAction(smaEvent, defaultLogger, "error")
         }
 
     }

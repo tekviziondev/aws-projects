@@ -10,11 +10,10 @@ import { terminatingFlowAction } from "../utility/termination-action";
   * @returns SMA Action
   */
 export class LexBot {
-  async processFlowActionConnectParticipantWithLexBot(smaEvent: any, action: any, defaultLogger: string, pauseAction: any, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>) {
+  async processFlowActionConnectParticipantWithLexBot(smaEvent: any, action: any, defaultLogger: string,contextStore:any) {
     let smaAction;
     let smaAction1: any;
     let callId: string;
-
     try {
       const legA = getLegACallDetails(smaEvent);
       callId = legA.CallId;
@@ -66,16 +65,18 @@ export class LexBot {
           }
         }
       }
+      let pauseAction=contextStore['pauseAction']
       if (pauseAction) {
         smaAction1 = pauseAction;
-        pauseAction = null;
+        contextStore['pauseAction']=null
         return {
           "SchemaVersion": Attributes.SCHEMA_VERSION,
           "Actions": [
             smaAction1, smaAction
           ],
           "TransactionAttributes": {
-            "currentFlowBlock": action
+            "currentFlowBlock": action,
+            "connectContextStore":contextStore
           }
         }
 
@@ -87,12 +88,13 @@ export class LexBot {
           smaAction
         ],
         "TransactionAttributes": {
-          "currentFlowBlock": action
+          "currentFlowBlock": action,
+          "connectContextStore":contextStore
         }
       }
     } catch (error) {
       console.error(defaultLogger + callId + " There is an Error in execution of ConnectParticipantWithLexBot " + error.message);
-      return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "error")
+      return await terminatingFlowAction(smaEvent, defaultLogger, "error")
     }
 
   }

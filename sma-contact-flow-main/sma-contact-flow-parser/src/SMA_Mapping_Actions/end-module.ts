@@ -12,23 +12,23 @@ import { loadContactFlow } from "../contact-flow-loader"
   */
 
 export class EndModule {
-  async processFlowActionEndFlowModuleExecution(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, InvokeModuleARNMap: Map<string, string>, InvokationModuleNextAction: Map<string, string>, ActualFlowARN: Map<string, string>, defaultLogger: string, puaseAction: any, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ContactFlowARNMap: Map<string, string>) {
+  async processFlowActionEndFlowModuleExecution(smaEvent: any, amazonConnectInstanceID: string, bucketName: string, defaultLogger:string, contextStore:any) {
     let callId: string;
     try {
       const legA = getLegACallDetails(smaEvent);
       callId = legA.CallId;
       if (!callId)
         callId = smaEvent.ActionData.Parameters.CallId;
-      InvokeModuleARNMap.delete(callId)
-      let nextaction_id = InvokationModuleNextAction.get(callId)
-      let contactFlow_id = ActualFlowARN.get(callId)
+      let nextaction_id = contextStore['invokationModuleNextAction']
+      let contactFlow_id = contextStore['actualFlowARN']
+      contextStore['invokationModuleNextAction']=null;
+      contextStore['invokeModuleARN']=null;
       const contactFlow = await loadContactFlow(amazonConnectInstanceID, contactFlow_id, bucketName, smaEvent, "Contact_Flow");
       let nextAction = findActionByID(contactFlow.Actions, nextaction_id);
-      InvokationModuleNextAction.delete(callId);
-      return await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName);
+      return await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName,contextStore);
     } catch (error) {
       console.error(defaultLogger + callId + " There is an Error in execution EndFlowModule" + error.message);
-      return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, puaseAction, "error")
+      return await terminatingFlowAction(smaEvent, defaultLogger, "error")
     }
 
   }

@@ -14,11 +14,12 @@ import { processFlowAction } from "../contact-flow-processor";
   * @returns SMA Action
   */
 export class SetVoice {
-    async processFlowActionUpdateContactTextToSpeechVoice(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, defaultLogger: string, SpeechAttributeMap: Map<string, string>, pauseAction: any, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>) {
+    async processFlowActionUpdateContactTextToSpeechVoice(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, defaultLogger: string, contextStore:any){
         let callId: string;
         try {
             const legA = getLegACallDetails(smaEvent);
             callId = legA.CallId;
+            let SpeechAttributeMap=contextStore['SpeechAttributeMap']
             if (!callId)
                 callId = smaEvent.ActionData.Parameters.CallId;
             let SpeechParameters = action.Parameters
@@ -38,10 +39,10 @@ export class SetVoice {
                 nextAction = findActionByID(actions, nextAction.Transitions.NextAction);
                 console.log(defaultLogger + callId + " Next Action identifier:" + action.Transitions.NextAction);
             }
-            return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName);
+            return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName,contextStore);
         } catch (error) {
             console.error(defaultLogger + callId + " There is an Error in execution of UpdateContactTextToSpeechVoice " + error.message);
-            return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "error")
+            return await terminatingFlowAction(smaEvent,  defaultLogger, "error")
         }
     }
 }

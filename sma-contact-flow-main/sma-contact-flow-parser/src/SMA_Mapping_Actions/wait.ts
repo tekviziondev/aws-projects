@@ -15,7 +15,7 @@ import { Attributes } from "../utility/constant-values";
   * @returns SMA Action
   */
 export class Wait {
-    async processFlowActionWait(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, defaultLogger: string, pauseAction: any, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>) {
+    async processFlowActionWait(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, defaultLogger: string,contextStore:any){
         let callId: string;
         try {
             const legA = getLegACallDetails(smaEvent);
@@ -32,12 +32,12 @@ export class Wait {
             };
             const nextAction = findActionByID(actions, action.Transitions.Conditions[0].NextAction);
             console.log(defaultLogger + callId + " Next Action identifier:" + action.Transitions.Conditions[0].NextAction);
-            let smaAction1 = await (await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName)).Actions[0];
+            let smaAction1 = await (await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName,contextStore)).Actions[0];
             let smaAction1_Type: string = nextAction.Type
             if (Supported_Actions.includes(smaAction1_Type)) {
                 console.log(defaultLogger + callId + " Pause action is Performed for " + timeLimit + " Milliseconds");
-                pauseAction = smaAction;
-                return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName)
+                contextStore['pauseAction'] = smaAction;
+                return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName, contextStore)
             }
             console.log(defaultLogger + callId + "Next Action Data:" + smaAction1);
             return {
@@ -46,12 +46,14 @@ export class Wait {
                     smaAction, smaAction1
                 ],
                 "TransactionAttributes": {
-                    "currentFlowBlock": nextAction
+                    "currentFlowBlock": nextAction,
+                    "connectContextStore":contextStore
+                    
                 }
             }
         } catch (error) {
             console.error(defaultLogger + callId + " There is an Error in execution of TransferToThirdParty " + error.message);
-            return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "error")
+            return await terminatingFlowAction(smaEvent, defaultLogger, "error")
         }
 
     }

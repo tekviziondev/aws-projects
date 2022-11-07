@@ -1,3 +1,4 @@
+import { StringTargetList } from "aws-sdk/clients/transcribeservice";
 import { getLegACallDetails } from "./call-details";
 import { Attributes } from "./constant-values"
 import { count } from "./count";
@@ -11,7 +12,7 @@ import { terminatingFlowAction } from "./termination-action";
   * @param defaultLogger
   * @returns Speech Parameters
   */
-export async function getSpeechParameters(smaEvent: any, action: any, contextAttributes: Map<any, any>, SpeechAttributeMap: Map<string, string>, defaultLogger: string, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>, pauseAction: any) {
+export async function getSpeechParameters(smaEvent: any, action: any, defaultLogger:string, contextStore:any){
     let callId: string;
     try {
         const legA = getLegACallDetails(smaEvent);
@@ -22,6 +23,8 @@ export async function getSpeechParameters(smaEvent: any, action: any, contextAtt
         let voiceId = Attributes.VOICE_ID
         let engine = Attributes.ENGINE
         let languageCode = Attributes.LANGUAGE_CODE
+        let SpeechAttributeMap =contextStore['SpeechAttributeMap']
+        let contextAttributes=contextStore['contextAttributes']
         if (SpeechAttributeMap.has("TextToSpeechVoice")) {
             voiceId = SpeechAttributeMap.get("TextToSpeechVoice")
         }
@@ -79,7 +82,7 @@ export async function getSpeechParameters(smaEvent: any, action: any, contextAtt
         return rv;
     } catch (error) {
         console.error(defaultLogger + callId + " There is an Error in execution of getting the Speech parameters " + error.message);
-        return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "error")
+        return await terminatingFlowAction(smaEvent, defaultLogger,  "error")
     }
 }
 /**
@@ -89,7 +92,7 @@ export async function getSpeechParameters(smaEvent: any, action: any, contextAtt
   * @param defaultLogger
   * @returns Failure Speech Parameters
   */
-export async function FailureSpeechParameters(smaEvent: any, action: any, contextAttributes: Map<any, any>, SpeechAttributeMap: Map<string, string>, defaultLogger: string, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>, pauseAction: any) {
+export async function FailureSpeechParameters(smaEvent: any, action: any, defaultLogger:string, contextStore:any){
     let callId: string;
     let rv: any
     try {
@@ -101,6 +104,7 @@ export async function FailureSpeechParameters(smaEvent: any, action: any, contex
         let voiceId = Attributes.VOICE_ID
         let engine = Attributes.ENGINE
         let languageCode = Attributes.LANGUAGE_CODE
+        let SpeechAttributeMap =contextStore['SpeechAttributeMap']
         if (SpeechAttributeMap.has("TextToSpeechVoice")) {
             voiceId = SpeechAttributeMap.get("TextToSpeechVoice")
         }
@@ -122,6 +126,6 @@ export async function FailureSpeechParameters(smaEvent: any, action: any, contex
         return rv;
     } catch (error) {
         console.error(defaultLogger + callId + " There is an Error in execution of getting the Failure Speech parameters " + error.message);
-        return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "error")
+        return await terminatingFlowAction(smaEvent, defaultLogger,  "error")
     }
 }

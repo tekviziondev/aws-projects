@@ -8,17 +8,14 @@ import { Attributes } from "../utility/constant-values";
   * @returns SMA Action
   */
 export class DisconnectParticipant {
-    async processFlowActionDisconnectParticipant(smaEvent: any, action: any, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>, defaultLogger: string, pauseAction: any) {
+    async processFlowActionDisconnectParticipant(smaEvent: any, action: any,defaultLogger:string, contextStore:any){
         let callId: string;
         let smaAction1: any;
         const legA = getLegACallDetails(smaEvent);
         callId = legA.CallId;
         if (!callId)
             callId = smaEvent.ActionData.Parameters.CallId;
-        ContactFlowARNMap.delete(callId);
-        contextAttributes.clear();
-        ActualFlowARN.delete(callId);
-        SpeechAttributeMap.clear();
+      
         console.log(defaultLogger + callId + "| is going to Hang up");
         let smaAction = {
             Type: ChimeActions.HANGUP,
@@ -27,9 +24,10 @@ export class DisconnectParticipant {
                 "CallId": callId
             }
         };
+        let pauseAction=contextStore['pauseAction']
         if (pauseAction) {
             smaAction1 = pauseAction;
-            pauseAction = null;
+            contextStore['pauseAction']=null
             return {
                 "SchemaVersion": Attributes.SCHEMA_VERSION,
                 "Actions": [

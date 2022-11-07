@@ -16,7 +16,7 @@ import { getNextActionForError } from "../utility/next-action-error"
  
 
 export class CompareAttribute {
-    async processFlowActionCompareContactAttributes(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, defaultLogger: string, contextAttributes: Map<any, any>,SpeechAttributeMap: Map<string, string>,ActualFlowARN :Map<string, string>,ContactFlowARNMap :Map<string, string>,pauseAction:any) {
+    async processFlowActionCompareContactAttributes(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, defaultLogger: string,contextStore:any ){
         let nextAction: any;
         try {
             let callId: string;
@@ -25,7 +25,7 @@ export class CompareAttribute {
             if (!callId)
                 callId = smaEvent.ActionData.Parameters.CallId;
             let comparVariable = action.Parameters.ComparisonValue;
-            let ComparisonValue = contextAttributes.get(comparVariable);
+            let ComparisonValue = contextStore['contextAttributes'].get(comparVariable);
             const condition = action.Transitions.Conditions;
             for (let index = 0; index < condition.length; index++) {
                 console.log(defaultLogger + callId + "| Recieved Value |" + ComparisonValue);
@@ -92,14 +92,14 @@ export class CompareAttribute {
             }
             if (!nextAction) {
                 console.log(defaultLogger + callId + "| Next Action is inValid");
-                let nextAction = await getNextActionForError(action, actions, ErrorTypes.NO_MATCHING_CONDITION, smaEvent, defaultLogger,SpeechAttributeMap,contextAttributes,ActualFlowARN,ContactFlowARNMap,pauseAction);
-                return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName);
+                let nextAction = await getNextActionForError(action, actions, ErrorTypes.NO_MATCHING_CONDITION, smaEvent, defaultLogger);
+                return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName,contextStore);
             }
         } catch (e) {
-            let nextAction = await getNextActionForError(action, actions, ErrorTypes.NO_MATCHING_CONDITION, smaEvent, defaultLogger,SpeechAttributeMap,contextAttributes,ActualFlowARN,ContactFlowARNMap,pauseAction);
-            return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName);
+            let nextAction = await getNextActionForError(action, actions, ErrorTypes.NO_MATCHING_CONDITION, smaEvent, defaultLogger);
+            return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName,contextStore);
         }
-        return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName);
+        return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName,contextStore);
     }
 
 }

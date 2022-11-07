@@ -11,8 +11,9 @@ import { terminatingFlowAction } from "../utility/termination-action";
   */
 
 export class CallRecording {
-    async processFlowActionUpdateContactRecordingBehavior(smaEvent: any, action: any, pauseAction: any, defaultLogger: string, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>) {
+    async processFlowActionUpdateContactRecordingBehavior(smaEvent: any, action: any,defaultLogger: string,contextStore:any){
         let callId: string;
+        let pauseAction=contextStore['pauseAction']
         try {
             let smaAction1: any;
             const legA = getLegACallDetails(smaEvent);
@@ -28,14 +29,15 @@ export class CallRecording {
                 };
                 if (pauseAction) {
                     smaAction1 = pauseAction;
-                    pauseAction = null;
+                    contextStore['pauseAction']=null
                     return {
                         "SchemaVersion": Attributes.SCHEMA_VERSION,
                         "Actions": [
                             smaAction1, smaAction
                         ],
                         "TransactionAttributes": {
-                            "currentFlowBlock": action
+                            "currentFlowBlock": action,
+                            "connectContextStore":contextStore
                         }
                     }
 
@@ -47,7 +49,8 @@ export class CallRecording {
                         smaAction
                     ],
                     "TransactionAttributes": {
-                        "currentFlowBlock": action
+                        "currentFlowBlock": action,
+                        "connectContextStore":contextStore
                     }
                 }
             }
@@ -71,7 +74,8 @@ export class CallRecording {
                         smaAction1, smaAction
                     ],
                     "TransactionAttributes": {
-                        "currentFlowBlock": action
+                        "currentFlowBlock": action,
+                        "connectContextStore":contextStore
                     }
                 }
 
@@ -82,12 +86,13 @@ export class CallRecording {
                     smaAction
                 ],
                 "TransactionAttributes": {
-                    "currentFlowBlock": action
+                    "currentFlowBlock": action,
+                    "connectContextStore":contextStore
                 }
             }
         } catch (error) {
             console.error(defaultLogger + callId + " There is an Error in execution UpdateContactRecordingBehavior |" + error.message);
-            return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "error")
+            return await terminatingFlowAction(smaEvent, defaultLogger, "error")
         }
     }
 }

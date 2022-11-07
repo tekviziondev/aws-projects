@@ -11,7 +11,7 @@ import { PlayAudio } from "./play-audio";
   * @returns SMA Action
   */
 export class MessageParticipant {
-    async processFlowActionMessageParticipant(smaEvent: any, action: any, defaultLogger: string,contextStore:any) {
+    async processFlowActionMessageParticipant(smaEvent: any, action: any, defaultLogger: string, contextStore: any) {
         let callId: string;
         const legA = getLegACallDetails(smaEvent);
         try {
@@ -21,7 +21,7 @@ export class MessageParticipant {
             if (action.Parameters.Media != null) {
                 console.log(defaultLogger + callId + "Play Audio Action");
                 let playAudio = new PlayAudio();
-                return await playAudio.processPlayAudio(smaEvent, action,  defaultLogger,contextStore);
+                return await playAudio.processPlayAudio(smaEvent, action, defaultLogger, contextStore);
             }
             let text: string;
             let type: string;
@@ -30,9 +30,9 @@ export class MessageParticipant {
             let voiceId = Attributes.VOICE_ID
             let engine = Attributes.ENGINE
             let languageCode = Attributes.LANGUAGE_CODE
-           let SpeechAttributeMap= contextStore['SpeechAttributeMap'];
-           let contextAttributes=contextStore['contextAttributes'];
-           let pauseAction=contextStore['pauseAction'];
+            let SpeechAttributeMap = contextStore['SpeechAttributeMap'];
+            let contextAttributes = contextStore['contextAttributes'];
+            let pauseAction = contextStore['pauseAction'];
             if (SpeechAttributeMap.has("TextToSpeechVoice")) {
                 voiceId = SpeechAttributeMap.get("TextToSpeechVoice")
             }
@@ -75,7 +75,7 @@ export class MessageParticipant {
                 type = Attributes.SSML;
             }
             if (text.includes("$.")) {
-                return await terminatingFlowAction(smaEvent,  defaultLogger, "Invalid_Text")
+                return await terminatingFlowAction(smaEvent, defaultLogger, "Invalid_Text")
             }
             let smaAction = {
                 Type: ChimeActions.SPEAK,
@@ -91,14 +91,15 @@ export class MessageParticipant {
             };
             if (pauseAction) {
                 smaAction1 = pauseAction;
-                pauseAction = null;
+                contextStore['pauseAction']=null
                 return {
                     "SchemaVersion": Attributes.SCHEMA_VERSION,
                     "Actions": [
                         smaAction1, smaAction
                     ],
                     "TransactionAttributes": {
-                        "currentFlowBlock": action
+                        "currentFlowBlock": action,
+                        "connectContextStore": contextStore
                     }
                 }
 
@@ -109,7 +110,8 @@ export class MessageParticipant {
                     smaAction
                 ],
                 "TransactionAttributes": {
-                    "currentFlowBlock": action
+                    "currentFlowBlock": action,
+                    "connectContextStore": contextStore
                 }
             }
         } catch (error) {

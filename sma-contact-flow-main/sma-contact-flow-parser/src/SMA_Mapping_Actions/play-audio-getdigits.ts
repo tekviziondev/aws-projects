@@ -10,7 +10,7 @@ import { Attributes } from "../utility/constant-values";
   * @returns SMA Action
   */
 export class PlayAudioAndGetDigits {
-    async processPlayAudioAndGetDigits(smaEvent: any, action: any, defaultLogger: string, pauseAction: any, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>) {
+    async processPlayAudioAndGetDigits(smaEvent: any, action: any, defaultLogger: string, contextStore:any){
         let callId: string;
         let smaAction1: any;
         try {
@@ -19,8 +19,8 @@ export class PlayAudioAndGetDigits {
             if (!callId)
                 callId = smaEvent.ActionData.Parameters.CallId;
             console.log(defaultLogger + callId + " Action| Play Audio Action and Get Digits");
-            let audio_parameters = await getAudioParameters(smaEvent, action, defaultLogger, pauseAction, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap)
-            let failure_audio = await failureAudioParameters(smaEvent, action, defaultLogger, pauseAction, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap)
+            let audio_parameters = await getAudioParameters(smaEvent, action, defaultLogger)
+            let failure_audio = await failureAudioParameters(smaEvent, action, defaultLogger)
             let smaAction = {
                 Type: ChimeActions.PLAY_AUDIO_AND_GET_DIGITS,
                 Parameters: {
@@ -45,16 +45,18 @@ export class PlayAudioAndGetDigits {
                 const timeLimit: number = Number.parseInt(action.Parameters.InputTimeLimitSeconds);
                 smaAction.Parameters["RepeatDurationInMilliseconds"] = timeLimit * 1000;
             }
+            let pauseAction=contextStore['pauseAction'];
             if (pauseAction) {
                 smaAction1 = pauseAction;
-                pauseAction = null;
+                contextStore['pauseAction']=null
                 return {
                     "SchemaVersion": Attributes.SCHEMA_VERSION,
                     "Actions": [
                         smaAction1, smaAction
                     ],
                     "TransactionAttributes": {
-                        "currentFlowBlock": action
+                        "currentFlowBlock": action,
+                        "connectContextStore":contextStore
                     }
                 }
 
@@ -65,13 +67,14 @@ export class PlayAudioAndGetDigits {
                     smaAction
                 ],
                 "TransactionAttributes": {
-                    "currentFlowBlock": action
+                    "currentFlowBlock": action,
+                    "connectContextStore":contextStore
                 }
             }
 
         } catch (error) {
             console.error(defaultLogger + callId + " There is an Error in execution of PlayAudioAndGetDigits " + error.message);
-            return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "error")
+            return await terminatingFlowAction(smaEvent, defaultLogger, "error")
         }
 
     }

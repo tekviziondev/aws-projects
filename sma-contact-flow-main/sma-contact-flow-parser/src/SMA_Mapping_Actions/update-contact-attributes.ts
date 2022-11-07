@@ -13,13 +13,16 @@ import { getNextActionForError } from "../utility/next-action-error"
   * @returns The Next SMA Action to perform
   */
 export class UpdateContactAttrbts {
-    async processFlowActionUpdateContactAttributes(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, defaultLogger: string, tmpMap: Map<any, any>, contextAttributes: Map<any, any>, SpeechAttributeMap: Map<string, string>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>, pauseAction: any) {
+    async processFlowActionUpdateContactAttributes(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, defaultLogger: string,contextStore:any) {
         let callId: string;
+        let tmpMap=contextStore['tmpMap']
+        let contextAttributes=contextStore['contextAttributes']
         try {
             const legA = getLegACallDetails(smaEvent);
             callId = legA.CallId;
             if (!callId)
                 callId = smaEvent.ActionData.Parameters.CallId;
+            
             let ContactAttributes: any[][] = Object.entries(action.Parameters.Attributes);
             for (let i = 0; i < ContactAttributes.length; i++) {
                 let x: string = ContactAttributes[i][1]
@@ -40,12 +43,12 @@ export class UpdateContactAttrbts {
                 }
             }
         } catch (e) {
-            let nextAction = await getNextActionForError(action, actions, ErrorTypes.NO_MATCHING_ERROR, smaEvent, defaultLogger, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, pauseAction);
-            return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName);
+            let nextAction = await getNextActionForError(action, actions, ErrorTypes.NO_MATCHING_ERROR, smaEvent, defaultLogger);
+            return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName,contextStore);
         }
         tmpMap.clear();
         let nextAction = findActionByID(actions, action.Transitions.NextAction);
         console.error(defaultLogger + callId + " Next Action identifier:" + action.Transitions.NextAction);
-        return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName);
+        return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName,contextStore);
     }
 }

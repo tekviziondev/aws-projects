@@ -11,7 +11,7 @@ import { Attributes } from "../utility/constant-values";
   * @returns SMA Action
   */
 export class GetParticipantInput {
-    async processFlowActionGetParticipantInput(smaEvent: any, action: any, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>, defaultLogger: string, pauseAction: any) {
+    async processFlowActionGetParticipantInput(smaEvent: any, action: any, defaultLogger: string, contextStore:any) {
 
         let callId: string;
         try {
@@ -23,11 +23,11 @@ export class GetParticipantInput {
             if (action.Parameters.Media) {
                 console.log(defaultLogger + callId + " Play Audio And Get Digits");
                 let playAudioGetDigits = new PlayAudioAndGetDigits();
-                return await playAudioGetDigits.processPlayAudioAndGetDigits(smaEvent, action, defaultLogger, pauseAction, SpeechAttributeMap, contextAttributes, ActualFlowARN, ActualFlowARN);
+                return await playAudioGetDigits.processPlayAudioAndGetDigits(smaEvent, action, defaultLogger, contextStore);
             }
             console.log(defaultLogger + callId + " Speak and Get Digits Action");
-            let speech_parameter = await getSpeechParameters(smaEvent, action, contextAttributes, SpeechAttributeMap, defaultLogger, ActualFlowARN, ContactFlowARNMap, pauseAction)
-            let failure_parameter = await FailureSpeechParameters(smaEvent, action, contextAttributes, SpeechAttributeMap, defaultLogger, ActualFlowARN, ContactFlowARNMap, pauseAction)
+            let speech_parameter = await getSpeechParameters(smaEvent, action, defaultLogger, contextStore)
+            let failure_parameter = await FailureSpeechParameters(smaEvent, action, defaultLogger, contextStore)
             let smaAction = {
                 Type: ChimeActions.SPEAK_AND_GET_DIGITS,
                 Parameters: {
@@ -40,7 +40,7 @@ export class GetParticipantInput {
             };
             let text = smaAction.Parameters.SpeechParameters.Text
             if (text.includes("$.")) {
-                return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "Invalid_Text")
+                return await terminatingFlowAction(smaEvent, defaultLogger, "Invalid_Text")
             }
 
             if (action.Parameters?.InputValidation) {
@@ -57,16 +57,18 @@ export class GetParticipantInput {
                 const timeLimit: number = Number.parseInt(action.Parameters.InputTimeLimitSeconds);
                 smaAction.Parameters["RepeatDurationInMilliseconds"] = timeLimit * 1000;
             }
+            let pauseAction=contextStore['pauseAction'];
             if (pauseAction) {
                 smaAction1 = pauseAction;
-                pauseAction = null;
+                contextStore['pauseAction']=null
                 return {
                     "SchemaVersion": Attributes.SCHEMA_VERSION,
                     "Actions": [
                         smaAction1, smaAction
                     ],
                     "TransactionAttributes": {
-                        "currentFlowBlock": action
+                        "currentFlowBlock": action,
+                        "connectContextStore": contextStore
                     }
                 }
 
@@ -77,12 +79,13 @@ export class GetParticipantInput {
                     smaAction
                 ],
                 "TransactionAttributes": {
-                    "currentFlowBlock": action
+                    "currentFlowBlock": action,
+                    "connectContextStore": contextStore
                 }
             }
         } catch (error) {
             console.error(defaultLogger + callId + " There is an Error in execution of GetParticipantInput" + error.message);
-            return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "error")
+            return await terminatingFlowAction(smaEvent, defaultLogger, "error")
         }
     }
 }
