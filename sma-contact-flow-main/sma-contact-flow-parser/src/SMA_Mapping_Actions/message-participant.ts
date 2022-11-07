@@ -30,16 +30,19 @@ export class MessageParticipant {
             let voiceId = Attributes.VOICE_ID
             let engine = Attributes.ENGINE
             let languageCode = Attributes.LANGUAGE_CODE
-            let SpeechAttributeMap = contextStore['SpeechAttributeMap'];
+            console.log("actualFlowARN: "+contextStore['actualFlowARN']);
+            
+            let SpeechAttributeMap = contextStore['speechAttributeMap'];
+           // console.log("SpeechAttributeMap: "+contextStore['speechAttributeMap']);
             let contextAttributes = contextStore['contextAttributes'];
             let pauseAction = contextStore['pauseAction'];
-            if (SpeechAttributeMap.has("TextToSpeechVoice")) {
+            if (SpeechAttributeMap && SpeechAttributeMap.hasOwnProperty("TextToSpeechVoice")) {
                 voiceId = SpeechAttributeMap.get("TextToSpeechVoice")
             }
-            if (SpeechAttributeMap.has("TextToSpeechEngine")) {
+            if (SpeechAttributeMap && SpeechAttributeMap.hasOwnProperty("TextToSpeechEngine")) {
                 engine = SpeechAttributeMap.get("TextToSpeechEngine").toLowerCase();
             }
-            if (SpeechAttributeMap.has("LanguageCode")) {
+            if (SpeechAttributeMap && SpeechAttributeMap.hasOwnProperty("LanguageCode")) {
                 languageCode = SpeechAttributeMap.get("LanguageCode")
             }
             if (action.Parameters.Text) {

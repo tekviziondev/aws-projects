@@ -22,7 +22,7 @@ export class TrasferToFlow {
             contextStore['transferFlowARN']=TransferFlowARN
             const contactFlow = await loadContactFlow(amazonConnectInstanceID, TransferFlowARN, bucketName, smaEvent, "Contact_Flow");
             console.log(defaultLogger + callId + " Transfering to Another contact FLow function")
-            return await processRootFlowBlock(smaEvent, contactFlow, smaEvent.CallDetails.TransactionAttributes, amazonConnectInstanceID, bucketName, contextStore);
+            return await processRootFlowBlock(smaEvent, contactFlow, amazonConnectInstanceID, bucketName, contextStore);
         } catch (error) {
             console.error(defaultLogger + callId + " There is an Error in execution of TransferToFlow " + error.message);
             return await terminatingFlowAction(smaEvent, defaultLogger, "error")

@@ -27,9 +27,11 @@ export class Loop {
             let transactionAttributes = smaEvent.CallDetails.TransactionAttributes;
             let ActualloopCountVal = action.Parameters.LoopCount;
             let loopCountVal = contextStore['loopCount']
-            if (!loopCountVal || loopCountVal!=ActualloopCountVal){
-                    const nextAction = findActionByID(actions, action.Transitions.Conditions[1].NextAction)
-                    console.log(defaultLogger + callId + " Next Action identifier:" + action.Transitions.Conditions[1].NextAction);
+            console.log("loopCountVal: "+loopCountVal);
+            
+            if (loopCountVal!==ActualloopCountVal){
+                    const nextAction = findActionByID(actions, action.Transitions.Conditions[0].NextAction)
+                    console.log(defaultLogger + callId + " Next Action identifier:" + action.Transitions.Conditions[0].NextAction);
                     smaAction = await (await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName, contextStore)).Actions[0];
                     let count = String(Number.parseInt(loopCountVal) + 1)
                     contextStore["loopCount"]=count;
@@ -59,9 +61,9 @@ export class Loop {
                         }
                     }
                 } else {
-                    contextStore['loopCount']=null
-                    let nextAction = findActionByID(actions, action.Transitions.Conditions[0].NextAction);
-                    console.log(defaultLogger + callId + " Next Action identifier:" + action.Transitions.Conditions[0].NextAction);
+                    contextStore['loopCount']="0";
+                    let nextAction = findActionByID(actions, action.Transitions.Conditions[1].NextAction);
+                    console.log(defaultLogger + callId + " Next Action identifier:" + action.Transitions.Conditions[1].NextAction);
                     return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName, contextStore);
                 }
         } catch (error) {

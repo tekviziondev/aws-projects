@@ -22,14 +22,14 @@ export async function terminatingFlowAction(smaEvent: any, defaultLogger: string
         let voiceId = Attributes.VOICE_ID
         let engine = Attributes.ENGINE
         let languageCode = Attributes.LANGUAGE_CODE
-        let SpeechAttributeMap= smaEvent.CallDetails.TransactionAttributes['contextStore']['SpeechAttributeMap'];
-        if (SpeechAttributeMap.has("TextToSpeechVoice")) {
+        let SpeechAttributeMap= smaEvent.CallDetails.TransactionAttributes['contextStore']['speechAttributeMap'];
+        if (SpeechAttributeMap.hasOwnProperty("TextToSpeechVoice")) {
             voiceId = SpeechAttributeMap.get("TextToSpeechVoice")
         }
-        if (SpeechAttributeMap.has("TextToSpeechEngine")) {
+        if (SpeechAttributeMap.hasOwnProperty("TextToSpeechEngine")) {
             engine = SpeechAttributeMap.get("TextToSpeechEngine").toLowerCase();
         }
-        if (SpeechAttributeMap.has("LanguageCode")) {
+        if (SpeechAttributeMap.hasOwnProperty("LanguageCode")) {
             languageCode = SpeechAttributeMap.get("LanguageCode")
         }
         const legA = getLegACallDetails(smaEvent);
