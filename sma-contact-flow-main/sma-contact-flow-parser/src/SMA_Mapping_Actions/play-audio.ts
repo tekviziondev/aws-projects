@@ -12,12 +12,13 @@ import { Attributes } from "../utility/constant-values";
   */
 
 export class PlayAudio {
-    async processPlayAudio(smaEvent: any, action: any, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>, defaultLogger: string, pauseAction: any) {
+    async processPlayAudio(smaEvent: any, action: any, defaultLogger: string, contextStore:any) {
         let callId: string;
         let smaAction1: any;
         try {
             const legA = getLegACallDetails(smaEvent);
             callId = legA.CallId;
+            let pauseAction=contextStore['pauseAction'];
             if (!callId)
                 callId = smaEvent.ActionData.Parameters.CallId;
             console.log(defaultLogger + callId + "Play Audio Action");
@@ -25,7 +26,7 @@ export class PlayAudio {
                 Type: ChimeActions.PLAY_AUDIO,
                 Parameters: {
                     "CallId": callId,
-                    "AudioSource": getAudioParameters(smaEvent, action, defaultLogger, pauseAction, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap)
+                    "AudioSource": getAudioParameters(smaEvent, action, defaultLogger)
                 }
             };
             if (pauseAction) {
@@ -53,7 +54,7 @@ export class PlayAudio {
             }
         } catch (error) {
             console.error(defaultLogger + callId + " There is an Error in execution of PlayAudio " + error.message);
-            return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "error")
+            return await terminatingFlowAction(smaEvent, defaultLogger,  "error")
         }
     }
 

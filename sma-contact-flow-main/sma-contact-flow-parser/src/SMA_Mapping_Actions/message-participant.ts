@@ -11,7 +11,7 @@ import { PlayAudio } from "./play-audio";
   * @returns SMA Action
   */
 export class MessageParticipant {
-    async processFlowActionMessageParticipant(smaEvent: any, action: any, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>, defaultLogger: string, pauseAction: any) {
+    async processFlowActionMessageParticipant(smaEvent: any, action: any, defaultLogger: string,contextStore:any) {
         let callId: string;
         const legA = getLegACallDetails(smaEvent);
         try {
@@ -21,7 +21,7 @@ export class MessageParticipant {
             if (action.Parameters.Media != null) {
                 console.log(defaultLogger + callId + "Play Audio Action");
                 let playAudio = new PlayAudio();
-                return await playAudio.processPlayAudio(smaEvent, action, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction);
+                return await playAudio.processPlayAudio(smaEvent, action,  defaultLogger,contextStore);
             }
             let text: string;
             let type: string;
@@ -30,6 +30,9 @@ export class MessageParticipant {
             let voiceId = Attributes.VOICE_ID
             let engine = Attributes.ENGINE
             let languageCode = Attributes.LANGUAGE_CODE
+           let SpeechAttributeMap= contextStore['SpeechAttributeMap'];
+           let contextAttributes=contextStore['contextAttributes'];
+           let pauseAction=contextStore['pauseAction'];
             if (SpeechAttributeMap.has("TextToSpeechVoice")) {
                 voiceId = SpeechAttributeMap.get("TextToSpeechVoice")
             }
@@ -72,7 +75,7 @@ export class MessageParticipant {
                 type = Attributes.SSML;
             }
             if (text.includes("$.")) {
-                return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "Invalid_Text")
+                return await terminatingFlowAction(smaEvent,  defaultLogger, "Invalid_Text")
             }
             let smaAction = {
                 Type: ChimeActions.SPEAK,
@@ -111,7 +114,7 @@ export class MessageParticipant {
             }
         } catch (error) {
             console.error(defaultLogger + callId + " There is an Error in execution of MessageParticipant " + error.message);
-            return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "error")
+            return await terminatingFlowAction(smaEvent, defaultLogger, "error")
         }
 
     }

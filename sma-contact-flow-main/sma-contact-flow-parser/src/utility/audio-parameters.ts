@@ -11,7 +11,7 @@ import { terminatingFlowAction } from "./termination-action";
   * @param defaultLogger
   * @returns Audio Parameters
   */
-export async function getAudioParameters(smaEvent: any, action: any, defaultLogger: string, pauseAction: any, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>) {
+export async function getAudioParameters(smaEvent: any, action: any, defaultLogger: string) {
     let callId: string;
     try {
         const legA = getLegACallDetails(smaEvent);
@@ -42,7 +42,7 @@ export async function getAudioParameters(smaEvent: any, action: any, defaultLogg
         return rv;
     } catch (error) {
         console.log(defaultLogger + callId + " There is an Error in execution of Get Audio Parameters " + error.message);
-        return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "error")
+        return await terminatingFlowAction(smaEvent,  defaultLogger, "error")
     }
 }
 
@@ -84,6 +84,6 @@ export async function failureAudioParameters(smaEvent: any, action: any, default
         return rv;
     } catch (error) {
         console.log(defaultLogger + callId + " There is an Error in execution of Get Failure Audio Parameters " + error.message);
-        return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "error")
+        return await terminatingFlowAction(smaEvent,  defaultLogger, "error")
     }
 }

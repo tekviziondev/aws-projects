@@ -87,23 +87,34 @@ export async function processFlow(smaEvent: any, amazonConnectInstanceID: string
             }
         }
         else {
-            if (smaEvent.InvocationEventType === EventTypes.NEW_INBOUND_CALL)
+            let contextStore={};
+            if (smaEvent.InvocationEventType === EventTypes.NEW_INBOUND_CALL){
                 storeSystemAttributs(smaEvent, amazonConnectFlowID, amazonConnectFlowID)
 
-                let callObject={
+                 contextStore={
+
                     "loopCount":"",
+
                     "ContactFlowARN":"",
+
                     "InvokeModuleARN":"",
+
                     "InvokationModuleNextAction":"",
+
                     "ActualFlowARN":"",
+
                     "SpeechAttributeMap":new Map<string, string>(),
+
                     "contextAttributes":new Map<any, any>(),
+
                     "tmpMap":new Map<any, any>(),  
+
                     "pauseAction":null
-                
+
                 }
+            }
             // We're at the root start from there
-            return await processRootFlowBlock(smaEvent, contactFlow, transactionAttributes, amazonConnectInstanceID, bucketName, callObject);
+            return await processRootFlowBlock(smaEvent, contactFlow, transactionAttributes, amazonConnectInstanceID, bucketName, contextStore);
         }
     } catch (error) {
         console.log(defaultLogger + callId + " There is an Error in processing the SMA Event" + error.message);
@@ -140,7 +151,7 @@ async function storeSystemAttributs(smaEvent: any, amazonConnectFlowID: any, ama
   * @param bucketName
   * @returns SMA Action
   */
-export async function processRootFlowBlock(smaEvent: any, contactFlow: any, _transactionAttributes: any, amazonConnectInstanceID: string, bucketName: string) {
+export async function processRootFlowBlock(smaEvent: any, contactFlow: any, _transactionAttributes: any, amazonConnectInstanceID: string, bucketName: string,contextStore:any) {
     // OK, time to figure out the root of the flow
     let callId: string;
     try {
@@ -155,17 +166,17 @@ export async function processRootFlowBlock(smaEvent: any, contactFlow: any, _tra
                 const currentAction = findActionByID(actions, contactFlow.StartAction);
                 let actionType = currentAction.Type;
                 if (!AmazonConnectActions.hasOwnProperty(actionType)) {
-                    return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, actionType)
+                    return await terminatingFlowAction(smaEvent,  defaultLogger, actionType)
                 }
                 console.log(defaultLogger + callId + " ConnectInstanceId:" + amazonConnectInstanceID + " Root Flow Block The current Action is " + currentAction.Type)
                 if (currentAction) {
-                    return await processFlowAction(smaEvent, currentAction, actions, amazonConnectInstanceID, bucketName);
+                    return await processFlowAction(smaEvent, currentAction, actions, amazonConnectInstanceID, bucketName,contextStore);
                 }
             }
         }
     } catch (error) {
         console.error(defaultLogger + callId + " There is an Error in getting the Root Flow Block" + error.message);
-        return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "error")
+        return await terminatingFlowAction(smaEvent,  defaultLogger,  "error")
     }
 }
 
@@ -178,7 +189,7 @@ export async function processRootFlowBlock(smaEvent: any, contactFlow: any, _tra
   * @param bucketName
   * @returns SMA Action
   */
-export async function processFlowAction(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string) {
+export async function processFlowAction(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string,contextStore:any) {
     console.log("ProcessFlowAction:" + action);
     switch (action.Type) {
         case AmazonConnectActions.GET_PARTICIPANT_INPUT:
@@ -186,7 +197,7 @@ export async function processFlowAction(smaEvent: any, action: any, actions: any
             return await getParticipantInput.processFlowActionGetParticipantInput(smaEvent, action, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction);
         case AmazonConnectActions.MESSAGE_PARTICIPANT:
             let message_participant = new MessageParticipant();
-            return await message_participant.processFlowActionMessageParticipant(smaEvent, action, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction);
+            return await message_participant.processFlowActionMessageParticipant(smaEvent, action,  defaultLogger, contextStore);
         case AmazonConnectActions.DISCONNECT_PARTICIPANT:
             let disconnect = new DisconnectParticipant();
             return await disconnect.processFlowActionDisconnectParticipant(smaEvent, action, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction);
@@ -257,9 +268,9 @@ async function processFlowActionSuccess(smaEvent: any, action: any, contactFlow:
         const nextAction = findActionByID(contactFlow.Actions, action.Transitions.NextAction);
         let actionType = nextAction.Type;
         if (!AmazonConnectActions.hasOwnProperty(actionType)) {
-            return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, actionType)
+            return await terminatingFlowAction(smaEvent, defaultLogger, actionType)
         }
-        return await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName);
+        return await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName,smaEvent.CallDetails.TransactionAttributes['contextStore']);
     } catch (error) {
         console.error(defaultLogger + callId + " There is an Error in Proccessing the Success SMA Event " + error.message);
         return null;
@@ -296,22 +307,22 @@ async function processFlowActionFailed(smaEvent: any, actionObj: any, contactFlo
         let nextAction: any;
         if (smaEvent && smaEvent.ActionData.ErrorType.includes(ErrorTypes.INPUT_TIME_LIMIT_EXCEEDS) || smaEvent.ActionData.ErrorType.includes(ErrorTypes.INVALID_DIGITS_RECEIVED)) {
             nextAction = await getNextActionForError(currentAction, contactFlow.Actions, ErrorTypes.INPUT_TIME_LIMIT_EXCEEDS, smaEvent, defaultLogger, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, pauseAction);
-            smaAction = await (await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName)).Actions[0];
+            smaAction = await (await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName,smaEvent.CallDetails.TransactionAttributes['contextStore'])).Actions[0];
         } else if (smaEvent && smaEvent.ActionData.ErrorType.includes(ErrorTypes.NO_MATCHING_CONDITION)) {
             nextAction = await getNextActionForError(currentAction, contactFlow, ErrorTypes.NO_MATCHING_CONDITION, smaEvent, defaultLogger, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, pauseAction);
-            smaAction = await (await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName)).Actions[0];
+            smaAction = await (await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName,smaEvent.CallDetails.TransactionAttributes['contextStore'])).Actions[0];
         }
         else if (smaEvent && smaEvent.ActionData.ErrorType.includes(ErrorTypes.CONNECTION_TIME_LIMIT_EXCEEDED)) {
             nextAction = await getNextActionForError(currentAction, contactFlow, ErrorTypes.CONNECTION_TIME_LIMIT_EXCEEDED, smaEvent, defaultLogger, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, pauseAction);
-            smaAction = await (await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName)).Actions[0];
+            smaAction = await (await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName,smaEvent.CallDetails.TransactionAttributes['contextStore'])).Actions[0];
         }
         else if (smaEvent && smaEvent.ActionData.ErrorType.includes(ErrorTypes.CALL_FAILED)) {
             nextAction = await getNextActionForError(currentAction, contactFlow, ErrorTypes.CALL_FAILED, smaEvent, defaultLogger, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, pauseAction);
-            smaAction = await (await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName)).Actions[0];
+            smaAction = await (await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName,smaEvent.CallDetails.TransactionAttributes['contextStore'])).Actions[0];
 
         } else if (smaEvent && smaEvent.ActionData.ErrorType.includes(ErrorTypes.INVALID_PHONE_NUMBER)) {
             nextAction = await getNextActionForError(currentAction, contactFlow, ErrorTypes.INVALID_PHONE_NUMBER, smaEvent, defaultLogger, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, pauseAction);
-            smaAction = await (await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName)).Actions[0];
+            smaAction = await (await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName,smaEvent.CallDetails.TransactionAttributes['contextStore'])).Actions[0];
 
         }
         else {
@@ -324,12 +335,12 @@ async function processFlowActionFailed(smaEvent: any, actionObj: any, contactFlo
             }
             nextAction = findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[count].NextAction);
             console.log(defaultLogger + callId + "Next Action identifier:" + currentAction.Transitions.Errors[count].NextAction);
-            smaAction = await (await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName)).Actions[0];
+            smaAction = await (await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName,smaEvent.CallDetails.TransactionAttributes['contextStore'])).Actions[0];
 
         }
         let actionType = nextAction.Type;
         if (!AmazonConnectActions.hasOwnProperty(actionType)) {
-            return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, actionType)
+            return await terminatingFlowAction(smaEvent,  defaultLogger,  actionType)
         }
         if (pauseAction) {
             smaAction1 = pauseAction;

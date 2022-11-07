@@ -12,7 +12,7 @@ import { Attributes } from "./constant-values";
   * @param actionType
   * @returns SMA Error Speak Action and Hang UP action
   */
-export async function terminatingFlowAction(smaEvent: any, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>, defaultLogger: string, puaseAction: any, actionType: string) {
+export async function terminatingFlowAction(smaEvent: any, defaultLogger: string,  actionType: string) {
     let text: string;
     let type: string;
     let x: Number;
@@ -22,6 +22,7 @@ export async function terminatingFlowAction(smaEvent: any, SpeechAttributeMap: M
         let voiceId = Attributes.VOICE_ID
         let engine = Attributes.ENGINE
         let languageCode = Attributes.LANGUAGE_CODE
+       let SpeechAttributeMap= smaEvent.CallDetails.TransactionAttributes['contextStore']['SpeechAttributeMap'];
         if (SpeechAttributeMap.has("TextToSpeechVoice")) {
             voiceId = SpeechAttributeMap.get("TextToSpeechVoice")
         }
@@ -33,12 +34,9 @@ export async function terminatingFlowAction(smaEvent: any, SpeechAttributeMap: M
         }
         const legA = getLegACallDetails(smaEvent);
         callId = legA.CallId;
-        if (callId == "NaN")
+        if (!callId)
             callId = smaEvent.ActionData.Parameters.CallId;
-        ContactFlowARNMap.delete(callId);
-        contextAttributes.clear();
-        ActualFlowARN.delete(callId);
-        SpeechAttributeMap.clear();
+       
         if (actionType == "Invalid_Text") {
             console.log(defaultLogger + callId + "The Text to Speak has Invalid Attributes. The Flow is going to Terminate, Please Check the Flow");
             text = "There is an Invalid Attribute Present, your call is going to disconnect"
