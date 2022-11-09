@@ -11,7 +11,7 @@ import { terminatingFlowAction } from "../utility/termination-action";
   */
 
 export class TransferTOThirdParty {
-    async processFlowActionTransferParticipantToThirdParty(smaEvent: any, action: any, defaultLogger: string, contextStore: any){
+    async processFlowActionTransferParticipantToThirdParty(smaEvent: any, action: any,  contextStore: any){
         let callId: string;
         let smaAction1: any;
         try {
@@ -23,7 +23,7 @@ export class TransferTOThirdParty {
             if (action.Parameters.hasOwnProperty("CallerId")) {
                 fromNumber = action.Parameters.CallerId.Number;
             }
-            console.log(defaultLogger + callId + " Transfering call to Third Party Number");
+            console.log(Attributes.DEFAULT_LOGGER + callId + " Transfering call to Third Party Number");
             let smaAction = {
                 Type: ChimeActions.CALL_AND_BRIDGE,
                 Parameters: {
@@ -38,10 +38,10 @@ export class TransferTOThirdParty {
                 }
 
             };
-            let pauseAction=contextStore['pauseAction']
+            let pauseAction=contextStore['PauseAction']
             if (pauseAction) {
                 smaAction1 = pauseAction;
-                contextStore['pauseAction']=null
+                contextStore['PauseAction']=null
                 return {
                     "SchemaVersion": Attributes.SCHEMA_VERSION,
                     "Actions": [
@@ -49,7 +49,7 @@ export class TransferTOThirdParty {
                     ],
                     "TransactionAttributes": {
                         "currentFlowBlock": action,
-                        "connectContextStore":contextStore
+                        "ConnectContextStore":contextStore
                     }
                 }
 
@@ -62,12 +62,12 @@ export class TransferTOThirdParty {
                 ],
                 "TransactionAttributes": {
                     "currentFlowBlock": action,
-                    "connectContextStore":contextStore
+                    "ConnectContextStore":contextStore
                 }
             }
         } catch (error) {
-            console.error(defaultLogger + callId + " There is an Error in execution of TransferToThirdParty " + error.message);
-            return await terminatingFlowAction(smaEvent,  defaultLogger, "error")
+            console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of TransferToThirdParty " + error.message);
+            return await terminatingFlowAction(smaEvent, "error")
         }
 
     }

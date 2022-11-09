@@ -17,16 +17,20 @@ import { Lambda } from "aws-sdk"
   * @returns The Next SMA Action to perform
   */
 export class InvokeLambda {
-    async processFlowActionInvokeLambdaFunction(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, defaultLogger: string, contextStore:any ){
+    async processFlowActionInvokeLambdaFunction(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, contextStore:any ){
         let callId: string;
-        const lambda = new Lambda({ region: Attributes.region });
+        let regionVal="";
+        if(Attributes.region)
+        regionVal=Attributes.region;
+        else
+        regionVal='us-east-1';
+        const lambda = new Lambda({ region: regionVal });
         try {
             const legA = getLegACallDetails(smaEvent);
             callId = legA.CallId;
             if (!callId)
                 callId = smaEvent.ActionData.Parameters.CallId;
             let LambdaARN = action.Parameters.LambdaFunctionARN
-
             let inputForInvoking = await inputForInvokingLambda(action, contextStore);
             const params = {
                 FunctionName: LambdaARN,
@@ -35,23 +39,23 @@ export class InvokeLambda {
             };
             let result = await lambda.invoke(params).promise()
             if (!result) {
-                let nextAction = await getNextActionForError(action, actions, ErrorTypes.NO_MATCHING_ERROR, smaEvent, defaultLogger)
+                let nextAction = await getNextActionForError(action, actions, ErrorTypes.NO_MATCHING_ERROR, smaEvent)
                 return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName, contextStore);
             }
             let x = JSON.parse(result.Payload.toString())
-            console.log(defaultLogger + callId + " The Result After Invoking Lambda is" + JSON.stringify(x))
+            console.log(Attributes.DEFAULT_LOGGER + callId + " The Result After Invoking Lambda is" + JSON.stringify(x))
             const keys = Object.keys(x);
             keys.forEach((key, index) => {
-                contextStore.contextAttributes.set("$.External." + key, x[key]);
-                contextStore.tmpMap.set(key, x[key]);
+                contextStore['ContextAttributes']["$.External." + key]= x[key];
+                contextStore['TmpMap'][key]= x[key];
             });
 
             let nextAction = findActionByID(actions, action.Transitions.NextAction);
-            console.log(defaultLogger + callId + " Next Action identifier:" + action.Transitions.NextAction);
+            console.log(Attributes.DEFAULT_LOGGER + callId + " Next Action identifier:" + action.Transitions.NextAction);
             return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName, contextStore);
         } catch (error) {
-            console.error(defaultLogger + callId + " There is an Error in execution InvokeLambda" + error.message);
-            return await terminatingFlowAction(smaEvent, defaultLogger,"error")
+            console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution InvokeLambda" + error.message);
+            return await terminatingFlowAction(smaEvent, "error")
         }
     }
 
@@ -68,7 +72,7 @@ export class InvokeLambda {
   */
 async function inputForInvokingLambda(action: any, contextStore:any) {
     let InvocationAttributes: any[][] = Object.entries(action.Parameters.LambdaInvocationAttributes);
-    let contextAttributes=contextStore['contextAttributes']
+    let contextAttributes=contextStore['ContextAttributes']
     for (let i = 0; i < InvocationAttributes.length; i++) {
         // checking if the attribute value contains any user defined, system or External attributes for replacing it to the corresponding value
         if (InvocationAttributes[i][1].includes("$.External.") || InvocationAttributes[i][1].includes("$.Attributes.")) {
@@ -83,18 +87,18 @@ async function inputForInvokingLambda(action: any, contextStore:any) {
         "Details": {
             "ContactData": {
                 "Attributes": {},
-                "Channel": contextAttributes.get("$.Channel"),
-                "ContactId": contextAttributes.get("$.ContactId"),
+                "Channel": contextAttributes["$.Channel"],
+                "ContactId": contextAttributes["$.ContactId"],
                 "CustomerEndpoint": {
-                    "Address": contextAttributes.get("$.CustomerEndpoint.Address"),
-                    "Type": contextAttributes.get("$.CustomerEndpoint.Type")
+                    "Address": contextAttributes["$.CustomerEndpoint.Address"],
+                    "Type": contextAttributes["$.CustomerEndpoint.Type"]
                 },
-                "InitialContactId": contextAttributes.get("$.ContactId"),
-                "InitiationMethod": contextAttributes.get("$.InitiationMethod"),
-                "InstanceARN": contextAttributes.get("$.InstanceARN"),
+                "InitialContactId": contextAttributes["$.ContactId"],
+                "InitiationMethod": contextAttributes["$.InitiationMethod"],
+                "InstanceARN": contextAttributes["$.InstanceARN"],
                 "SystemEndpoint": {
-                    "Address": contextAttributes.get("$.SystemEndpoint.Address"),
-                    "Type": contextAttributes.get("$.SystemEndpoint.Type")
+                    "Address": contextAttributes["$.SystemEndpoint.Address"],
+                    "Type": contextAttributes["$.SystemEndpoint.Type"]
                 }
             },
             "Parameters": lambdaFunctionParameters

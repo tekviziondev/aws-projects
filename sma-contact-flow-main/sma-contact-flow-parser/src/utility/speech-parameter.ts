@@ -12,7 +12,7 @@ import { terminatingFlowAction } from "./termination-action";
   * @param defaultLogger
   * @returns Speech Parameters
   */
-export async function getSpeechParameters(smaEvent: any, action: any, defaultLogger:string, contextStore:any){
+export async function getSpeechParameters(smaEvent: any, action: any, contextStore:any){
     let callId: string;
     try {
         const legA = getLegACallDetails(smaEvent);
@@ -23,18 +23,20 @@ export async function getSpeechParameters(smaEvent: any, action: any, defaultLog
         let voiceId = Attributes.VOICE_ID
         let engine = Attributes.ENGINE
         let languageCode = Attributes.LANGUAGE_CODE
-        let SpeechAttributeMap =contextStore['SpeechAttributeMap']
-        let contextAttributes=contextStore['contextAttributes']
-        if (SpeechAttributeMap.has("TextToSpeechVoice")) {
-            voiceId = SpeechAttributeMap.get("TextToSpeechVoice")
+        let speechAttributes =contextStore['SpeechAttributes']
+        let contextAttributes=contextStore['ContextAttributes']
+        if (speechAttributes && speechAttributes.hasOwnProperty("TextToSpeechVoice")) {
+            voiceId = speechAttributes["TextToSpeechVoice"]
         }
-        if (SpeechAttributeMap.has("TextToSpeechEngine")) {
-            engine = SpeechAttributeMap.get("TextToSpeechEngine").toLowerCase();
+        if (speechAttributes && speechAttributes.hasOwnProperty("TextToSpeechEngine")) {
+            engine = speechAttributes["TextToSpeechEngine"].toLowerCase();
         }
-        if (SpeechAttributeMap.has("LanguageCode")) {
-            languageCode = SpeechAttributeMap.get("LanguageCode")
+        if (speechAttributes && speechAttributes.hasOwnProperty("LanguageCode")) {
+            languageCode = speechAttributes["LanguageCode"]
         }
-        if (action.Text || action.SSML) {
+        console.log("Text value: "+action.Parameters.Text);
+        
+        if (action.Parameters.Text || action.Parameters.SSML) {
             let text: string;
             let type: string;
             let x: Number;
@@ -42,15 +44,14 @@ export async function getSpeechParameters(smaEvent: any, action: any, defaultLog
                 text = action.Parameters.Text;
                 // checking if the text contains any user defined, system or External attributes to replace with corresponding values
                 if (text.includes("$.External.") || text.includes("$.Attributes.") || text.includes("$.")) {
-                    contextAttributes.forEach((value, key) => {
+                    for (var key in contextAttributes) {
                         if (text.includes(key)) {
                             x = count(text, key)
                             for (let index = 0; index < x; index++) {
-                                text = text.replace(key, value)
+                                text = text.replace(key, contextAttributes[key])
                             }
                         }
-
-                    })
+                    }
                 }
                 type = Attributes.TEXT;
             }
@@ -78,11 +79,11 @@ export async function getSpeechParameters(smaEvent: any, action: any, defaultLog
                 VoiceId: voiceId,
             }
         }
-        console.log(defaultLogger + callId + "Speech Parameters are : " + rv);
+        console.log(Attributes.DEFAULT_LOGGER + callId + "Speech Parameters are : " + rv);
         return rv;
     } catch (error) {
-        console.error(defaultLogger + callId + " There is an Error in execution of getting the Speech parameters " + error.message);
-        return await terminatingFlowAction(smaEvent, defaultLogger,  "error")
+        console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of getting the Speech parameters " + error.message);
+        return await terminatingFlowAction(smaEvent, "error")
     }
 }
 /**
@@ -92,7 +93,7 @@ export async function getSpeechParameters(smaEvent: any, action: any, defaultLog
   * @param defaultLogger
   * @returns Failure Speech Parameters
   */
-export async function FailureSpeechParameters(smaEvent: any, action: any, defaultLogger:string, contextStore:any){
+export async function FailureSpeechParameters(smaEvent: any, action: any, contextStore:any){
     let callId: string;
     let rv: any
     try {
@@ -104,28 +105,32 @@ export async function FailureSpeechParameters(smaEvent: any, action: any, defaul
         let voiceId = Attributes.VOICE_ID
         let engine = Attributes.ENGINE
         let languageCode = Attributes.LANGUAGE_CODE
-        let SpeechAttributeMap =contextStore['SpeechAttributeMap']
-        if (SpeechAttributeMap.has("TextToSpeechVoice")) {
-            voiceId = SpeechAttributeMap.get("TextToSpeechVoice")
+        let speechAttributes =contextStore['SpeechAttributes']
+        if (speechAttributes && speechAttributes.hasOwnProperty("TextToSpeechVoice")) {
+            voiceId = speechAttributes["TextToSpeechVoice"]
         }
-        if (SpeechAttributeMap.has("TextToSpeechEngine")) {
-            engine = SpeechAttributeMap.get("TextToSpeechEngine").toLowerCase();
+        if (speechAttributes && speechAttributes.hasOwnProperty("TextToSpeechEngine")) {
+            engine = speechAttributes["TextToSpeechEngine"].toLowerCase();
         }
-        if (SpeechAttributeMap.has("LanguageCode")) {
-            languageCode = SpeechAttributeMap.get("LanguageCode")
+        if (speechAttributes && speechAttributes.hasOwnProperty("LanguageCode")) {
+            languageCode = speechAttributes["LanguageCode"]
         }
-
+        let failureSpeech="";
+        if(Attributes.Failure_Speech_SSML)
+        failureSpeech=Attributes.Failure_Speech_SSML;
+        else
+        failureSpeech="<speak>  We're sorry.  We didn't get that. Please try again. <break time=\"200ms\"/></speak>";
         rv = {
-            Text: Attributes.Failure_Speech_SSML,
-            TextType: Attributes.SSML,
+            Text: failureSpeech,
+            TextType: Attributes.TEXT,
             Engine: engine,
             LanguageCode: languageCode,
             VoiceId: voiceId,
         }
-        console.log(defaultLogger + callId + "Speech Parameters are : " + rv);
+        console.log(Attributes.DEFAULT_LOGGER + callId + "Speech Parameters are : " + rv);
         return rv;
     } catch (error) {
-        console.error(defaultLogger + callId + " There is an Error in execution of getting the Failure Speech parameters " + error.message);
-        return await terminatingFlowAction(smaEvent, defaultLogger,  "error")
+        console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of getting the Failure Speech parameters " + error.message);
+        return await terminatingFlowAction(smaEvent, "error")
     }
 }

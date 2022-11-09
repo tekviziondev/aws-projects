@@ -11,7 +11,7 @@ import { PlayAudio } from "./play-audio";
   * @returns SMA Action
   */
 export class MessageParticipant {
-    async processFlowActionMessageParticipant(smaEvent: any, action: any, defaultLogger: string, contextStore: any) {
+    async processFlowActionMessageParticipant(smaEvent: any, action: any, contextStore: any) {
         let callId: string;
         const legA = getLegACallDetails(smaEvent);
         try {
@@ -19,9 +19,9 @@ export class MessageParticipant {
             if (!callId)
                 callId = smaEvent.ActionData.Parameters.CallId;
             if (action.Parameters.Media != null) {
-                console.log(defaultLogger + callId + "Play Audio Action");
+                console.log(Attributes.DEFAULT_LOGGER + callId + "Play Audio Action");
                 let playAudio = new PlayAudio();
-                return await playAudio.processPlayAudio(smaEvent, action, defaultLogger, contextStore);
+                return await playAudio.processPlayAudio(smaEvent, action, contextStore);
             }
             let text: string;
             let type: string;
@@ -29,21 +29,18 @@ export class MessageParticipant {
             let smaAction1: any;
             let voiceId = Attributes.VOICE_ID
             let engine = Attributes.ENGINE
-            let languageCode = Attributes.LANGUAGE_CODE
-            console.log("actualFlowARN: "+contextStore['actualFlowARN']);
-            
-            let SpeechAttributeMap = contextStore['speechAttributeMap'];
-           // console.log("SpeechAttributeMap: "+contextStore['speechAttributeMap']);
-            let contextAttributes = contextStore['contextAttributes'];
-            let pauseAction = contextStore['pauseAction'];
-            if (SpeechAttributeMap && SpeechAttributeMap.hasOwnProperty("TextToSpeechVoice")) {
-                voiceId = SpeechAttributeMap.get("TextToSpeechVoice")
+            let languageCode = Attributes.LANGUAGE_CODE 
+            let speechAttributes = contextStore['SpeechAttributes'];
+            let contextAttributes = contextStore['ContextAttributes'];
+            let pauseAction = contextStore['PauseAction'];
+            if (speechAttributes && speechAttributes.hasOwnProperty("TextToSpeechVoice")) {
+                voiceId = speechAttributes['TextToSpeechVoice']
             }
-            if (SpeechAttributeMap && SpeechAttributeMap.hasOwnProperty("TextToSpeechEngine")) {
-                engine = SpeechAttributeMap.get("TextToSpeechEngine").toLowerCase();
+            if (speechAttributes && speechAttributes.hasOwnProperty("TextToSpeechEngine")) {
+                engine = speechAttributes["TextToSpeechEngine"].toLowerCase();
             }
-            if (SpeechAttributeMap && SpeechAttributeMap.hasOwnProperty("LanguageCode")) {
-                languageCode = SpeechAttributeMap.get("LanguageCode")
+            if (speechAttributes && speechAttributes.hasOwnProperty("LanguageCode")) {
+                languageCode = speechAttributes["LanguageCode"]
             }
             if (action.Parameters.Text) {
                 text = action.Parameters.Text;
@@ -65,20 +62,20 @@ export class MessageParticipant {
                 text = action.Parameters.SSML;
                 if (text.includes("$.External.") || text.includes("$.Attributes.") || text.includes("$.")) {
                     //text=textConvertor(text);
-                    contextAttributes.forEach((value, key) => {
+                    for (var key in contextAttributes) {
                         if (text.includes(key)) {
                             x = count(text, key)
                             for (let index = 0; index < x; index++) {
-                                text = text.replace(key, value)
+                                text = text.replace(key, contextAttributes[key])
                             }
                         }
-
-                    })
+                    }
+                    
                 }
                 type = Attributes.SSML;
             }
             if (text.includes("$.")) {
-                return await terminatingFlowAction(smaEvent, defaultLogger, "Invalid_Text")
+                return await terminatingFlowAction(smaEvent, "Invalid_Text")
             }
             let smaAction = {
                 Type: ChimeActions.SPEAK,
@@ -94,7 +91,7 @@ export class MessageParticipant {
             };
             if (pauseAction) {
                 smaAction1 = pauseAction;
-                contextStore['pauseAction']=null
+                contextStore['PauseAction']=null
                 return {
                     "SchemaVersion": Attributes.SCHEMA_VERSION,
                     "Actions": [
@@ -102,7 +99,7 @@ export class MessageParticipant {
                     ],
                     "TransactionAttributes": {
                         "currentFlowBlock": action,
-                        "connectContextStore": contextStore
+                        "ConnectContextStore": contextStore
                     }
                 }
 
@@ -114,12 +111,12 @@ export class MessageParticipant {
                 ],
                 "TransactionAttributes": {
                     "currentFlowBlock": action,
-                    "connectContextStore": contextStore
+                    "ConnectContextStore": contextStore
                 }
             }
         } catch (error) {
-            console.error(defaultLogger + callId + " There is an Error in execution of MessageParticipant " + error.message);
-            return await terminatingFlowAction(smaEvent, defaultLogger, "error")
+            console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of MessageParticipant " + error.message);
+            return await terminatingFlowAction(smaEvent, "error")
         }
 
     }

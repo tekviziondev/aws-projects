@@ -10,7 +10,7 @@ import { terminatingFlowAction } from "../utility/termination-action";
   * @returns SMA Action
   */
 export class LexBot {
-  async processFlowActionConnectParticipantWithLexBot(smaEvent: any, action: any, defaultLogger: string,contextStore:any) {
+  async processFlowActionConnectParticipantWithLexBot(smaEvent: any, action: any, contextStore:any) {
     let smaAction;
     let smaAction1: any;
     let callId: string;
@@ -19,7 +19,7 @@ export class LexBot {
       callId = legA.CallId;
       if (!callId)
         callId = smaEvent.ActionData.Parameters.CallId;
-      console.log(defaultLogger + callId + " Start Bot Conversation");
+      console.log(Attributes.DEFAULT_LOGGER + callId + " Start Bot Conversation");
       if (action.Parameters.hasOwnProperty("LexSessionAttributes")) {
         smaAction = {
           Type: ChimeActions.START_BOT_CONVERSATION,
@@ -65,10 +65,10 @@ export class LexBot {
           }
         }
       }
-      let pauseAction=contextStore['pauseAction']
+      let pauseAction=contextStore['PauseAction']
       if (pauseAction) {
         smaAction1 = pauseAction;
-        contextStore['pauseAction']=null
+        contextStore['PauseAction']=null
         return {
           "SchemaVersion": Attributes.SCHEMA_VERSION,
           "Actions": [
@@ -76,7 +76,7 @@ export class LexBot {
           ],
           "TransactionAttributes": {
             "currentFlowBlock": action,
-            "connectContextStore":contextStore
+            "ConnectContextStore":contextStore
           }
         }
 
@@ -89,12 +89,12 @@ export class LexBot {
         ],
         "TransactionAttributes": {
           "currentFlowBlock": action,
-          "connectContextStore":contextStore
+          "ConnectContextStore":contextStore
         }
       }
     } catch (error) {
-      console.error(defaultLogger + callId + " There is an Error in execution of ConnectParticipantWithLexBot " + error.message);
-      return await terminatingFlowAction(smaEvent, defaultLogger, "error")
+      console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of ConnectParticipantWithLexBot " + error.message);
+      return await terminatingFlowAction(smaEvent, "error")
     }
 
   }

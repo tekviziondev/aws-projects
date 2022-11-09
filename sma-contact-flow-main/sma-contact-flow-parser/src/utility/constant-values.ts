@@ -23,8 +23,8 @@ type Data = {
   SCHEMA_VERSION: string,
   Failure_Speech_SSML:string,
   Failure_Audio_Location:string
-
-
+  CONNECT_CONTEXT_STORE:string
+  DEFAULT_LOGGER:string
 };
 
 export const Attributes: Data = {
@@ -45,7 +45,8 @@ export const Attributes: Data = {
   CONTENT_TYPE: "PlainText",
   SCHEMA_VERSION: "1.0",
   Failure_Speech_SSML:FAILURE_SPEECH_SSML,
-  Failure_Audio_Location:FAILURE_AUDIO_FILE_LOCATION
-
+  Failure_Audio_Location:FAILURE_AUDIO_FILE_LOCATION,
+  CONNECT_CONTEXT_STORE:"ConnectContextStore",
+  DEFAULT_LOGGER :"SMA-Contact-Flow-Builder | Call ID - "
 }
 export const Supported_Actions = ["Wait", "Loop", "TransferToFlow", "UpdateContactTextToSpeechVoice", "InvokeLambdaFunction", "UpdateContactAttributes", "Compare", "InvokeFlowModule", "EndFlowModuleExecution"];

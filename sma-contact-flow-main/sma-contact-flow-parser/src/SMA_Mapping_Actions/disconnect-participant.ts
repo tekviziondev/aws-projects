@@ -8,7 +8,7 @@ import { Attributes } from "../utility/constant-values";
   * @returns SMA Action
   */
 export class DisconnectParticipant {
-    async processFlowActionDisconnectParticipant(smaEvent: any, action: any,defaultLogger:string, contextStore:any){
+    async processFlowActionDisconnectParticipant(smaEvent: any, contextStore:any){
         let callId: string;
         let smaAction1: any;
         const legA = getLegACallDetails(smaEvent);
@@ -16,7 +16,7 @@ export class DisconnectParticipant {
         if (!callId)
             callId = smaEvent.ActionData.Parameters.CallId;
       
-        console.log(defaultLogger + callId + "| is going to Hang up");
+        console.log(Attributes.DEFAULT_LOGGER + callId + "| is going to Hang up");
         let smaAction = {
             Type: ChimeActions.HANGUP,
             Parameters: {
@@ -24,18 +24,15 @@ export class DisconnectParticipant {
                 "CallId": callId
             }
         };
-        let pauseAction=contextStore['pauseAction']
+        let pauseAction=contextStore['PauseAction']
         if (pauseAction) {
             smaAction1 = pauseAction;
-            contextStore['pauseAction']=null
+            contextStore['PauseAction']=null
             return {
                 "SchemaVersion": Attributes.SCHEMA_VERSION,
                 "Actions": [
                     smaAction1, smaAction
                 ],
-                "TransactionAttributes": {
-                    "currentFlowBlock": action
-                }
             }
 
         }
@@ -44,9 +41,7 @@ export class DisconnectParticipant {
             "Actions": [
                 smaAction
             ],
-            "TransactionAttributes": {
-                "currentFlowBlock": action
-            }
+            
         }
     }
 }

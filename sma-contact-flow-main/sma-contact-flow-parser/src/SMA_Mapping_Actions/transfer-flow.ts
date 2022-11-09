@@ -2,6 +2,7 @@ import { getLegACallDetails } from "../utility/call-details";
 import { terminatingFlowAction } from "../utility/termination-action";
 import { loadContactFlow } from "../contact-flow-loader"
 import { processRootFlowBlock } from "../contact-flow-processor"
+import { Attributes } from "../utility/constant-values";
 
 /**
   * Transfer to another Contact Flow to Execute.
@@ -11,21 +12,21 @@ import { processRootFlowBlock } from "../contact-flow-processor"
   */
 
 export class TrasferToFlow {
-    async processFlowActionTransferToFlow(smaEvent: any, action: any, amazonConnectInstanceID: string, bucketName: string, defaultLogger:string, contextStore:any ){
+    async processFlowActionTransferToFlow(smaEvent: any, action: any, amazonConnectInstanceID: string, bucketName: string, contextStore:any ){
         let callId: string;
         try {
             let TransferFlowARN = action.Parameters.ContactFlowId;
             const legA = getLegACallDetails(smaEvent);
             callId = legA.CallId;
             if (!callId)
-                callId = smaEvent.ActionData.Parameters.CallId;
-            contextStore['transferFlowARN']=TransferFlowARN
+            callId = smaEvent.ActionData.Parameters.CallId;
+            contextStore['TransferFlowARN']=TransferFlowARN
             const contactFlow = await loadContactFlow(amazonConnectInstanceID, TransferFlowARN, bucketName, smaEvent, "Contact_Flow");
-            console.log(defaultLogger + callId + " Transfering to Another contact FLow function")
+            console.log(Attributes.DEFAULT_LOGGER + callId + " Transfering to Another contact FLow function")
             return await processRootFlowBlock(smaEvent, contactFlow, amazonConnectInstanceID, bucketName, contextStore);
         } catch (error) {
-            console.error(defaultLogger + callId + " There is an Error in execution of TransferToFlow " + error.message);
-            return await terminatingFlowAction(smaEvent, defaultLogger, "error")
+            console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of TransferToFlow " + error.message);
+            return await terminatingFlowAction(smaEvent, "error")
         }
 
     }

@@ -11,63 +11,45 @@ import { terminatingFlowAction } from "../utility/termination-action";
   */
 
 export class CallRecording {
-    async processFlowActionUpdateContactRecordingBehavior(smaEvent: any, action: any,defaultLogger: string,contextStore:any){
+    async processFlowActionUpdateContactRecordingBehavior(smaEvent: any, action: any,contextStore:any){
         let callId: string;
-        let pauseAction=contextStore['pauseAction']
+        let pauseAction=contextStore['PauseAction']
         try {
             let smaAction1: any;
             const legA = getLegACallDetails(smaEvent);
             callId = legA.CallId;
+            let smaAction:any;
             if (!callId)
                 callId = smaEvent.ActionData.Parameters.CallId;
             if (action.Parameters.RecordingBehavior.RecordedParticipants.length < 1) {
-                let smaAction = {
+                 smaAction = {
                     Type: ChimeActions.STOP_CALL_RECORDING,
                     Parameters: {
                         "CallId": legA.CallId
                     }
                 };
-                if (pauseAction) {
-                    smaAction1 = pauseAction;
-                    contextStore['pauseAction']=null
-                    return {
-                        "SchemaVersion": Attributes.SCHEMA_VERSION,
-                        "Actions": [
-                            smaAction1, smaAction
-                        ],
-                        "TransactionAttributes": {
-                            "currentFlowBlock": action,
-                            "connectContextStore":contextStore
-                        }
-                    }
-
-                }
-
-                return {
-                    "SchemaVersion": Attributes.SCHEMA_VERSION,
-                    "Actions": [
-                        smaAction
-                    ],
-                    "TransactionAttributes": {
-                        "currentFlowBlock": action,
-                        "connectContextStore":contextStore
-                    }
-                }
-            }
-            let smaAction = {
+               
+            }else{
+                let destinationLocation="";
+                if(Attributes.destinationLocation)
+                destinationLocation=Attributes.destinationLocation;
+                else
+                destinationLocation="flow-cache1"
+             smaAction = {
                 Type: ChimeActions.START_CALL_RECORDING,
                 Parameters: {
                     "CallId": legA.CallId,
                     "Track": Attributes.TRACK,
                     Destination: {
                         "Type": Attributes.DESTINATION_TYPE,
-                        "Location": Attributes.destinationLocation
+                        "Location": destinationLocation
                     }
                 }
             };
+        }
             if (pauseAction) {
                 smaAction1 = pauseAction;
-                pauseAction = null;
+                contextStore['PauseAction']=null
                 return {
                     "SchemaVersion": Attributes.SCHEMA_VERSION,
                     "Actions": [
@@ -75,7 +57,7 @@ export class CallRecording {
                     ],
                     "TransactionAttributes": {
                         "currentFlowBlock": action,
-                        "connectContextStore":contextStore
+                        "ConnectContextStore":contextStore
                     }
                 }
 
@@ -87,12 +69,12 @@ export class CallRecording {
                 ],
                 "TransactionAttributes": {
                     "currentFlowBlock": action,
-                    "connectContextStore":contextStore
+                    "ConnectContextStore":contextStore
                 }
             }
         } catch (error) {
-            console.error(defaultLogger + callId + " There is an Error in execution UpdateContactRecordingBehavior |" + error.message);
-            return await terminatingFlowAction(smaEvent, defaultLogger, "error")
+            console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution UpdateContactRecordingBehavior |" + error.message);
+            return await terminatingFlowAction(smaEvent, "error")
         }
     }
 }

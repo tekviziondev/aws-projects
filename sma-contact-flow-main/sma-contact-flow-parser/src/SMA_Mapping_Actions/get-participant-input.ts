@@ -11,7 +11,7 @@ import { Attributes } from "../utility/constant-values";
   * @returns SMA Action
   */
 export class GetParticipantInput {
-    async processFlowActionGetParticipantInput(smaEvent: any, action: any, defaultLogger: string, contextStore:any) {
+    async processFlowActionGetParticipantInput(smaEvent: any, action: any,  contextStore:any) {
 
         let callId: string;
         try {
@@ -21,13 +21,13 @@ export class GetParticipantInput {
             if (!callId)
                 callId = smaEvent.ActionData.Parameters.CallId;
             if (action.Parameters.Media) {
-                console.log(defaultLogger + callId + " Play Audio And Get Digits");
+                console.log(Attributes.DEFAULT_LOGGER + callId + " Play Audio And Get Digits");
                 let playAudioGetDigits = new PlayAudioAndGetDigits();
-                return await playAudioGetDigits.processPlayAudioAndGetDigits(smaEvent, action, defaultLogger, contextStore);
+                return await playAudioGetDigits.processPlayAudioAndGetDigits(smaEvent, action, contextStore);
             }
-            console.log(defaultLogger + callId + " Speak and Get Digits Action");
-            let speech_parameter = await getSpeechParameters(smaEvent, action, defaultLogger, contextStore)
-            let failure_parameter = await FailureSpeechParameters(smaEvent, action, defaultLogger, contextStore)
+            console.log(Attributes.DEFAULT_LOGGER + callId + " Speak and Get Digits Action");
+            let speech_parameter = await getSpeechParameters(smaEvent, action, contextStore)
+            let failure_parameter = await FailureSpeechParameters(smaEvent, action, contextStore)
             let smaAction = {
                 Type: ChimeActions.SPEAK_AND_GET_DIGITS,
                 Parameters: {
@@ -40,7 +40,7 @@ export class GetParticipantInput {
             };
             let text = smaAction.Parameters.SpeechParameters.Text
             if (text.includes("$.")) {
-                return await terminatingFlowAction(smaEvent, defaultLogger, "Invalid_Text")
+                return await terminatingFlowAction(smaEvent, "Invalid_Text")
             }
 
             if (action.Parameters?.InputValidation) {
@@ -57,10 +57,10 @@ export class GetParticipantInput {
                 const timeLimit: number = Number.parseInt(action.Parameters.InputTimeLimitSeconds);
                 smaAction.Parameters["RepeatDurationInMilliseconds"] = timeLimit * 1000;
             }
-            let pauseAction=contextStore['pauseAction'];
+            let pauseAction=contextStore['PuseAction'];
             if (pauseAction) {
                 smaAction1 = pauseAction;
-                contextStore['pauseAction']=null
+                contextStore['PauseAction']=null
                 return {
                     "SchemaVersion": Attributes.SCHEMA_VERSION,
                     "Actions": [
@@ -68,7 +68,7 @@ export class GetParticipantInput {
                     ],
                     "TransactionAttributes": {
                         "currentFlowBlock": action,
-                        "connectContextStore": contextStore
+                        "ConnectContextStore": contextStore
                     }
                 }
 
@@ -80,12 +80,12 @@ export class GetParticipantInput {
                 ],
                 "TransactionAttributes": {
                     "currentFlowBlock": action,
-                    "connectContextStore": contextStore
+                    "ConnectContextStore": contextStore
                 }
             }
         } catch (error) {
-            console.error(defaultLogger + callId + " There is an Error in execution of GetParticipantInput" + error.message);
-            return await terminatingFlowAction(smaEvent, defaultLogger, "error")
+            console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of GetParticipantInput" + error.message);
+            return await terminatingFlowAction(smaEvent,  "error")
         }
     }
 }
