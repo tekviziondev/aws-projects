@@ -17,7 +17,7 @@ import { Wait } from "./SMA_Mapping_Actions/wait";
 import { AmazonConnectActions } from "./utility/amazon-connect-actionTypes";
 import { getLegACallDetails } from "./utility/call-details";
 import { processFlowConditionValidation } from "./utility/condition-validation";
-import { Attributes } from "./utility/constant-values";
+import { Attributes, ContextAttributes, ContextStore } from "./utility/constant-values";
 import { ErrorTypes } from "./utility/error-types";
 import { EventTypes } from "./utility/event-types";
 import { findActionByID } from "./utility/find-action-id";
@@ -46,17 +46,17 @@ export async function processFlow(smaEvent: any, amazonConnectInstanceID: string
             contextStore=transactionAttributes[Attributes.CONNECT_CONTEXT_STORE]
         }
 
-        if (transactionAttributes && transactionAttributes[Attributes.CONNECT_CONTEXT_STORE] && !transactionAttributes[Attributes.CONNECT_CONTEXT_STORE]['ActualFlowARN']) {
-            transactionAttributes[Attributes.CONNECT_CONTEXT_STORE]['ActualFlowARN']=amazonConnectFlowID;
+        if (transactionAttributes && transactionAttributes[Attributes.CONNECT_CONTEXT_STORE] && !transactionAttributes[Attributes.CONNECT_CONTEXT_STORE][ContextStore.ACTUAL_FLOW_ARN]) {
+            transactionAttributes[Attributes.CONNECT_CONTEXT_STORE][ContextStore.ACTUAL_FLOW_ARN]=amazonConnectFlowID;
          }
 
-        if (transactionAttributes && transactionAttributes[Attributes.CONNECT_CONTEXT_STORE] && transactionAttributes[Attributes.CONNECT_CONTEXT_STORE]['TransferFlowARN']) {
-            amazonConnectFlowID = transactionAttributes[Attributes.CONNECT_CONTEXT_STORE]['TransferFlowARN'];
+        if (transactionAttributes && transactionAttributes[Attributes.CONNECT_CONTEXT_STORE] && transactionAttributes[Attributes.CONNECT_CONTEXT_STORE][ContextStore.TRANSFER_FLOW_ARN]) {
+            amazonConnectFlowID = transactionAttributes[Attributes.CONNECT_CONTEXT_STORE][ContextStore.TRANSFER_FLOW_ARN];
          }
          
-         if (transactionAttributes && transactionAttributes[Attributes.CONNECT_CONTEXT_STORE] && transactionAttributes[Attributes.CONNECT_CONTEXT_STORE]['InvokeModuleARN']) {
+         if (transactionAttributes && transactionAttributes[Attributes.CONNECT_CONTEXT_STORE] && transactionAttributes[Attributes.CONNECT_CONTEXT_STORE][ContextStore.INVOKE_MODULE_ARN]) {
             type = "Invoke_Module"
-            amazonConnectFlowID = transactionAttributes[Attributes.CONNECT_CONTEXT_STORE]['InvokeModuleARN'];
+            amazonConnectFlowID = transactionAttributes[Attributes.CONNECT_CONTEXT_STORE][ContextStore.INVOKE_MODULE_ARN];
          }
          
          const legA = getLegACallDetails(smaEvent);
@@ -88,15 +88,15 @@ export async function processFlow(smaEvent: any, amazonConnectInstanceID: string
             if (smaEvent.InvocationEventType === EventTypes.NEW_INBOUND_CALL){
                let  contextAttributes=storeSystemAttributs(smaEvent, amazonConnectFlowID, amazonConnectFlowID)
                  contextStore={
-                    "LoopCount":"0",
-                    "TransferFlowARN":"",
-                    "InvokeModuleARN":"",
-                    "InvokationModuleNextAction":"",
-                    "ActualFlowARN":"",
-                    "SpeechAttributes":{},
-                    "ContextAttributes":contextAttributes,
-                    "TmpMap":{},  
-                    "PauseAction":null
+                    [ContextStore.LOOP_COUNT]:"0",
+                    [ContextStore.TRANSFER_FLOW_ARN]:"",
+                    [ContextStore.INVOKE_MODULE_ARN]:"",
+                    [ContextStore.INVOKATION_MODULE_NEXT_ACTION]:"",
+                    [ContextStore.ACTUAL_FLOW_ARN]:"",
+                    [ContextStore.SPEECH_ATTRIBUTES]:{},
+                    [ContextStore.CONTEXT_ATTRIBUTES]:contextAttributes,
+                    [ContextStore.TMP_MAP]:{},  
+                    [ContextStore.PAUSE_ACTION]:null
 
                 }
             }
@@ -119,14 +119,14 @@ export async function processFlow(smaEvent: any, amazonConnectInstanceID: string
 async function storeSystemAttributs(smaEvent: any, amazonConnectFlowID: any, amazonConnectInstanceID: any) {
     const legA = getLegACallDetails(smaEvent);
    let contextAttributes={
-        "$.CustomerEndpoint.Address":legA.From,
-        "$.SystemEndpoint.Address":legA.To,
-        "$.InitiationMethod":legA.Direction,
-        "$.ContactId":amazonConnectFlowID,
-        "$.InstanceARN":amazonConnectInstanceID,
-        "$.Channel":Attributes.CHANNEL,
-        "$.CustomerEndpoint.Type":Attributes.CUSTOMER_ENDPOINT_TYPE,
-        "$.SystemEndpoint.Type":Attributes.SYSTEM_ENDPOINT_TYPE
+    [ContextAttributes.CUSTOMER_ENDPOINT_ADDRESS]:legA.From,
+    [ContextAttributes.SYSTEM_ENDPOINT_ADDRESS]:legA.To,
+    [ContextAttributes.INITIATION_METHOD]:legA.Direction,
+    [ContextAttributes.CONTACTID]:amazonConnectFlowID,
+    [ContextAttributes.INSTANCE_ARN]:amazonConnectInstanceID,
+    [ContextAttributes.CHANNEL]:Attributes.CHANNEL,
+    [ContextAttributes.CUSTOMER_ENDPOINT_TYPE]:Attributes.CUSTOMER_ENDPOINT_TYPE,
+    [ContextAttributes.SYSTEM_ENDPOINT_TYPE]:Attributes.SYSTEM_ENDPOINT_TYPE
     }
     return contextAttributes;
 }

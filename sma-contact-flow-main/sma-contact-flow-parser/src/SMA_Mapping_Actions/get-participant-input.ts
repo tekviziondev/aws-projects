@@ -3,7 +3,7 @@ import { ChimeActions } from "../utility/chime-action-types";
 import { terminatingFlowAction } from "../utility/termination-action";
 import { getSpeechParameters, FailureSpeechParameters } from "../utility/speech-parameter";
 import { PlayAudioAndGetDigits } from "./play-audio-getdigits";
-import { Attributes } from "../utility/constant-values";
+import { Attributes, ContextStore } from "../utility/constant-values";
 /**
   * Making a SMA action to perform delivering an audio message to obtain customer input.
   * @param smaEvent 
@@ -57,18 +57,18 @@ export class GetParticipantInput {
                 const timeLimit: number = Number.parseInt(action.Parameters.InputTimeLimitSeconds);
                 smaAction.Parameters["RepeatDurationInMilliseconds"] = timeLimit * 1000;
             }
-            let pauseAction=contextStore['PuseAction'];
+            let pauseAction=contextStore[ContextStore.PAUSE_ACTION];
             if (pauseAction) {
                 smaAction1 = pauseAction;
-                contextStore['PauseAction']=null
+                contextStore[ContextStore.PAUSE_ACTION]=null
                 return {
                     "SchemaVersion": Attributes.SCHEMA_VERSION,
                     "Actions": [
                         smaAction1, smaAction
                     ],
                     "TransactionAttributes": {
-                        "currentFlowBlock": action,
-                        "ConnectContextStore": contextStore
+                        [Attributes.CURRENT_FLOW_BLOCK]: action,
+                        [Attributes.CONNECT_CONTEXT_STORE]: contextStore
                     }
                 }
 
@@ -79,8 +79,8 @@ export class GetParticipantInput {
                     smaAction
                 ],
                 "TransactionAttributes": {
-                    "currentFlowBlock": action,
-                    "ConnectContextStore": contextStore
+                    [Attributes.CURRENT_FLOW_BLOCK]: action,
+                    [Attributes.CONNECT_CONTEXT_STORE]: contextStore
                 }
             }
         } catch (error) {

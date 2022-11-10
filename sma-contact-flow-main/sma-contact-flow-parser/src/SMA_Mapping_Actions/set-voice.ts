@@ -2,7 +2,7 @@ import { getLegACallDetails } from "../utility/call-details";
 import { terminatingFlowAction } from "../utility/termination-action";
 import { findActionByID } from "../utility/find-action-id";
 import { processFlowAction } from "../contact-flow-processor";
-import { Attributes } from "../utility/constant-values";
+import { Attributes, ContextStore } from "../utility/constant-values";
 
 
 /**
@@ -20,7 +20,7 @@ export class SetVoice {
         try {
             const legA = getLegACallDetails(smaEvent);
             callId = legA.CallId; 
-            let speechAttributes=contextStore['SpeechAttributes']
+            let speechAttributes=contextStore[ContextStore.SPEECH_ATTRIBUTES]
             if (!callId)
                 callId = smaEvent.ActionData.Parameters.CallId;
             let SpeechParameters = action.Parameters

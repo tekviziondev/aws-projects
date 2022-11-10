@@ -3,7 +3,7 @@ import { getLegACallDetails } from "../utility/call-details";
 import { terminatingFlowAction } from "../utility/termination-action";
 import { loadContactFlow } from "../contact-flow-loader"
 import { processRootFlowBlock } from "../contact-flow-processor"
-import { Attributes } from "../utility/constant-values";
+import { Attributes, ContextStore } from "../utility/constant-values";
 /**
   * Invoke a Module from the existing contact flow, to perform a particular task
   * @param smaEvent 
@@ -14,9 +14,9 @@ import { Attributes } from "../utility/constant-values";
 export class InvokeModule {
     async processFlowActionInvokeFlowModule(smaEvent: any, action: any, amazonConnectInstanceID: string, bucketName: string, contextStore:any) {
         let ModuleARN = action.Parameters.FlowModuleId;
-        contextStore['InvokeModuleARN']=ModuleARN;
+        contextStore[ContextStore.INVOKE_MODULE_ARN]=ModuleARN;
         let endModuleNextAction = action.Transitions.NextAction;
-        contextStore['InvokationModuleNextAction']=endModuleNextAction;
+        contextStore[ContextStore.INVOKATION_MODULE_NEXT_ACTION]=endModuleNextAction;
         let callId: string;
         try {
             const legA = getLegACallDetails(smaEvent);

@@ -1,5 +1,5 @@
 import { getLegACallDetails } from "../utility/call-details";
-import { Attributes } from "../utility/constant-values"
+import { Attributes, ContextAttributes, ContextStore, LambdaFunctionParameters } from "../utility/constant-values"
 import { terminatingFlowAction } from "../utility/termination-action";
 import { findActionByID } from "../utility/find-action-id";
 import { ErrorTypes } from "../utility/error-types";
@@ -46,8 +46,8 @@ export class InvokeLambda {
             console.log(Attributes.DEFAULT_LOGGER + callId + " The Result After Invoking Lambda is" + JSON.stringify(x))
             const keys = Object.keys(x);
             keys.forEach((key, index) => {
-                contextStore['ContextAttributes']["$.External." + key]= x[key];
-                contextStore['TmpMap'][key]= x[key];
+                contextStore[ContextStore.CONTEXT_ATTRIBUTES]["$.External." + key]= x[key];
+                contextStore[ContextStore.TMP_MAP][key]= x[key];
             });
 
             let nextAction = findActionByID(actions, action.Transitions.NextAction);
@@ -72,7 +72,7 @@ export class InvokeLambda {
   */
 async function inputForInvokingLambda(action: any, contextStore:any) {
     let InvocationAttributes: any[][] = Object.entries(action.Parameters.LambdaInvocationAttributes);
-    let contextAttributes=contextStore['ContextAttributes']
+    let contextAttributes=contextStore[ContextStore.CONTEXT_ATTRIBUTES]
     for (let i = 0; i < InvocationAttributes.length; i++) {
         // checking if the attribute value contains any user defined, system or External attributes for replacing it to the corresponding value
         if (InvocationAttributes[i][1].includes("$.External.") || InvocationAttributes[i][1].includes("$.Attributes.")) {
@@ -87,18 +87,18 @@ async function inputForInvokingLambda(action: any, contextStore:any) {
         "Details": {
             "ContactData": {
                 "Attributes": {},
-                "Channel": contextAttributes["$.Channel"],
-                "ContactId": contextAttributes["$.ContactId"],
-                "CustomerEndpoint": {
-                    "Address": contextAttributes["$.CustomerEndpoint.Address"],
-                    "Type": contextAttributes["$.CustomerEndpoint.Type"]
+                [LambdaFunctionParameters.CHANNEL]: contextAttributes[ContextAttributes.CHANNEL],
+                [LambdaFunctionParameters.CONTACTID]: contextAttributes[ContextAttributes.CONTACTID],
+                [LambdaFunctionParameters.CUSTOMER_ENDPOINT]: {
+                    [LambdaFunctionParameters.ADDRESS]: contextAttributes[ContextAttributes.CUSTOMER_ENDPOINT_ADDRESS],
+                    [LambdaFunctionParameters.TYPE]: contextAttributes[ContextAttributes.CUSTOMER_ENDPOINT_TYPE]
                 },
-                "InitialContactId": contextAttributes["$.ContactId"],
-                "InitiationMethod": contextAttributes["$.InitiationMethod"],
-                "InstanceARN": contextAttributes["$.InstanceARN"],
-                "SystemEndpoint": {
-                    "Address": contextAttributes["$.SystemEndpoint.Address"],
-                    "Type": contextAttributes["$.SystemEndpoint.Type"]
+                [LambdaFunctionParameters.INITIAL_CONTACTID]: contextAttributes[ContextAttributes.INSTANCE_ARN],
+                [LambdaFunctionParameters.INITIATION_METHOD]: contextAttributes[ContextAttributes.INITIATION_METHOD],
+                [LambdaFunctionParameters.INSTANCE_ARN]: contextAttributes[ContextAttributes.INSTANCE_ARN],
+                [LambdaFunctionParameters.SYSTEM_ENDPOINT]: {
+                    [LambdaFunctionParameters.ADDRESS]: contextAttributes[ContextAttributes.SYSTEM_ENDPOINT_ADDRESS],
+                    [LambdaFunctionParameters.TYPE]: contextAttributes[ContextAttributes.SYSTEM_ENDPOINT_TYPE]
                 }
             },
             "Parameters": lambdaFunctionParameters

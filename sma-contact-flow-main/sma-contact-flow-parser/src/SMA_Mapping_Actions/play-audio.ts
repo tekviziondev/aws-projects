@@ -2,7 +2,7 @@ import { getLegACallDetails } from "../utility/call-details";
 import { ChimeActions } from "../utility/chime-action-types";
 import { getAudioParameters } from "../utility/audio-parameters";
 import { terminatingFlowAction } from "../utility/termination-action";
-import { Attributes } from "../utility/constant-values";
+import { Attributes, ContextStore } from "../utility/constant-values";
 
 /**
   * Making a SMA action to play the Audio from S3 bucket
@@ -18,7 +18,7 @@ export class PlayAudio {
         try {
             const legA = getLegACallDetails(smaEvent);
             callId = legA.CallId;
-            let pauseAction=contextStore['PauseAction'];
+            let pauseAction=contextStore[ContextStore.PAUSE_ACTION];
             if (!callId)
                 callId = smaEvent.ActionData.Parameters.CallId;
             console.log(Attributes.DEFAULT_LOGGER + callId + "Play Audio Action");
@@ -32,15 +32,15 @@ export class PlayAudio {
             };
             if (pauseAction) {
                 smaAction1 = pauseAction;
-                contextStore['PauseAction']=null
+                contextStore[ContextStore.PAUSE_ACTION]=null
                 return {
                     "SchemaVersion": Attributes.SCHEMA_VERSION,
                     "Actions": [
                         smaAction1, smaAction
                     ],
                     "TransactionAttributes": {
-                        "currentFlowBlock": action,
-                        "ConnectContextStore":contextStore
+                        [Attributes.CURRENT_FLOW_BLOCK]: action,
+                        [Attributes.CONNECT_CONTEXT_STORE]:contextStore
                     }
                 }
 
@@ -51,8 +51,8 @@ export class PlayAudio {
                     smaAction
                 ],
                 "TransactionAttributes": {
-                    "currentFlowBlock": action,
-                    "ConnectContextStore":contextStore
+                    [Attributes.CURRENT_FLOW_BLOCK]: action,
+                    [Attributes.CONNECT_CONTEXT_STORE]:contextStore
                 }
             }
         } catch (error) {

@@ -1,6 +1,6 @@
 import { StringTargetList } from "aws-sdk/clients/transcribeservice";
 import { getLegACallDetails } from "./call-details";
-import { Attributes } from "./constant-values"
+import { Attributes, ContextStore, SpeechParameters } from "./constant-values"
 import { count } from "./count";
 import { terminatingFlowAction } from "./termination-action";
 /**
@@ -23,16 +23,16 @@ export async function getSpeechParameters(smaEvent: any, action: any, contextSto
         let voiceId = Attributes.VOICE_ID
         let engine = Attributes.ENGINE
         let languageCode = Attributes.LANGUAGE_CODE
-        let speechAttributes =contextStore['SpeechAttributes']
-        let contextAttributes=contextStore['ContextAttributes']
-        if (speechAttributes && speechAttributes.hasOwnProperty("TextToSpeechVoice")) {
-            voiceId = speechAttributes["TextToSpeechVoice"]
+        let speechAttributes =contextStore[ContextStore.SPEECH_ATTRIBUTES]
+        let contextAttributes=contextStore[ContextStore.CONTEXT_ATTRIBUTES]
+        if (speechAttributes && speechAttributes.hasOwnProperty(SpeechParameters.TEXT_TO_SPEECH_VOICE)) {
+            voiceId = speechAttributes[SpeechParameters.TEXT_TO_SPEECH_VOICE]
         }
-        if (speechAttributes && speechAttributes.hasOwnProperty("TextToSpeechEngine")) {
-            engine = speechAttributes["TextToSpeechEngine"].toLowerCase();
+        if (speechAttributes && speechAttributes.hasOwnProperty(SpeechParameters.TEXT_TO_SPEECH_ENGINE)) {
+            engine = speechAttributes[SpeechParameters.TEXT_TO_SPEECH_ENGINE].toLowerCase();
         }
-        if (speechAttributes && speechAttributes.hasOwnProperty("LanguageCode")) {
-            languageCode = speechAttributes["LanguageCode"]
+        if (speechAttributes && speechAttributes.hasOwnProperty(SpeechParameters.LANGUAGE_CODE)) {
+            languageCode = speechAttributes[SpeechParameters.LANGUAGE_CODE]
         }
         console.log("Text value: "+action.Parameters.Text);
         
@@ -105,15 +105,15 @@ export async function FailureSpeechParameters(smaEvent: any, action: any, contex
         let voiceId = Attributes.VOICE_ID
         let engine = Attributes.ENGINE
         let languageCode = Attributes.LANGUAGE_CODE
-        let speechAttributes =contextStore['SpeechAttributes']
-        if (speechAttributes && speechAttributes.hasOwnProperty("TextToSpeechVoice")) {
-            voiceId = speechAttributes["TextToSpeechVoice"]
+        let speechAttributes =contextStore[ContextStore.SPEECH_ATTRIBUTES]
+        if (speechAttributes && speechAttributes.hasOwnProperty(SpeechParameters.TEXT_TO_SPEECH_VOICE)) {
+            voiceId = speechAttributes[SpeechParameters.TEXT_TO_SPEECH_VOICE]
         }
-        if (speechAttributes && speechAttributes.hasOwnProperty("TextToSpeechEngine")) {
-            engine = speechAttributes["TextToSpeechEngine"].toLowerCase();
+        if (speechAttributes && speechAttributes.hasOwnProperty(SpeechParameters.TEXT_TO_SPEECH_ENGINE)) {
+            engine = speechAttributes[SpeechParameters.TEXT_TO_SPEECH_ENGINE].toLowerCase();
         }
-        if (speechAttributes && speechAttributes.hasOwnProperty("LanguageCode")) {
-            languageCode = speechAttributes["LanguageCode"]
+        if (speechAttributes && speechAttributes.hasOwnProperty(SpeechParameters.LANGUAGE_CODE)) {
+            languageCode = speechAttributes[SpeechParameters.LANGUAGE_CODE]
         }
         let failureSpeech="";
         if(Attributes.Failure_Speech_SSML)

@@ -1,6 +1,6 @@
 import { getLegACallDetails } from "../utility/call-details";
 import { ChimeActions } from "../utility/chime-action-types";
-import { Attributes } from "../utility/constant-values";
+import { Attributes, ContextStore } from "../utility/constant-values";
 import { terminatingFlowAction } from "../utility/termination-action";
 
 /**
@@ -65,18 +65,18 @@ export class LexBot {
           }
         }
       }
-      let pauseAction=contextStore['PauseAction']
+      let pauseAction=contextStore[ContextStore.PAUSE_ACTION]
       if (pauseAction) {
         smaAction1 = pauseAction;
-        contextStore['PauseAction']=null
+        contextStore[ContextStore.PAUSE_ACTION]=null
         return {
           "SchemaVersion": Attributes.SCHEMA_VERSION,
           "Actions": [
             smaAction1, smaAction
           ],
           "TransactionAttributes": {
-            "currentFlowBlock": action,
-            "ConnectContextStore":contextStore
+            [Attributes.CURRENT_FLOW_BLOCK]: action,
+            [Attributes.CONNECT_CONTEXT_STORE]:contextStore
           }
         }
 
@@ -88,8 +88,8 @@ export class LexBot {
           smaAction
         ],
         "TransactionAttributes": {
-          "currentFlowBlock": action,
-          "ConnectContextStore":contextStore
+          [Attributes.CURRENT_FLOW_BLOCK]: action,
+          [Attributes.CONNECT_CONTEXT_STORE]:contextStore
         }
       }
     } catch (error) {

@@ -1,6 +1,6 @@
 import { getLegACallDetails } from "../utility/call-details";
 import { ChimeActions } from "../utility/chime-action-types";
-import { Attributes } from "../utility/constant-values";
+import { Attributes, ContextStore } from "../utility/constant-values";
 import { terminatingFlowAction } from "../utility/termination-action";
 
 /**
@@ -13,7 +13,7 @@ import { terminatingFlowAction } from "../utility/termination-action";
 export class CallRecording {
     async processFlowActionUpdateContactRecordingBehavior(smaEvent: any, action: any,contextStore:any){
         let callId: string;
-        let pauseAction=contextStore['PauseAction']
+        let pauseAction=contextStore[ContextStore.PAUSE_ACTION]
         try {
             let smaAction1: any;
             const legA = getLegACallDetails(smaEvent);
@@ -49,15 +49,15 @@ export class CallRecording {
         }
             if (pauseAction) {
                 smaAction1 = pauseAction;
-                contextStore['PauseAction']=null
+                contextStore[ContextStore.PAUSE_ACTION]=null
                 return {
                     "SchemaVersion": Attributes.SCHEMA_VERSION,
                     "Actions": [
                         smaAction1, smaAction
                     ],
                     "TransactionAttributes": {
-                        "currentFlowBlock": action,
-                        "ConnectContextStore":contextStore
+                        [Attributes.CURRENT_FLOW_BLOCK]: action,
+                        [Attributes.CONNECT_CONTEXT_STORE]:contextStore
                     }
                 }
 
@@ -68,8 +68,8 @@ export class CallRecording {
                     smaAction
                 ],
                 "TransactionAttributes": {
-                    "currentFlowBlock": action,
-                    "ConnectContextStore":contextStore
+                    [Attributes.CURRENT_FLOW_BLOCK]: action,
+                    [Attributes.CONNECT_CONTEXT_STORE]:contextStore
                 }
             }
         } catch (error) {

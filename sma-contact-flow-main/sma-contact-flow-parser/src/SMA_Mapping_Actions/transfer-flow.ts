@@ -2,7 +2,7 @@ import { getLegACallDetails } from "../utility/call-details";
 import { terminatingFlowAction } from "../utility/termination-action";
 import { loadContactFlow } from "../contact-flow-loader"
 import { processRootFlowBlock } from "../contact-flow-processor"
-import { Attributes } from "../utility/constant-values";
+import { Attributes, ContextStore } from "../utility/constant-values";
 
 /**
   * Transfer to another Contact Flow to Execute.
@@ -20,7 +20,7 @@ export class TrasferToFlow {
             callId = legA.CallId;
             if (!callId)
             callId = smaEvent.ActionData.Parameters.CallId;
-            contextStore['TransferFlowARN']=TransferFlowARN
+            contextStore[ContextStore.TRANSFER_FLOW_ARN]=TransferFlowARN
             const contactFlow = await loadContactFlow(amazonConnectInstanceID, TransferFlowARN, bucketName, smaEvent, "Contact_Flow");
             console.log(Attributes.DEFAULT_LOGGER + callId + " Transfering to Another contact FLow function")
             return await processRootFlowBlock(smaEvent, contactFlow, amazonConnectInstanceID, bucketName, contextStore);

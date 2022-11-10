@@ -1,5 +1,5 @@
 import { getLegACallDetails } from "../utility/call-details";
-import { Attributes } from "../utility/constant-values"
+import { Attributes, ContextStore } from "../utility/constant-values"
 import { count } from "../utility/count";
 import { ChimeActions } from "../utility/chime-action-types";
 import { terminatingFlowAction } from "../utility/termination-action";
@@ -30,9 +30,9 @@ export class MessageParticipant {
             let voiceId = Attributes.VOICE_ID
             let engine = Attributes.ENGINE
             let languageCode = Attributes.LANGUAGE_CODE 
-            let speechAttributes = contextStore['SpeechAttributes'];
-            let contextAttributes = contextStore['ContextAttributes'];
-            let pauseAction = contextStore['PauseAction'];
+            let speechAttributes = contextStore[ContextStore.SPEECH_ATTRIBUTES];
+            let contextAttributes = contextStore[ContextStore.CONTEXT_ATTRIBUTES];
+            let pauseAction = contextStore[ContextStore.PAUSE_ACTION];
             if (speechAttributes && speechAttributes.hasOwnProperty("TextToSpeechVoice")) {
                 voiceId = speechAttributes['TextToSpeechVoice']
             }
@@ -91,15 +91,15 @@ export class MessageParticipant {
             };
             if (pauseAction) {
                 smaAction1 = pauseAction;
-                contextStore['PauseAction']=null
+                contextStore[ContextStore.PAUSE_ACTION]=null
                 return {
                     "SchemaVersion": Attributes.SCHEMA_VERSION,
                     "Actions": [
                         smaAction1, smaAction
                     ],
                     "TransactionAttributes": {
-                        "currentFlowBlock": action,
-                        "ConnectContextStore": contextStore
+                        [Attributes.CURRENT_FLOW_BLOCK]: action,
+                        [Attributes.CONNECT_CONTEXT_STORE]: contextStore
                     }
                 }
 
@@ -110,8 +110,8 @@ export class MessageParticipant {
                     smaAction
                 ],
                 "TransactionAttributes": {
-                    "currentFlowBlock": action,
-                    "ConnectContextStore": contextStore
+                    [Attributes.CURRENT_FLOW_BLOCK]: action,
+                    [Attributes.CONNECT_CONTEXT_STORE]: contextStore
                 }
             }
         } catch (error) {

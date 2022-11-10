@@ -1,6 +1,6 @@
 import { ChimeActions } from "../utility/chime-action-types";
 import { getLegACallDetails } from "../utility/call-details";
-import { Attributes } from "../utility/constant-values";
+import { Attributes, ContextStore } from "../utility/constant-values";
 /**
   * Making a SMA action to perform Ends the interaction.
   * @param smaEvent 
@@ -24,10 +24,10 @@ export class DisconnectParticipant {
                 "CallId": callId
             }
         };
-        let pauseAction=contextStore['PauseAction']
+        let pauseAction=contextStore[ContextStore.PAUSE_ACTION]
         if (pauseAction) {
             smaAction1 = pauseAction;
-            contextStore['PauseAction']=null
+            contextStore[ContextStore.PAUSE_ACTION]=null
             return {
                 "SchemaVersion": Attributes.SCHEMA_VERSION,
                 "Actions": [

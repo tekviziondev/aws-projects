@@ -2,7 +2,7 @@ import { getLegACallDetails } from "../utility/call-details";
 import { ChimeActions } from "../utility/chime-action-types";
 import { getAudioParameters, failureAudioParameters } from "../utility/audio-parameters";
 import { terminatingFlowAction } from "../utility/termination-action";
-import { Attributes } from "../utility/constant-values";
+import { Attributes, ContextStore } from "../utility/constant-values";
 /**
   * Making play audio and get digits json object for sma action.
   * @param smaEvent 
@@ -45,18 +45,18 @@ export class PlayAudioAndGetDigits {
                 const timeLimit: number = Number.parseInt(action.Parameters.InputTimeLimitSeconds);
                 smaAction.Parameters["RepeatDurationInMilliseconds"] = timeLimit * 1000;
             }
-            let pauseAction=contextStore['PauseAction'];
+            let pauseAction=contextStore[ContextStore.PAUSE_ACTION];
             if (pauseAction) {
                 smaAction1 = pauseAction;
-                contextStore['PauseAction']=null
+                contextStore[ContextStore.PAUSE_ACTION]=null
                 return {
                     "SchemaVersion": Attributes.SCHEMA_VERSION,
                     "Actions": [
                         smaAction1, smaAction
                     ],
                     "TransactionAttributes": {
-                        "currentFlowBlock": action,
-                        "ConnectContextStore":contextStore
+                        [Attributes.CURRENT_FLOW_BLOCK]: action,
+                        [Attributes.CONNECT_CONTEXT_STORE]:contextStore
                     }
                 }
 
@@ -67,8 +67,8 @@ export class PlayAudioAndGetDigits {
                     smaAction
                 ],
                 "TransactionAttributes": {
-                    "currentFlowBlock": action,
-                    "ConnectContextStore":contextStore
+                    [Attributes.CURRENT_FLOW_BLOCK]: action,
+                    [Attributes.CONNECT_CONTEXT_STORE]:contextStore
                 }
             }
 
