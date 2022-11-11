@@ -23,22 +23,18 @@ export class UpdateContactAttrbts {
             callId = legA.CallId;
             if (!callId)
                 callId = smaEvent.ActionData.Parameters.CallId;
-            
             let ContactAttributes: any[][] = Object.entries(action.Parameters.Attributes);
             for (let i = 0; i < ContactAttributes.length; i++) {
                 let x: string = ContactAttributes[i][1]
                 if (x.includes("$.External.")) {
                     let tmp: any[] = x.split("$.External.")
                     if (tmpMap.hasOwnProperty(tmp[1])) {
-                        console.log("Tmp Map Value: "+tmpMap[tmp[1]]);
                         contextAttributes["$.Attributes." + ContactAttributes[i][0]] = tmpMap[tmp[1]]
                     }
                 }
                 else if (x.includes("$.Attributes.")) {
                     let tmp: any[] = x.split("$.Attributes.")
                     if (tmpMap.hasOwnProperty(tmp[1])) {
-                        console.log("Tmp Map Value1: "+tmpMap[tmp[1]]);
-                        
                         contextAttributes["$.Attributes." + ContactAttributes[i][0]]= tmpMap[tmp[1]];
                     }
                 }

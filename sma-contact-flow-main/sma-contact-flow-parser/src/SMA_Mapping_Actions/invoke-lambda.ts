@@ -77,11 +77,14 @@ async function inputForInvokingLambda(action: any, contextStore:any) {
     for (let i = 0; i < InvocationAttributes.length; i++) {
         // checking if the attribute value contains any user defined, system or External attributes for replacing it to the corresponding value
         if (InvocationAttributes[i][1].includes("$.External.") || InvocationAttributes[i][1].includes("$.Attributes.")) {
-                if (contextAttributes.hasOwnProperty(InvocationAttributes[i][1])){
-                    InvocationAttributes[i][1] = InvocationAttributes[i][1].replace(contextAttributes[InvocationAttributes[i][1]])
-            }
+            const keys = Object.keys(contextAttributes);
+                keys.forEach((key, index) => {
+                    if (InvocationAttributes[i][1] == key)
+                    InvocationAttributes[i][1] = InvocationAttributes[i][1].replace(key, contextAttributes[key])
+            });
         }
     }
+    
     let lambdaFunctionParameters = Object.fromEntries(InvocationAttributes.map(([k, v]) => [k, v]));
     let inputForInvoking = {
         "Details": {
