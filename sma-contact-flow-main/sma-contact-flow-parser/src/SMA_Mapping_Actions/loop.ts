@@ -34,34 +34,9 @@ export class Loop {
                     else
                     nextAction= findActionByID(actions, action.Transitions.Conditions[1].NextAction)
                     console.log(Attributes.DEFAULT_LOGGER + callId + " Next Action identifier:" + action.Transitions.Conditions[0].NextAction);
-                    smaAction = await (await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName, contextStore)).Actions[0];
                     let count = String(Number.parseInt(loopCountVal) + 1)
                     contextStore[ContextStore.LOOP_COUNT] = count;
-                    let pauseAction=contextStore[ContextStore.PAUSE_ACTION]
-                    if (pauseAction) {
-                        smaAction1 = pauseAction;
-                        contextStore[ContextStore.PAUSE_ACTION]=null
-                        return {
-                            "SchemaVersion": Attributes.SCHEMA_VERSION,
-                            "Actions": [
-                                smaAction1, smaAction
-                            ],
-                            "TransactionAttributes": {
-                                [Attributes.CURRENT_FLOW_BLOCK]: nextAction,
-                                [Attributes.CONNECT_CONTEXT_STORE]:contextStore
-                            }
-                        }
-                    }
-                    return {
-                        "SchemaVersion": Attributes.SCHEMA_VERSION,
-                        "Actions": [
-                            smaAction
-                        ],
-                        "TransactionAttributes": {
-                            [Attributes.CURRENT_FLOW_BLOCK]: nextAction,
-                            [Attributes.CONNECT_CONTEXT_STORE]:contextStore
-                        }
-                    }
+                    return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName, contextStore);
                 } else {
                     contextStore[ContextStore.LOOP_COUNT] = "0";
                     let nextAction = "";
