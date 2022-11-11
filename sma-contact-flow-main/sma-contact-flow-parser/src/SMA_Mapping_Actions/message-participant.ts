@@ -1,5 +1,5 @@
 import { getLegACallDetails } from "../utility/call-details";
-import { Attributes, ContextStore } from "../utility/constant-values"
+import { Attributes, ContextStore, SpeechParameters } from "../utility/constant-values"
 import { count } from "../utility/count";
 import { ChimeActions } from "../utility/chime-action-types";
 import { terminatingFlowAction } from "../utility/termination-action";
@@ -33,28 +33,29 @@ export class MessageParticipant {
             let speechAttributes = contextStore[ContextStore.SPEECH_ATTRIBUTES];
             let contextAttributes = contextStore[ContextStore.CONTEXT_ATTRIBUTES];
             let pauseAction = contextStore[ContextStore.PAUSE_ACTION];
-            if (speechAttributes && speechAttributes.hasOwnProperty("TextToSpeechVoice")) {
-                voiceId = speechAttributes['TextToSpeechVoice']
+            if (speechAttributes && speechAttributes.hasOwnProperty(SpeechParameters.TEXT_TO_SPEECH_VOICE)) {
+                voiceId = speechAttributes[SpeechParameters.TEXT_TO_SPEECH_VOICE]
             }
-            if (speechAttributes && speechAttributes.hasOwnProperty("TextToSpeechEngine")) {
-                engine = speechAttributes["TextToSpeechEngine"].toLowerCase();
+            if (speechAttributes && speechAttributes.hasOwnProperty(SpeechParameters.TEXT_TO_SPEECH_ENGINE)) {
+                engine = speechAttributes[SpeechParameters.TEXT_TO_SPEECH_ENGINE].toLowerCase();
             }
-            if (speechAttributes && speechAttributes.hasOwnProperty("LanguageCode")) {
-                languageCode = speechAttributes["LanguageCode"]
+            if (speechAttributes && speechAttributes.hasOwnProperty(SpeechParameters.LANGUAGE_CODE)) {
+                languageCode = speechAttributes[SpeechParameters.LANGUAGE_CODE]
             }
             if (action.Parameters.Text) {
                 text = action.Parameters.Text;
                 if (text.includes("$.External.") || text.includes("$.Attributes.") || text.includes("$.")) {
                     //text=textConvertor(text);
-                    contextAttributes.forEach((value, key) => {
+                    const keys = Object.keys(contextAttributes);
+                    keys.forEach((key, index) => {
                         if (text.includes(key)) {
                             x = count(text, key)
                             for (let index = 0; index < x; index++) {
-                                text = text.replace(key, value)
+                                text = text.replace(key, contextAttributes[key])
                             }
                         }
 
-                    })
+                    });
                 }
                 type = Attributes.TEXT;
             }
@@ -62,14 +63,16 @@ export class MessageParticipant {
                 text = action.Parameters.SSML;
                 if (text.includes("$.External.") || text.includes("$.Attributes.") || text.includes("$.")) {
                     //text=textConvertor(text);
-                    for (var key in contextAttributes) {
+                    const keys = Object.keys(contextAttributes);
+                    keys.forEach((key, index) => {
                         if (text.includes(key)) {
                             x = count(text, key)
                             for (let index = 0; index < x; index++) {
                                 text = text.replace(key, contextAttributes[key])
                             }
                         }
-                    }
+
+                    });
                     
                 }
                 type = Attributes.SSML;

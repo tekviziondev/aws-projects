@@ -24,7 +24,7 @@ export async function terminatingFlowAction(smaEvent: any,  actionType: string) 
         let languageCode = Attributes.LANGUAGE_CODE
         let speechAttributes:any;
         if(smaEvent.CallDetails.TransactionAttributes)
-        speechAttributes=smaEvent.CallDetails.TransactionAttributes[ContextStore.CONTEXT_ATTRIBUTES][ContextStore.SPEECH_ATTRIBUTES];
+        speechAttributes=smaEvent.CallDetails.TransactionAttributes[Attributes.CONNECT_CONTEXT_STORE][ContextStore.SPEECH_ATTRIBUTES];
         if (speechAttributes && speechAttributes.hasOwnProperty(SpeechParameters.TEXT_TO_SPEECH_VOICE)) {
             voiceId = speechAttributes[SpeechParameters.TEXT_TO_SPEECH_VOICE]
         }

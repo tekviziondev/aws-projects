@@ -73,13 +73,13 @@ export class InvokeLambda {
 async function inputForInvokingLambda(action: any, contextStore:any) {
     let InvocationAttributes: any[][] = Object.entries(action.Parameters.LambdaInvocationAttributes);
     let contextAttributes=contextStore[ContextStore.CONTEXT_ATTRIBUTES]
+ 
     for (let i = 0; i < InvocationAttributes.length; i++) {
         // checking if the attribute value contains any user defined, system or External attributes for replacing it to the corresponding value
         if (InvocationAttributes[i][1].includes("$.External.") || InvocationAttributes[i][1].includes("$.Attributes.")) {
-            contextAttributes.forEach((value, key) => {
-                if (InvocationAttributes[i][1] == key)
-                    InvocationAttributes[i][1] = InvocationAttributes[i][1].replace(key, value)
-            })
+                if (contextAttributes.hasOwnProperty(InvocationAttributes[i][1])){
+                    InvocationAttributes[i][1] = InvocationAttributes[i][1].replace(contextAttributes[InvocationAttributes[i][1]])
+            }
         }
     }
     let lambdaFunctionParameters = Object.fromEntries(InvocationAttributes.map(([k, v]) => [k, v]));

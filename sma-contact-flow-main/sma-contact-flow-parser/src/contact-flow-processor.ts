@@ -86,7 +86,7 @@ export async function processFlow(smaEvent: any, amazonConnectInstanceID: string
         }
         else {
             if (smaEvent.InvocationEventType === EventTypes.NEW_INBOUND_CALL){
-               let  contextAttributes=storeSystemAttributs(smaEvent, amazonConnectFlowID, amazonConnectFlowID)
+               let  contextAttributes= await storeSystemAttributs(smaEvent, amazonConnectFlowID, amazonConnectFlowID)
                  contextStore={
                     [ContextStore.LOOP_COUNT]:"0",
                     [ContextStore.TRANSFER_FLOW_ARN]:"",
@@ -99,6 +99,11 @@ export async function processFlow(smaEvent: any, amazonConnectInstanceID: string
                     [ContextStore.PAUSE_ACTION]:null
 
                 }
+                const keys = Object.keys(contextAttributes);
+                keys.forEach((key, index) => {
+                    contextStore[ContextStore.CONTEXT_ATTRIBUTES][key]= contextAttributes[key];  
+                });
+                
             }
             // We're at the root start from there
             return await processRootFlowBlock(smaEvent, contactFlow,  amazonConnectInstanceID, bucketName, contextStore);
@@ -118,6 +123,8 @@ export async function processFlow(smaEvent: any, amazonConnectInstanceID: string
   */
 async function storeSystemAttributs(smaEvent: any, amazonConnectFlowID: any, amazonConnectInstanceID: any) {
     const legA = getLegACallDetails(smaEvent);
+    //console.log("First Customer Endpoint: "+legA.From);
+    
    let contextAttributes={
     [ContextAttributes.CUSTOMER_ENDPOINT_ADDRESS]:legA.From,
     [ContextAttributes.SYSTEM_ENDPOINT_ADDRESS]:legA.To,
@@ -128,6 +135,7 @@ async function storeSystemAttributs(smaEvent: any, amazonConnectFlowID: any, ama
     [ContextAttributes.CUSTOMER_ENDPOINT_TYPE]:Attributes.CUSTOMER_ENDPOINT_TYPE,
     [ContextAttributes.SYSTEM_ENDPOINT_TYPE]:Attributes.SYSTEM_ENDPOINT_TYPE
     }
+    
     return contextAttributes;
 }
 

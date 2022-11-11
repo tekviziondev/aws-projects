@@ -44,30 +44,35 @@ export async function getSpeechParameters(smaEvent: any, action: any, contextSto
                 text = action.Parameters.Text;
                 // checking if the text contains any user defined, system or External attributes to replace with corresponding values
                 if (text.includes("$.External.") || text.includes("$.Attributes.") || text.includes("$.")) {
-                    for (var key in contextAttributes) {
+                    const keys = Object.keys(contextAttributes);
+                    keys.forEach((key, index) => {
                         if (text.includes(key)) {
                             x = count(text, key)
                             for (let index = 0; index < x; index++) {
                                 text = text.replace(key, contextAttributes[key])
                             }
                         }
-                    }
-                }
+
+                    });
+                   }
                 type = Attributes.TEXT;
             }
             else if (action.Parameters.SSML) {
                 text = action.Parameters.SSML;
+                console.log("SSML value: "+action.Parameters.SSML);
                 // checking if the SSML contains any user defined, system or External attributes to replace with corresponding values
                 if (text.includes("$.External.") || text.includes("$.Attributes.") || text.includes("$.")) {
-                    contextAttributes.forEach((value, key) => {
+                    const keys = Object.keys(contextAttributes);
+                    console.log("Keys: "+keys);
+                    keys.forEach((key, index) => {
                         if (text.includes(key)) {
                             x = count(text, key)
                             for (let index = 0; index < x; index++) {
-                                text = text.replace(key, value)
+                                text = text.replace(key, contextAttributes[key])
                             }
                         }
 
-                    })
+                    });
                 }
                 type = Attributes.SSML;
             }
