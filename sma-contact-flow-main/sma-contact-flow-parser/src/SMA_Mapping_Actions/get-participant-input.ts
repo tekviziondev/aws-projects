@@ -27,7 +27,7 @@ export class GetParticipantInput {
             }
             console.log(Attributes.DEFAULT_LOGGER + callId + " Speak and Get Digits Action");
             let speech_parameter = await getSpeechParameters(smaEvent, action, contextStore)
-            let failure_parameter = await FailureSpeechParameters(smaEvent, action, contextStore)
+            let failure_parameter = await FailureSpeechParameters(smaEvent, contextStore)
             let smaAction = {
                 Type: ChimeActions.SPEAK_AND_GET_DIGITS,
                 Parameters: {

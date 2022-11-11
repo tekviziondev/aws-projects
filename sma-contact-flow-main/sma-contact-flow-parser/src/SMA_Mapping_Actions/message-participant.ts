@@ -4,6 +4,7 @@ import { count } from "../utility/count";
 import { ChimeActions } from "../utility/chime-action-types";
 import { terminatingFlowAction } from "../utility/termination-action";
 import { PlayAudio } from "./play-audio";
+import { getSpeechParameters } from "../utility/speech-parameter";
 /**
   * Making a SMA action to perform Delivers an audio or chat message.
   * @param smaEvent 
@@ -23,61 +24,11 @@ export class MessageParticipant {
                 let playAudio = new PlayAudio();
                 return await playAudio.processPlayAudio(smaEvent, action, contextStore);
             }
-            let text: string;
-            let type: string;
-            let x: Number;
             let smaAction1: any;
-            let voiceId = Attributes.VOICE_ID
             let engine = Attributes.ENGINE
-            let languageCode = Attributes.LANGUAGE_CODE 
-            let speechAttributes = contextStore[ContextStore.SPEECH_ATTRIBUTES];
-            let contextAttributes = contextStore[ContextStore.CONTEXT_ATTRIBUTES];
             let pauseAction = contextStore[ContextStore.PAUSE_ACTION];
-            if (speechAttributes && speechAttributes.hasOwnProperty(SpeechParameters.TEXT_TO_SPEECH_VOICE)) {
-                voiceId = speechAttributes[SpeechParameters.TEXT_TO_SPEECH_VOICE]
-            }
-            if (speechAttributes && speechAttributes.hasOwnProperty(SpeechParameters.TEXT_TO_SPEECH_ENGINE)) {
-                engine = speechAttributes[SpeechParameters.TEXT_TO_SPEECH_ENGINE].toLowerCase();
-            }
-            if (speechAttributes && speechAttributes.hasOwnProperty(SpeechParameters.LANGUAGE_CODE)) {
-                languageCode = speechAttributes[SpeechParameters.LANGUAGE_CODE]
-            }
-            if (action.Parameters.Text) {
-                text = action.Parameters.Text;
-                if (text.includes("$.External.") || text.includes("$.Attributes.") || text.includes("$.")) {
-                    //text=textConvertor(text);
-                    const keys = Object.keys(contextAttributes);
-                    keys.forEach((key, index) => {
-                        if (text.includes(key)) {
-                            x = count(text, key)
-                            for (let index = 0; index < x; index++) {
-                                text = text.replace(key, contextAttributes[key])
-                            }
-                        }
-
-                    });
-                }
-                type = Attributes.TEXT;
-            }
-            else if (action.Parameters.SSML) {
-                text = action.Parameters.SSML;
-                if (text.includes("$.External.") || text.includes("$.Attributes.") || text.includes("$.")) {
-                    //text=textConvertor(text);
-                    const keys = Object.keys(contextAttributes);
-                    keys.forEach((key, index) => {
-                        if (text.includes(key)) {
-                            x = count(text, key)
-                            for (let index = 0; index < x; index++) {
-                                text = text.replace(key, contextAttributes[key])
-                            }
-                        }
-
-                    });
-                    
-                }
-                type = Attributes.SSML;
-            }
-            if (text.includes("$.")) {
+            let speech_parameter = await getSpeechParameters(smaEvent, action, contextStore)
+               if (speech_parameter['Text'].includes("$.")) {
                 return await terminatingFlowAction(smaEvent, "Invalid_Text")
             }
             let smaAction = {
@@ -85,10 +36,10 @@ export class MessageParticipant {
                 Parameters: {
                     Engine: engine,
                     CallId: legA.CallId,
-                    Text: text,
-                    TextType: type,
-                    LanguageCode: languageCode,
-                    VoiceId: voiceId
+                    Text: speech_parameter['Text'],
+                    TextType: speech_parameter['TextType'],
+                    LanguageCode: speech_parameter['LanguageCode'],
+                    VoiceId: speech_parameter['VoiceId']
 
                 }
             };
