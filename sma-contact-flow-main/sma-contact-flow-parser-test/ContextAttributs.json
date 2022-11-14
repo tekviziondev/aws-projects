@@ -1,0 +1,12 @@
+{
+    "LoopCount":"0",
+    "TransferFlowARN":"",
+    "InvokeModuleARN":"",
+    "InvokationModuleNextAction":"",
+    "ActualFlowARN":"",
+    "SpeechAttributes":{},
+    "ContextAttributes":{},
+    "TmpMap":{},  
+    "PauseAction":null
+
+}
