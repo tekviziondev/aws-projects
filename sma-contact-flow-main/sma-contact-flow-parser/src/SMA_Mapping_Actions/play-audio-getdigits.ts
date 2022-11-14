@@ -3,7 +3,7 @@ import { ChimeActions } from "../utility/chime-action-types";
 import { getAudioParameters, failureAudioParameters } from "../utility/audio-parameters";
 import { terminatingFlowAction } from "../utility/termination-action";
 import { Attributes, ContextStore } from "../utility/constant-values";
-import { IContextStore } from "../utility/contextStore";
+import { IContextStore } from "../utility/context-store";
 /**
   * Making play audio and get digits json object for sma action.
   * @param smaEvent 

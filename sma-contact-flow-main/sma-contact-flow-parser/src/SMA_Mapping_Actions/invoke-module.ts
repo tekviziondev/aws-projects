@@ -4,7 +4,7 @@ import { terminatingFlowAction } from "../utility/termination-action";
 import { loadContactFlow } from "../contact-flow-loader"
 import { processRootFlowBlock } from "../contact-flow-processor"
 import { Attributes, ContextStore } from "../utility/constant-values";
-import { IContextStore } from "../utility/contextStore";
+import { IContextStore } from "../utility/context-store";
 /**
   * Invoke a Module from the existing contact flow, to perform a particular task
   * @param smaEvent 

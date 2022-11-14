@@ -5,7 +5,7 @@ import { ChimeActions } from "../utility/chime-action-types";
 import { terminatingFlowAction } from "../utility/termination-action";
 import { PlayAudio } from "./play-audio";
 import { getSpeechParameters } from "../utility/speech-parameter";
-import { IContextStore } from "../utility/contextStore";
+import { IContextStore } from "../utility/context-store";
 /**
   * Making a SMA action to perform Delivers an audio or chat message.
   * @param smaEvent 

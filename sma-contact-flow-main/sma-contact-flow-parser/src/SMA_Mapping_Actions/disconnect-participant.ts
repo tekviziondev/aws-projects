@@ -1,7 +1,7 @@
 import { ChimeActions } from "../utility/chime-action-types";
 import { getLegACallDetails } from "../utility/call-details";
 import { Attributes, ContextStore } from "../utility/constant-values";
-import { IContextStore } from "../utility/contextStore";
+import { IContextStore } from "../utility/context-store";
 /**
   * Making a SMA action to perform Ends the interaction.
   * @param smaEvent 

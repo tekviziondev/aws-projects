@@ -1,7 +1,7 @@
 import { StringTargetList } from "aws-sdk/clients/transcribeservice";
 import { getLegACallDetails } from "./call-details";
 import { Attributes, ContextStore, SpeechParameters } from "./constant-values";
-import { IContextStore } from "./contextStore";
+import { IContextStore } from "./context-store";
 import { count } from "./count";
 import { terminatingFlowAction } from "./termination-action";
 /**

@@ -3,7 +3,7 @@ import { terminatingFlowAction } from "../utility/termination-action";
 import { loadContactFlow } from "../contact-flow-loader"
 import { processRootFlowBlock } from "../contact-flow-processor"
 import { Attributes, ContextStore } from "../utility/constant-values";
-import { IContextStore } from "../utility/contextStore";
+import { IContextStore } from "../utility/context-store";
 
 /**
   * Transfer to another Contact Flow to Execute.

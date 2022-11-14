@@ -6,7 +6,7 @@ import { AmazonConnectActions } from "./amazon-connect-actionTypes"
 import { getNextActionForError } from "./next-action-error"
 import { ErrorTypes } from "./error-types"
 import { Attributes } from "../utility/constant-values";
-import { IContextStore } from "./contextStore";
+import { IContextStore } from "./context-store";
 /**
   * This function will validate the Recieved digits based on the condition defined in the Block
   * @param smaEvent 

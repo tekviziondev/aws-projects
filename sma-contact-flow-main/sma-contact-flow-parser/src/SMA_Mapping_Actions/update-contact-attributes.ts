@@ -4,7 +4,7 @@ import { ErrorTypes } from "../utility/error-types";
 import { processFlowAction } from "../contact-flow-processor"
 import { getNextActionForError } from "../utility/next-action-error"
 import { Attributes, ContextStore } from "../utility/constant-values";
-import { IContextStore } from "../utility/contextStore";
+import { IContextStore } from "../utility/context-store";
 /**
   * Updating the Contact Attribute Details
   * @param smaEvent 

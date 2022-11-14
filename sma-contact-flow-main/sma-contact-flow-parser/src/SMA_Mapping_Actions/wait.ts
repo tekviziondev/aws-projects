@@ -5,7 +5,7 @@ import { ContextStore, Supported_Actions } from "../utility/constant-values";
 import { findActionByID } from "../utility/find-action-id";
 import { terminatingFlowAction } from "../utility/termination-action";
 import { Attributes } from "../utility/constant-values";
-import { IContextStore } from "../utility/contextStore";
+import { IContextStore } from "../utility/context-store";
 /**
   * Making a SMA action to perform Wait for a specified period of time.
   * @param smaEvent 

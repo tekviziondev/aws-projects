@@ -1,6 +1,7 @@
 import { getLegACallDetails } from "../utility/call-details";
 import { ChimeActions } from "../utility/chime-action-types";
 import { Attributes, ContextStore } from "../utility/constant-values";
+import { IContextStore } from "../utility/context-store";
 import { terminatingFlowAction } from "../utility/termination-action";
 
 /**
@@ -12,7 +13,7 @@ import { terminatingFlowAction } from "../utility/termination-action";
   */
 
 export class CallRecording {
-    async processFlowActionUpdateContactRecordingBehavior(smaEvent: any, action: any,contextStore:any){
+    async processFlowActionUpdateContactRecordingBehavior(smaEvent: any, action: any,contextStore:IContextStore){
         let callId: string;
         let pauseAction=contextStore[ContextStore.PAUSE_ACTION]
         try {

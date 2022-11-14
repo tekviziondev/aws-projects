@@ -4,7 +4,7 @@ import { findActionByID } from "../utility/find-action-id";
 import { processFlowAction } from "../contact-flow-processor"
 import { loadContactFlow } from "../contact-flow-loader"
 import { Attributes, ContextStore } from "../utility/constant-values";
-import { IContextStore } from "../utility/contextStore";
+import { IContextStore } from "../utility/context-store";
 /**
   * End the execution of the current Module and returns Back to Orginal Contact flow.
   * @param smaEvent 

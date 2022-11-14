@@ -3,7 +3,7 @@ import { ChimeActions } from "../utility/chime-action-types";
 import { getAudioParameters } from "../utility/audio-parameters";
 import { terminatingFlowAction } from "../utility/termination-action";
 import { Attributes, ContextStore } from "../utility/constant-values";
-import { IContextStore } from "../utility/contextStore";
+import { IContextStore } from "../utility/context-store";
 
 /**
   * Making a SMA action to play the Audio from S3 bucket

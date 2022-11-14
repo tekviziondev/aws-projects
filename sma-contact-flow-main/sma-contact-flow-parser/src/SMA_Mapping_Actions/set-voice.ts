@@ -3,7 +3,7 @@ import { terminatingFlowAction } from "../utility/termination-action";
 import { findActionByID } from "../utility/find-action-id";
 import { processFlowAction } from "../contact-flow-processor";
 import { Attributes, ContextStore } from "../utility/constant-values";
-import { IContextStore } from "../utility/contextStore";
+import { IContextStore } from "../utility/context-store";
 
 
 /**

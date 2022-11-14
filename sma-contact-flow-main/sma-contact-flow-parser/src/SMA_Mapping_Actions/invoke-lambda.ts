@@ -6,7 +6,7 @@ import { ErrorTypes } from "../utility/error-types";
 import { processFlowAction } from "../contact-flow-processor"
 import { getNextActionForError } from "../utility/next-action-error"
 import { Lambda } from "aws-sdk"
-import { IContextStore } from "../utility/contextStore";
+import { IContextStore } from "../utility/context-store";
 
 /**
   * Invokes the External Lambda Function and stores the result of the Lambda function in Key Value Pair
