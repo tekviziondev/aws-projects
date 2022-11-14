@@ -1,12 +1,11 @@
 import { Connect } from 'aws-sdk';
 import { S3 } from 'aws-sdk';
-import {CloudWatch} from 'aws-sdk';
 import { getLegACallDetails } from './utility/call-details'
 
 let s3Bucket: string;
 const cacheTimeInMilliseconds: number = 5000;
 const defaultLogger = "SMA-Contact-Flow-Parser | Call ID - "
-var cw = new CloudWatch({apiVersion: '2010-08-01'});
+
 
 /**
   * Get the Amazon contact flow details from the Amazon connect.
