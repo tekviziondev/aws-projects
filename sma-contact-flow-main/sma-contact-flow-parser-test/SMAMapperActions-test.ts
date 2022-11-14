@@ -1,6 +1,7 @@
 import {DisconnectParticipant } from '../sma-contact-flow-parser/src/SMA_Mapping_Actions/disconnect-participant'
 import smaEvent from './smaEvent.json';
 import contextStore from './contextstoreVariables.json';
+import action from './action.json';
 
 
 (async() => {
