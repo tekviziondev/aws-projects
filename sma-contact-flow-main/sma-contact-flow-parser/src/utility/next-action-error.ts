@@ -39,3 +39,4 @@ export async function getNextActionForError(currentAction: any, contactFlow: any
         return await terminatingFlowAction(smaEvent, "error")
     }
 }
+

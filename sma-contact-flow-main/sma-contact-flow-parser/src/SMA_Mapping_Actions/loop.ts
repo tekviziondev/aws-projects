@@ -15,10 +15,7 @@ import { Attributes, ContextStore } from "../utility/constant-values";
   */
 export class Loop {
     async processFlowActionLoop(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, contextStore:any) {
-        let smaAction: any;
-        let smaAction1: any;
         let callId: string;
-
         try {
             const legA = getLegACallDetails(smaEvent);
             callId = legA.CallId;
@@ -27,7 +24,7 @@ export class Loop {
             let ActualloopCountVal = action.Parameters.LoopCount;
             let loopCountVal = contextStore[ContextStore.LOOP_COUNT]
             console.log("loopCountVal: "+loopCountVal);
-            if (loopCountVal!==ActualloopCountVal){
+            if (loopCountVal !== ActualloopCountVal){
                     let nextAction = "";
                     if(action.Transitions.Conditions[0].Condition.Operands[0]==='ContinueLooping')
                     nextAction= findActionByID(actions, action.Transitions.Conditions[0].NextAction)
