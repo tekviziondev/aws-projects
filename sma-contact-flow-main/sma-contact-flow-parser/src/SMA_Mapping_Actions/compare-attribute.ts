@@ -12,12 +12,13 @@ import { Attributes } from "../utility/constant-values";
   * @param actions
   * @param amazonConnectInstanceID
   * @param bucketName
+  * @param contextStore
   * @returns SMA Action
   */
  
 
 export class CompareAttribute {
-    async processFlowActionCompareContactAttributes(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, contextStore:any ){
+    async processFlowActionCompareContactAttributes(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, contextStore:IContextStore ){
         let nextAction: any;
         try {
             let callId: string;

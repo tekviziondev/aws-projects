@@ -3,16 +3,18 @@ import { ChimeActions } from "../utility/chime-action-types";
 import { getAudioParameters } from "../utility/audio-parameters";
 import { terminatingFlowAction } from "../utility/termination-action";
 import { Attributes, ContextStore } from "../utility/constant-values";
+import { IContextStore } from "../utility/contextStore";
 
 /**
   * Making a SMA action to play the Audio from S3 bucket
   * @param smaEvent 
   * @param action
+  * @param contextStore
   * @returns SMA Action
   */
 
 export class PlayAudio {
-    async processPlayAudio(smaEvent: any, action: any, contextStore:any) {
+    async processPlayAudio(smaEvent: any, action: any, contextStore:IContextStore) {
         let callId: string;
         let smaAction1: any;
         try {

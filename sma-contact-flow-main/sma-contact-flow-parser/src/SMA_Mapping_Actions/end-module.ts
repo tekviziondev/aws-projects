@@ -4,15 +4,18 @@ import { findActionByID } from "../utility/find-action-id";
 import { processFlowAction } from "../contact-flow-processor"
 import { loadContactFlow } from "../contact-flow-loader"
 import { Attributes, ContextStore } from "../utility/constant-values";
+import { IContextStore } from "../utility/contextStore";
 /**
   * End the execution of the current Module and returns Back to Orginal Contact flow.
   * @param smaEvent 
-  * @param action
+  * @param amazonConnectInstanceID
+  * @param bucketName
+  * @param contextStore
   * @returns SMA Action defined after end flow Module
   */
 
 export class EndModule {
-  async processFlowActionEndFlowModuleExecution(smaEvent: any, amazonConnectInstanceID: string, bucketName: string,contextStore:any) {
+  async processFlowActionEndFlowModuleExecution(smaEvent: any, amazonConnectInstanceID: string, bucketName: string,contextStore:IContextStore) {
     let callId: string;
     try {
       const legA = getLegACallDetails(smaEvent);

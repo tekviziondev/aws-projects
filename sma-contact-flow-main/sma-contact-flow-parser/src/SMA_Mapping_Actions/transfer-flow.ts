@@ -3,16 +3,20 @@ import { terminatingFlowAction } from "../utility/termination-action";
 import { loadContactFlow } from "../contact-flow-loader"
 import { processRootFlowBlock } from "../contact-flow-processor"
 import { Attributes, ContextStore } from "../utility/constant-values";
+import { IContextStore } from "../utility/contextStore";
 
 /**
   * Transfer to another Contact Flow to Execute.
   * @param smaEvent 
   * @param action
+  * @param amazonConnectInstanceID
+  * @param bucketName
+  * @param contextStore
   * @returns SMA Action of Another Contact Flow
   */
 
 export class TrasferToFlow {
-    async processFlowActionTransferToFlow(smaEvent: any, action: any, amazonConnectInstanceID: string, bucketName: string, contextStore:any ){
+    async processFlowActionTransferToFlow(smaEvent: any, action: any, amazonConnectInstanceID: string, bucketName: string, contextStore:IContextStore ){
         let callId: string;
         try {
             let TransferFlowARN = action.Parameters.ContactFlowId;

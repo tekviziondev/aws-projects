@@ -5,6 +5,7 @@ import { ContextStore, Supported_Actions } from "../utility/constant-values";
 import { findActionByID } from "../utility/find-action-id";
 import { terminatingFlowAction } from "../utility/termination-action";
 import { Attributes } from "../utility/constant-values";
+import { IContextStore } from "../utility/contextStore";
 /**
   * Making a SMA action to perform Wait for a specified period of time.
   * @param smaEvent 
@@ -12,10 +13,11 @@ import { Attributes } from "../utility/constant-values";
   * @param actions
   * @param amazonConnectInstanceID
   * @param bucketName
+  * @param contextStore
   * @returns SMA Action
   */
 export class Wait {
-    async processFlowActionWait(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, contextStore:any){
+    async processFlowActionWait(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, contextStore:IContextStore){
         let callId: string;
         try {
             const legA = getLegACallDetails(smaEvent);

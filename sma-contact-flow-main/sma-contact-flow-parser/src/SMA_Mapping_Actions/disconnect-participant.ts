@@ -1,14 +1,15 @@
 import { ChimeActions } from "../utility/chime-action-types";
 import { getLegACallDetails } from "../utility/call-details";
 import { Attributes, ContextStore } from "../utility/constant-values";
+import { IContextStore } from "../utility/contextStore";
 /**
   * Making a SMA action to perform Ends the interaction.
   * @param smaEvent 
-  * @param action
+  * @param contextStore
   * @returns SMA Action
   */
 export class DisconnectParticipant {
-    async processFlowActionDisconnectParticipant(smaEvent: any, contextStore:any){
+    async processFlowActionDisconnectParticipant(smaEvent: any, contextStore:IContextStore){
         let callId: string;
         let smaAction1: any;
         const legA = getLegACallDetails(smaEvent);

@@ -1,16 +1,18 @@
 import { getLegACallDetails } from "../utility/call-details";
 import { ChimeActions } from "../utility/chime-action-types";
 import { Attributes, ContextStore } from "../utility/constant-values";
+import { IContextStore } from "../utility/contextStore";
 import { terminatingFlowAction } from "../utility/termination-action";
 
 /**
   * Making a SMA action to perform delvier a Chat message and obtain customer input.
   * @param smaEvent 
   * @param action
+  * @param contextStore
   * @returns SMA Action
   */
 export class LexBot {
-  async processFlowActionConnectParticipantWithLexBot(smaEvent: any, action: any, contextStore:any) {
+  async processFlowActionConnectParticipantWithLexBot(smaEvent: any, action: any, contextStore:IContextStore) {
     let smaAction;
     let smaAction1: any;
     let callId: string;

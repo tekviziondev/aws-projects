@@ -6,6 +6,7 @@ import { AmazonConnectActions } from "./amazon-connect-actionTypes"
 import { getNextActionForError } from "./next-action-error"
 import { ErrorTypes } from "./error-types"
 import { Attributes } from "../utility/constant-values";
+import { IContextStore } from "./contextStore";
 /**
   * This function will validate the Recieved digits based on the condition defined in the Block
   * @param smaEvent 
@@ -14,9 +15,10 @@ import { Attributes } from "../utility/constant-values";
   * @param amazonConnectInstanceID
   * @param bucketName
   * @param recieved_digits
+  * @param contextStore
   * @returns SMA Action
   */
-export async function processFlowConditionValidation(smaEvent: any, actionObj: any, contactFlow: any, recieved_digits: any, amazonConnectInstanceID: string, bucketName: string, contextStore:any) {
+export async function processFlowConditionValidation(smaEvent: any, actionObj: any, contactFlow: any, recieved_digits: any, amazonConnectInstanceID: string, bucketName: string, contextStore:IContextStore) {
     let nextAction: any;
     let nextAction_id: any;
     let callId: string;

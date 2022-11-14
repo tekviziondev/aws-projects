@@ -5,11 +5,9 @@ import { Attributes } from "../utility/constant-values";
 /**
   * Based on the Error condition, the Next action will be performed
   * @param smaEvent 
-  * @param action
-  * @param actions
-  * @param amazonConnectInstanceID
-  * @param bucketName
-  * @param defaultLogger
+  * @param currentAction
+  * @param contactFlow
+  * @param ErrorType
   * @returns SMA Action
   */
 export async function getNextActionForError(currentAction: any, contactFlow: any, ErrorType: any, smaEvent: any) {

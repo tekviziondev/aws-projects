@@ -7,6 +7,7 @@ import { terminatingFlowAction } from "../utility/termination-action";
   * Making a SMA action to perform Call Recording and Start storing it in the S3 Bucket Location
   * @param smaEvent 
   * @param action
+  * @param contextStore
   * @returns SMA Action
   */
 

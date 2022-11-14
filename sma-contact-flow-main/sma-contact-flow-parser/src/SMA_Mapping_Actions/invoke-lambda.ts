@@ -6,6 +6,7 @@ import { ErrorTypes } from "../utility/error-types";
 import { processFlowAction } from "../contact-flow-processor"
 import { getNextActionForError } from "../utility/next-action-error"
 import { Lambda } from "aws-sdk"
+import { IContextStore } from "../utility/contextStore";
 
 /**
   * Invokes the External Lambda Function and stores the result of the Lambda function in Key Value Pair
@@ -14,10 +15,11 @@ import { Lambda } from "aws-sdk"
   * @param actions
   * @param amazonConnectInstanceID
   * @param bucketName
+  * @param contextStore
   * @returns The Next SMA Action to perform
   */
 export class InvokeLambda {
-    async processFlowActionInvokeLambdaFunction(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, contextStore:any ){
+    async processFlowActionInvokeLambdaFunction(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, contextStore:IContextStore ){
         let callId: string;
         let regionVal="";
         if(Attributes.region)

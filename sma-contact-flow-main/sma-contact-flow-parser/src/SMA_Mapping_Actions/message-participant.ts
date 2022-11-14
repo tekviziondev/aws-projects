@@ -5,14 +5,16 @@ import { ChimeActions } from "../utility/chime-action-types";
 import { terminatingFlowAction } from "../utility/termination-action";
 import { PlayAudio } from "./play-audio";
 import { getSpeechParameters } from "../utility/speech-parameter";
+import { IContextStore } from "../utility/contextStore";
 /**
   * Making a SMA action to perform Delivers an audio or chat message.
   * @param smaEvent 
   * @param action
+  * @param contextStore
   * @returns SMA Action
   */
 export class MessageParticipant {
-    async processFlowActionMessageParticipant(smaEvent: any, action: any, contextStore: any) {
+    async processFlowActionMessageParticipant(smaEvent: any, action: any, contextStore:IContextStore) {
         let callId: string;
         const legA = getLegACallDetails(smaEvent);
         try {

@@ -4,14 +4,16 @@ import { terminatingFlowAction } from "../utility/termination-action";
 import { getSpeechParameters, FailureSpeechParameters } from "../utility/speech-parameter";
 import { PlayAudioAndGetDigits } from "./play-audio-getdigits";
 import { Attributes, ContextStore } from "../utility/constant-values";
+import { IContextStore } from "../utility/contextStore";
 /**
   * Making a SMA action to perform delivering an audio message to obtain customer input.
   * @param smaEvent 
   * @param action
+  * @param contextStore
   * @returns SMA Action
   */
 export class GetParticipantInput {
-    async processFlowActionGetParticipantInput(smaEvent: any, action: any,  contextStore:any) {
+    async processFlowActionGetParticipantInput(smaEvent: any, action: any,  contextStore:IContextStore) {
 
         let callId: string;
         try {

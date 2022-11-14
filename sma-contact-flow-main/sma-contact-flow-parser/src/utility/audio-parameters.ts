@@ -6,9 +6,6 @@ import { terminatingFlowAction } from "./termination-action";
   * This function process SMA Event and returns the Speech Parameters for SpeakAndGetDigits
   * @param smaEvent 
   * @param action
-  * @param contextAttributs
-  * @param SpeechAttributeMap
-  * @param defaultLogger
   * @returns Audio Parameters
   */
 export async function getAudioParameters(smaEvent: any, action: any) {

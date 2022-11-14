@@ -4,6 +4,7 @@ import { ErrorTypes } from "../utility/error-types";
 import { processFlowAction } from "../contact-flow-processor"
 import { getNextActionForError } from "../utility/next-action-error"
 import { Attributes, ContextStore } from "../utility/constant-values";
+import { IContextStore } from "../utility/contextStore";
 /**
   * Updating the Contact Attribute Details
   * @param smaEvent 
@@ -11,10 +12,11 @@ import { Attributes, ContextStore } from "../utility/constant-values";
   * @param actions
   * @param amazonConnectInstanceID
   * @param bucketName
+  * @param contextStore
   * @returns The Next SMA Action to perform
   */
 export class UpdateContactAttrbts {
-    async processFlowActionUpdateContactAttributes(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, contextStore:any) {
+    async processFlowActionUpdateContactAttributes(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, contextStore:IContextStore) {
         let callId: string;
         let tmpMap=contextStore[ContextStore.TMP_MAP]
         let contextAttributes=contextStore[ContextStore.CONTEXT_ATTRIBUTES]

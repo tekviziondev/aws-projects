@@ -3,6 +3,7 @@ import { processFlowAction } from "../contact-flow-processor";
 import { findActionByID } from "../utility/find-action-id";
 import { terminatingFlowAction } from "../utility/termination-action";
 import { Attributes, ContextStore } from "../utility/constant-values";
+import { IContextStore } from "../utility/contextStore";
 
 /**
   * Making a SMA action to perform Repeats the looping branch for the specified number of times. After which, the complete branch is followed.
@@ -11,10 +12,11 @@ import { Attributes, ContextStore } from "../utility/constant-values";
   * @param actions
   * @param amazonConnectInstanceID
   * @param bucketName
+  * @param contextStore
   * @returns SMA Action
   */
 export class Loop {
-    async processFlowActionLoop(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, contextStore:any) {
+    async processFlowActionLoop(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, contextStore:IContextStore) {
         let callId: string;
         try {
             const legA = getLegACallDetails(smaEvent);

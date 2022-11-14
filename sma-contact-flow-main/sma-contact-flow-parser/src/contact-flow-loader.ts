@@ -1,10 +1,12 @@
 import { Connect } from 'aws-sdk';
 import { S3 } from 'aws-sdk';
+import {CloudWatch} from 'aws-sdk';
 import { getLegACallDetails } from './utility/call-details'
 
 let s3Bucket: string;
 const cacheTimeInMilliseconds: number = 5000;
 const defaultLogger = "SMA-Contact-Flow-Parser | Call ID - "
+var cw = new CloudWatch({apiVersion: '2010-08-01'});
 
 /**
   * Get the Amazon contact flow details from the Amazon connect.
@@ -17,6 +19,23 @@ const defaultLogger = "SMA-Contact-Flow-Parser | Call ID - "
 export async function loadContactFlow(amazonConnectInstanceID: string, amazonConnectContactFlowID: string, bucket: string, smaEvent: any, type: string) {
   let callId: string;
   try {
+    
+    var params = {
+      MetricData: [
+        {
+          MetricName: 'Success',
+          Dimensions: [
+            {
+              Name: 'InstanceId',
+              Value: amazonConnectContactFlowID
+            },
+          ],
+          Unit: 'None',
+          Value: 1.0
+        },
+      ],
+      Namespace: 'ContactFlowProcesser/TekVizion'
+    };
     const legA = getLegACallDetails(smaEvent);
     callId = legA.CallId;
     if (!callId)
@@ -46,8 +65,23 @@ export async function loadContactFlow(amazonConnectInstanceID: string, amazonCon
       }
 
     }
+    cw.putMetricData(params, function(err, data) {
+      if (err) {
+        console.log("Error", err);
+      } else {
+        console.log("Success", JSON.stringify(data));
+      }
+    });
+    
     return rv;
   } catch (error) {
+    cw.putMetricData(params, function(err, data) {
+      if (err) {
+        console.log("Error", err);
+      } else {
+        console.log("Success", JSON.stringify(data));
+      }
+    });
     console.error(defaultLogger + callId + " There is an Error in execution of Loading the Contact Flow " + error.message);
     return null;
   }

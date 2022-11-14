@@ -2,16 +2,18 @@ import { getLegACallDetails } from "../utility/call-details";
 import { Attributes, ContextStore } from "../utility/constant-values"
 import { ChimeActions } from "../utility/chime-action-types";
 import { terminatingFlowAction } from "../utility/termination-action";
+import { IContextStore } from "../utility/contextStore";
 
 /**
   * Making a SMA action to perform Transfer a call to a phone number for voice interactions.
   * @param smaEvent 
   * @param action
+  * @param contextStore
   * @returns SMA Action
   */
 
 export class TransferTOThirdParty {
-    async processFlowActionTransferParticipantToThirdParty(smaEvent: any, action: any,  contextStore: any){
+    async processFlowActionTransferParticipantToThirdParty(smaEvent: any, action: any,  contextStore:IContextStore){
         let callId: string;
         let smaAction1: any;
         try {

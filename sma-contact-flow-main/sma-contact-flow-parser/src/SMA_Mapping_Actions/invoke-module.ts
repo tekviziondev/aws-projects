@@ -4,15 +4,19 @@ import { terminatingFlowAction } from "../utility/termination-action";
 import { loadContactFlow } from "../contact-flow-loader"
 import { processRootFlowBlock } from "../contact-flow-processor"
 import { Attributes, ContextStore } from "../utility/constant-values";
+import { IContextStore } from "../utility/contextStore";
 /**
   * Invoke a Module from the existing contact flow, to perform a particular task
   * @param smaEvent 
   * @param action
+  * @param amazonConnectInstanceID
+  * @param bucketName
+  * @param contextStore
   * @returns SMA Action defined in the Module
   */
 
 export class InvokeModule {
-    async processFlowActionInvokeFlowModule(smaEvent: any, action: any, amazonConnectInstanceID: string, bucketName: string, contextStore:any) {
+    async processFlowActionInvokeFlowModule(smaEvent: any, action: any, amazonConnectInstanceID: string, bucketName: string, contextStore:IContextStore) {
         let ModuleARN = action.Parameters.FlowModuleId;
         contextStore[ContextStore.INVOKE_MODULE_ARN]=ModuleARN;
         let endModuleNextAction = action.Transitions.NextAction;

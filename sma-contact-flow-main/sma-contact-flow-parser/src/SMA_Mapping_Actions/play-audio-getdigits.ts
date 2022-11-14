@@ -3,14 +3,16 @@ import { ChimeActions } from "../utility/chime-action-types";
 import { getAudioParameters, failureAudioParameters } from "../utility/audio-parameters";
 import { terminatingFlowAction } from "../utility/termination-action";
 import { Attributes, ContextStore } from "../utility/constant-values";
+import { IContextStore } from "../utility/contextStore";
 /**
   * Making play audio and get digits json object for sma action.
   * @param smaEvent 
   * @param action
+  * @param contextStore
   * @returns SMA Action
   */
 export class PlayAudioAndGetDigits {
-    async processPlayAudioAndGetDigits(smaEvent: any, action: any, contextStore:any){
+    async processPlayAudioAndGetDigits(smaEvent: any, action: any, contextStore:IContextStore){
         let callId: string;
         let smaAction1: any;
         try {

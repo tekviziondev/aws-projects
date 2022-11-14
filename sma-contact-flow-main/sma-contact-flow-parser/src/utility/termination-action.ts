@@ -4,11 +4,6 @@ import { Attributes, ContextStore, SpeechParameters } from "./constant-values";
 /**
   * This Terminates the existing call if there are any error occured in the Flow execution
   * @param smaEvent 
-  * @param SpeechAttributeMap
-  * @param contextAttributes
-  * @param ActualFlowARN
-  * @param ContactFlowARNMap
-  * @param defaultLogger
   * @param actionType
   * @returns SMA Error Speak Action and Hang UP action
   */
@@ -75,5 +70,6 @@ export async function terminatingFlowAction(smaEvent: any,  actionType: string) 
         }
     } catch (error) {
         console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of Terminating Events" + error.message);
+        return null;
     }
 }

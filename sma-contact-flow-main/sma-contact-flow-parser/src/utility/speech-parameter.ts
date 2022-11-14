@@ -1,18 +1,17 @@
 import { StringTargetList } from "aws-sdk/clients/transcribeservice";
 import { getLegACallDetails } from "./call-details";
 import { Attributes, ContextStore, SpeechParameters } from "./constant-values";
+import { IContextStore } from "./contextStore";
 import { count } from "./count";
 import { terminatingFlowAction } from "./termination-action";
 /**
  * This function process SMA Event and returns the Speech Parameters for SpeakAndGetDigits
  * @param smaEvent
  * @param action
- * @param contextAttributes
- * @param SpeechAttributeMap
- * @param defaultLogger
+ * @param contextStore
  * @returns Speech Parameters
  */
-export async function getSpeechParameters(smaEvent: any, action: any, contextStore: any) {
+export async function getSpeechParameters(smaEvent: any, action: any, contextStore:IContextStore) {
   let callId: string;
   try {
     const legA = getLegACallDetails(smaEvent);
