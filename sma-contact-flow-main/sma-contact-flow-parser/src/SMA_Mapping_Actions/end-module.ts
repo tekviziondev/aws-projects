@@ -3,32 +3,35 @@ import { terminatingFlowAction } from "../utility/termination-action";
 import { findActionByID } from "../utility/find-action-id";
 import { processFlowAction } from "../contact-flow-processor"
 import { loadContactFlow } from "../contact-flow-loader"
-
+import { Attributes, ContextStore } from "../utility/constant-values";
+import { IContextStore } from "../utility/context-store";
 /**
   * End the execution of the current Module and returns Back to Orginal Contact flow.
   * @param smaEvent 
-  * @param action
+  * @param amazonConnectInstanceID
+  * @param bucketName
+  * @param contextStore
   * @returns SMA Action defined after end flow Module
   */
 
 export class EndModule {
-  async processFlowActionEndFlowModuleExecution(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, InvokeModuleARNMap: Map<string, string>, InvokationModuleNextAction: Map<string, string>, ActualFlowARN: Map<string, string>, defaultLogger: string, puaseAction: any, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ContactFlowARNMap: Map<string, string>) {
+  async processFlowActionEndFlowModuleExecution(smaEvent: any, amazonConnectInstanceID: string, bucketName: string,contextStore:IContextStore) {
     let callId: string;
     try {
       const legA = getLegACallDetails(smaEvent);
       callId = legA.CallId;
       if (!callId)
         callId = smaEvent.ActionData.Parameters.CallId;
-      InvokeModuleARNMap.delete(callId)
-      let nextaction_id = InvokationModuleNextAction.get(callId)
-      let contactFlow_id = ActualFlowARN.get(callId)
+      let nextaction_id = contextStore[ContextStore.INVOKATION_MODULE_NEXT_ACTION]
+      let contactFlow_id = contextStore[ContextStore.ACTUAL_FLOW_ARN]
+      contextStore[ContextStore.INVOKATION_MODULE_NEXT_ACTION]=null;
+      contextStore[ContextStore.INVOKE_MODULE_ARN]=null;
       const contactFlow = await loadContactFlow(amazonConnectInstanceID, contactFlow_id, bucketName, smaEvent, "Contact_Flow");
       let nextAction = findActionByID(contactFlow.Actions, nextaction_id);
-      InvokationModuleNextAction.delete(callId);
-      return await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName);
+      return await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName,contextStore);
     } catch (error) {
-      console.error(defaultLogger + callId + " There is an Error in execution EndFlowModule" + error.message);
-      return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, puaseAction, "error")
+      console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution EndFlowModule" + error.message);
+      return await terminatingFlowAction(smaEvent, "error")
     }
 
   }

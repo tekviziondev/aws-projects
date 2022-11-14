@@ -1,18 +1,13 @@
 import { ChimeActions } from "./chime-action-types";
 import { getLegACallDetails } from "./call-details";
-import { Attributes } from "./constant-values";
+import { Attributes, ContextStore, SpeechParameters } from "./constant-values";
 /**
   * This Terminates the existing call if there are any error occured in the Flow execution
   * @param smaEvent 
-  * @param SpeechAttributeMap
-  * @param contextAttributes
-  * @param ActualFlowARN
-  * @param ContactFlowARNMap
-  * @param defaultLogger
   * @param actionType
   * @returns SMA Error Speak Action and Hang UP action
   */
-export async function terminatingFlowAction(smaEvent: any, defaultLogger: string,  actionType: string) {
+export async function terminatingFlowAction(smaEvent: any,  actionType: string) {
     let text: string;
     let type: string;
     let x: Number;
@@ -22,15 +17,17 @@ export async function terminatingFlowAction(smaEvent: any, defaultLogger: string
         let voiceId = Attributes.VOICE_ID
         let engine = Attributes.ENGINE
         let languageCode = Attributes.LANGUAGE_CODE
-       let SpeechAttributeMap= smaEvent.CallDetails.TransactionAttributes['contextStore']['SpeechAttributeMap'];
-        if (SpeechAttributeMap.has("TextToSpeechVoice")) {
-            voiceId = SpeechAttributeMap.get("TextToSpeechVoice")
+        let speechAttributes:any;
+        if(smaEvent.CallDetails.TransactionAttributes)
+        speechAttributes=smaEvent.CallDetails.TransactionAttributes[Attributes.CONNECT_CONTEXT_STORE][ContextStore.SPEECH_ATTRIBUTES];
+        if (speechAttributes && speechAttributes.hasOwnProperty(SpeechParameters.TEXT_TO_SPEECH_VOICE)) {
+            voiceId = speechAttributes[SpeechParameters.TEXT_TO_SPEECH_VOICE]
         }
-        if (SpeechAttributeMap.has("TextToSpeechEngine")) {
-            engine = SpeechAttributeMap.get("TextToSpeechEngine").toLowerCase();
+        if (speechAttributes && speechAttributes.hasOwnProperty(SpeechParameters.TEXT_TO_SPEECH_ENGINE)) {
+            engine = speechAttributes[SpeechParameters.TEXT_TO_SPEECH_ENGINE].toLowerCase();
         }
-        if (SpeechAttributeMap.has("LanguageCode")) {
-            languageCode = SpeechAttributeMap.get("LanguageCode")
+        if (speechAttributes && speechAttributes.hasOwnProperty(SpeechParameters.LANGUAGE_CODE)) {
+            languageCode = speechAttributes[SpeechParameters.LANGUAGE_CODE]
         }
         const legA = getLegACallDetails(smaEvent);
         callId = legA.CallId;
@@ -38,14 +35,14 @@ export async function terminatingFlowAction(smaEvent: any, defaultLogger: string
             callId = smaEvent.ActionData.Parameters.CallId;
        
         if (actionType == "Invalid_Text") {
-            console.log(defaultLogger + callId + "The Text to Speak has Invalid Attributes. The Flow is going to Terminate, Please Check the Flow");
+            console.log(Attributes.DEFAULT_LOGGER + callId + "The Text to Speak has Invalid Attributes. The Flow is going to Terminate, Please Check the Flow");
             text = "There is an Invalid Attribute Present, your call is going to disconnect"
         }
         else if (actionType == "error") {
             text = "There is an Error in the Exceution"
         }
         else {
-            console.log(defaultLogger + callId + "The Action " + actionType + " is not supported , The Flow is going to Terminate, Please use only the Supported Action");
+            console.log(Attributes.DEFAULT_LOGGER + callId + "The Action " + actionType + " is not supported , The Flow is going to Terminate, Please use only the Supported Action");
             text = "The action " + actionType + " is unsupported Action defined in the Contact flow, your call is going to disconnect"
         }
         let smaAction = {
@@ -72,6 +69,7 @@ export async function terminatingFlowAction(smaEvent: any, defaultLogger: string
             "Actions": [smaAction, smaAction1]
         }
     } catch (error) {
-        console.error(defaultLogger + callId + " There is an Error in execution of Terminating Events" + error.message);
+        console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of Terminating Events" + error.message);
+        return null;
     }
 }

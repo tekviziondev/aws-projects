@@ -3,6 +3,8 @@ import { findActionByID } from "../utility/find-action-id";
 import { ErrorTypes } from "../utility/error-types";
 import { processFlowAction } from "../contact-flow-processor"
 import { getNextActionForError } from "../utility/next-action-error"
+import { Attributes, ContextStore } from "../utility/constant-values";
+import { IContextStore } from "../utility/context-store";
 /**
   * Updating the Contact Attribute Details
   * @param smaEvent 
@@ -10,11 +12,14 @@ import { getNextActionForError } from "../utility/next-action-error"
   * @param actions
   * @param amazonConnectInstanceID
   * @param bucketName
+  * @param contextStore
   * @returns The Next SMA Action to perform
   */
 export class UpdateContactAttrbts {
-    async processFlowActionUpdateContactAttributes(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, defaultLogger: string, tmpMap: Map<any, any>, contextAttributes: Map<any, any>, SpeechAttributeMap: Map<string, string>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>, pauseAction: any) {
+    async processFlowActionUpdateContactAttributes(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, contextStore:IContextStore) {
         let callId: string;
+        let tmpMap=contextStore[ContextStore.TMP_MAP]
+        let contextAttributes=contextStore[ContextStore.CONTEXT_ATTRIBUTES]
         try {
             const legA = getLegACallDetails(smaEvent);
             callId = legA.CallId;
@@ -25,27 +30,27 @@ export class UpdateContactAttrbts {
                 let x: string = ContactAttributes[i][1]
                 if (x.includes("$.External.")) {
                     let tmp: any[] = x.split("$.External.")
-                    if (tmpMap.has(tmp[1])) {
-                        contextAttributes.set("$.Attributes." + ContactAttributes[i][0], tmpMap.get(tmp[1]))
+                    if (tmpMap.hasOwnProperty(tmp[1])) {
+                        contextAttributes["$.Attributes." + ContactAttributes[i][0]] = tmpMap[tmp[1]]
                     }
                 }
                 else if (x.includes("$.Attributes.")) {
                     let tmp: any[] = x.split("$.Attributes.")
-                    if (tmpMap.has(tmp[1])) {
-                        contextAttributes.set("$.Attributes." + ContactAttributes[i][0], tmpMap.get(tmp[1]))
+                    if (tmpMap.hasOwnProperty(tmp[1])) {
+                        contextAttributes["$.Attributes." + ContactAttributes[i][0]]= tmpMap[tmp[1]];
                     }
                 }
                 else {
-                    contextAttributes.set("$.Attributes." + ContactAttributes[i][0], ContactAttributes[i][1])
+                    contextAttributes["$.Attributes." + ContactAttributes[i][0]]= ContactAttributes[i][1];
                 }
             }
         } catch (e) {
-            let nextAction = await getNextActionForError(action, actions, ErrorTypes.NO_MATCHING_ERROR, smaEvent, defaultLogger, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, pauseAction);
-            return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName);
+            let nextAction = await getNextActionForError(action, actions, ErrorTypes.NO_MATCHING_ERROR, smaEvent);
+            return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName,contextStore);
         }
-        tmpMap.clear();
+        contextStore[ContextStore.TMP_MAP]=null;
         let nextAction = findActionByID(actions, action.Transitions.NextAction);
-        console.error(defaultLogger + callId + " Next Action identifier:" + action.Transitions.NextAction);
-        return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName);
+        console.error(Attributes.DEFAULT_LOGGER + callId + " Next Action identifier:" + action.Transitions.NextAction);
+        return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName,contextStore);
     }
 }

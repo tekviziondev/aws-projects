@@ -1,25 +1,23 @@
 import { ChimeActions } from "../utility/chime-action-types";
 import { getLegACallDetails } from "../utility/call-details";
-import { Attributes } from "../utility/constant-values";
+import { Attributes, ContextStore } from "../utility/constant-values";
+import { IContextStore } from "../utility/context-store";
 /**
   * Making a SMA action to perform Ends the interaction.
   * @param smaEvent 
-  * @param action
+  * @param contextStore
   * @returns SMA Action
   */
 export class DisconnectParticipant {
-    async processFlowActionDisconnectParticipant(smaEvent: any, action: any, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>, defaultLogger: string, pauseAction: any) {
+    async processFlowActionDisconnectParticipant(smaEvent: any, contextStore:IContextStore){
         let callId: string;
         let smaAction1: any;
         const legA = getLegACallDetails(smaEvent);
         callId = legA.CallId;
         if (!callId)
             callId = smaEvent.ActionData.Parameters.CallId;
-        ContactFlowARNMap.delete(callId);
-        contextAttributes.clear();
-        ActualFlowARN.delete(callId);
-        SpeechAttributeMap.clear();
-        console.log(defaultLogger + callId + "| is going to Hang up");
+      
+        console.log(Attributes.DEFAULT_LOGGER + callId + "| is going to Hang up");
         let smaAction = {
             Type: ChimeActions.HANGUP,
             Parameters: {
@@ -27,17 +25,15 @@ export class DisconnectParticipant {
                 "CallId": callId
             }
         };
+        let pauseAction=contextStore[ContextStore.PAUSE_ACTION]
         if (pauseAction) {
             smaAction1 = pauseAction;
-            pauseAction = null;
+            contextStore[ContextStore.PAUSE_ACTION]=null
             return {
                 "SchemaVersion": Attributes.SCHEMA_VERSION,
                 "Actions": [
                     smaAction1, smaAction
                 ],
-                "TransactionAttributes": {
-                    "currentFlowBlock": action
-                }
             }
 
         }
@@ -46,9 +42,7 @@ export class DisconnectParticipant {
             "Actions": [
                 smaAction
             ],
-            "TransactionAttributes": {
-                "currentFlowBlock": action
-            }
+            
         }
     }
 }

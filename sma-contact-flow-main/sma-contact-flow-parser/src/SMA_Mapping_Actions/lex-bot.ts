@@ -1,26 +1,27 @@
 import { getLegACallDetails } from "../utility/call-details";
 import { ChimeActions } from "../utility/chime-action-types";
-import { Attributes } from "../utility/constant-values";
+import { Attributes, ContextStore } from "../utility/constant-values";
+import { IContextStore } from "../utility/context-store";
 import { terminatingFlowAction } from "../utility/termination-action";
 
 /**
   * Making a SMA action to perform delvier a Chat message and obtain customer input.
   * @param smaEvent 
   * @param action
+  * @param contextStore
   * @returns SMA Action
   */
 export class LexBot {
-  async processFlowActionConnectParticipantWithLexBot(smaEvent: any, action: any, defaultLogger: string, pauseAction: any, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>) {
+  async processFlowActionConnectParticipantWithLexBot(smaEvent: any, action: any, contextStore:IContextStore) {
     let smaAction;
     let smaAction1: any;
     let callId: string;
-
     try {
       const legA = getLegACallDetails(smaEvent);
       callId = legA.CallId;
       if (!callId)
         callId = smaEvent.ActionData.Parameters.CallId;
-      console.log(defaultLogger + callId + " Start Bot Conversation");
+      console.log(Attributes.DEFAULT_LOGGER + callId + " Start Bot Conversation");
       if (action.Parameters.hasOwnProperty("LexSessionAttributes")) {
         smaAction = {
           Type: ChimeActions.START_BOT_CONVERSATION,
@@ -66,16 +67,18 @@ export class LexBot {
           }
         }
       }
+      let pauseAction=contextStore[ContextStore.PAUSE_ACTION]
       if (pauseAction) {
         smaAction1 = pauseAction;
-        pauseAction = null;
+        contextStore[ContextStore.PAUSE_ACTION]=null
         return {
           "SchemaVersion": Attributes.SCHEMA_VERSION,
           "Actions": [
             smaAction1, smaAction
           ],
           "TransactionAttributes": {
-            "currentFlowBlock": action
+            [Attributes.CURRENT_FLOW_BLOCK]: action,
+            [Attributes.CONNECT_CONTEXT_STORE]:contextStore
           }
         }
 
@@ -87,12 +90,13 @@ export class LexBot {
           smaAction
         ],
         "TransactionAttributes": {
-          "currentFlowBlock": action
+          [Attributes.CURRENT_FLOW_BLOCK]: action,
+          [Attributes.CONNECT_CONTEXT_STORE]:contextStore
         }
       }
     } catch (error) {
-      console.error(defaultLogger + callId + " There is an Error in execution of ConnectParticipantWithLexBot " + error.message);
-      return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "error")
+      console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of ConnectParticipantWithLexBot " + error.message);
+      return await terminatingFlowAction(smaEvent, "error")
     }
 
   }

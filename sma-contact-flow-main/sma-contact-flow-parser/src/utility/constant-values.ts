@@ -17,15 +17,90 @@ type Data = {
   DESTINATION_TYPE: string;
   destinationLocation: string;
   TRACK: string;
-  BRDIGE_ENDPOINT_TYPE: string;
+  BRDIGE_ENDPOINT_TYPE: string,
   DIALOG_TYPE: string,
   CONTENT_TYPE: string,
   SCHEMA_VERSION: string,
   Failure_Speech_SSML:string,
-  Failure_Audio_Location:string
-
-
+  Failure_Audio_Location:string,
+  CONNECT_CONTEXT_STORE:string,
+  DEFAULT_LOGGER:string,
+  CURRENT_FLOW_BLOCK:string
 };
+
+export class ContextStore {
+
+  public static readonly PAUSE_ACTION = 'PauseAction';
+
+  public static readonly TMP_MAP = 'TmpMap';
+
+  public static readonly CONTEXT_ATTRIBUTES = 'ContextAttributes';
+
+  public static readonly INVOKATION_MODULE_NEXT_ACTION = 'InvokationModuleNextAction';
+
+  public static readonly ACTUAL_FLOW_ARN = 'ActualFlowARN';
+
+  public static readonly SPEECH_ATTRIBUTES = 'SpeechAttributes';
+
+  public static readonly LOOP_COUNT = 'LoopCount';
+
+  public static readonly TRANSFER_FLOW_ARN = 'TransferFlowARN';
+
+  public static readonly INVOKE_MODULE_ARN = 'InvokeModuleARN';
+
+}
+
+export class ContextAttributes {
+
+  public static readonly CUSTOMER_ENDPOINT_ADDRESS = '$.CustomerEndpoint.Address';
+
+  public static readonly SYSTEM_ENDPOINT_ADDRESS = '$.SystemEndpoint.Address';
+
+  public static readonly INITIATION_METHOD = '$.InitiationMethod';
+
+  public static readonly CONTACTID = '$.ContactId';
+
+  public static readonly INSTANCE_ARN = '$.InstanceARN';
+
+  public static readonly CHANNEL = '$.Channel';
+
+  public static readonly CUSTOMER_ENDPOINT_TYPE = '$.CustomerEndpoint.Type';
+
+  public static readonly SYSTEM_ENDPOINT_TYPE = '$.SystemEndpoint.Type';
+
+}
+
+export class LambdaFunctionParameters {
+
+  public static readonly CHANNEL = 'Channel';
+
+  public static readonly CONTACTID = 'ContactId';
+
+  public static readonly CUSTOMER_ENDPOINT = 'CustomerEndpoint';
+
+  public static readonly ADDRESS = 'Address';
+
+  public static readonly TYPE = 'Type';
+
+  public static readonly INITIAL_CONTACTID = 'InitialContactId';
+
+  public static readonly INITIATION_METHOD = 'InitiationMethod';
+
+  public static readonly INSTANCE_ARN = 'InstanceARN';
+
+  public static readonly SYSTEM_ENDPOINT = "SystemEndpoint";
+
+}
+
+export class SpeechParameters {
+
+  public static readonly TEXT_TO_SPEECH_VOICE: string = 'TextToSpeechVoice';
+
+  public static readonly TEXT_TO_SPEECH_ENGINE: string = 'TextToSpeechEngine';
+
+  public static readonly LANGUAGE_CODE: string = 'LanguageCode';
+
+}
 
 export const Attributes: Data = {
   VOICE_ID: "Joanna",
@@ -45,7 +120,10 @@ export const Attributes: Data = {
   CONTENT_TYPE: "PlainText",
   SCHEMA_VERSION: "1.0",
   Failure_Speech_SSML:FAILURE_SPEECH_SSML,
-  Failure_Audio_Location:FAILURE_AUDIO_FILE_LOCATION
-
+  Failure_Audio_Location:FAILURE_AUDIO_FILE_LOCATION,
+  CONNECT_CONTEXT_STORE:"ConnectContextStore",
+  DEFAULT_LOGGER :"SMA-Contact-Flow-Builder | Call ID - ",
+  CURRENT_FLOW_BLOCK : "currentFlowBlock"
 }
+
 export const Supported_Actions = ["Wait", "Loop", "TransferToFlow", "UpdateContactTextToSpeechVoice", "InvokeLambdaFunction", "UpdateContactAttributes", "Compare", "InvokeFlowModule", "EndFlowModuleExecution"];

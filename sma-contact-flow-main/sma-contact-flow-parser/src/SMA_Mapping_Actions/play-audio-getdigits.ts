@@ -2,15 +2,17 @@ import { getLegACallDetails } from "../utility/call-details";
 import { ChimeActions } from "../utility/chime-action-types";
 import { getAudioParameters, failureAudioParameters } from "../utility/audio-parameters";
 import { terminatingFlowAction } from "../utility/termination-action";
-import { Attributes } from "../utility/constant-values";
+import { Attributes, ContextStore } from "../utility/constant-values";
+import { IContextStore } from "../utility/context-store";
 /**
   * Making play audio and get digits json object for sma action.
   * @param smaEvent 
   * @param action
+  * @param contextStore
   * @returns SMA Action
   */
 export class PlayAudioAndGetDigits {
-    async processPlayAudioAndGetDigits(smaEvent: any, action: any, defaultLogger: string, pauseAction: any, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>) {
+    async processPlayAudioAndGetDigits(smaEvent: any, action: any, contextStore:IContextStore){
         let callId: string;
         let smaAction1: any;
         try {
@@ -18,9 +20,9 @@ export class PlayAudioAndGetDigits {
             callId = legA.CallId;
             if (!callId)
                 callId = smaEvent.ActionData.Parameters.CallId;
-            console.log(defaultLogger + callId + " Action| Play Audio Action and Get Digits");
-            let audio_parameters = await getAudioParameters(smaEvent, action, defaultLogger, pauseAction, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap)
-            let failure_audio = await failureAudioParameters(smaEvent, action, defaultLogger, pauseAction, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap)
+            console.log(Attributes.DEFAULT_LOGGER + callId + " Action| Play Audio Action and Get Digits");
+            let audio_parameters = await getAudioParameters(smaEvent, action)
+            let failure_audio = await failureAudioParameters(smaEvent, action)
             let smaAction = {
                 Type: ChimeActions.PLAY_AUDIO_AND_GET_DIGITS,
                 Parameters: {
@@ -45,16 +47,18 @@ export class PlayAudioAndGetDigits {
                 const timeLimit: number = Number.parseInt(action.Parameters.InputTimeLimitSeconds);
                 smaAction.Parameters["RepeatDurationInMilliseconds"] = timeLimit * 1000;
             }
+            let pauseAction=contextStore[ContextStore.PAUSE_ACTION];
             if (pauseAction) {
                 smaAction1 = pauseAction;
-                pauseAction = null;
+                contextStore[ContextStore.PAUSE_ACTION]=null
                 return {
                     "SchemaVersion": Attributes.SCHEMA_VERSION,
                     "Actions": [
                         smaAction1, smaAction
                     ],
                     "TransactionAttributes": {
-                        "currentFlowBlock": action
+                        [Attributes.CURRENT_FLOW_BLOCK]: action,
+                        [Attributes.CONNECT_CONTEXT_STORE]:contextStore
                     }
                 }
 
@@ -65,14 +69,16 @@ export class PlayAudioAndGetDigits {
                     smaAction
                 ],
                 "TransactionAttributes": {
-                    "currentFlowBlock": action
+                    [Attributes.CURRENT_FLOW_BLOCK]: action,
+                    [Attributes.CONNECT_CONTEXT_STORE]:contextStore
                 }
             }
 
         } catch (error) {
-            console.error(defaultLogger + callId + " There is an Error in execution of PlayAudioAndGetDigits " + error.message);
-            return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "error")
+            console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of PlayAudioAndGetDigits " + error.message);
+            return await terminatingFlowAction(smaEvent, "error")
         }
 
     }
 }
+

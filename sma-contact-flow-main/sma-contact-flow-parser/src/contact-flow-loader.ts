@@ -6,6 +6,7 @@ let s3Bucket: string;
 const cacheTimeInMilliseconds: number = 5000;
 const defaultLogger = "SMA-Contact-Flow-Parser | Call ID - "
 
+
 /**
   * Get the Amazon contact flow details from the Amazon connect.
   * @param smaEvent 
@@ -48,6 +49,7 @@ export async function loadContactFlow(amazonConnectInstanceID: string, amazonCon
     }
     return rv;
   } catch (error) {
+    
     console.error(defaultLogger + callId + " There is an Error in execution of Loading the Contact Flow " + error.message);
     return null;
   }

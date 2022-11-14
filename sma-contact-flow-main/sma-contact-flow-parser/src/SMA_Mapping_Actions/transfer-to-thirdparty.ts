@@ -1,17 +1,19 @@
 import { getLegACallDetails } from "../utility/call-details";
-import { Attributes } from "../utility/constant-values"
+import { Attributes, ContextStore } from "../utility/constant-values"
 import { ChimeActions } from "../utility/chime-action-types";
 import { terminatingFlowAction } from "../utility/termination-action";
+import { IContextStore } from "../utility/context-store";
 
 /**
   * Making a SMA action to perform Transfer a call to a phone number for voice interactions.
   * @param smaEvent 
   * @param action
+  * @param contextStore
   * @returns SMA Action
   */
 
 export class TransferTOThirdParty {
-    async processFlowActionTransferParticipantToThirdParty(smaEvent: any, action: any, defaultLogger: string, pauseAction: any, SpeechAttributeMap: Map<string, string>, contextAttributes: Map<any, any>, ActualFlowARN: Map<string, string>, ContactFlowARNMap: Map<string, string>) {
+    async processFlowActionTransferParticipantToThirdParty(smaEvent: any, action: any,  contextStore:IContextStore){
         let callId: string;
         let smaAction1: any;
         try {
@@ -23,7 +25,7 @@ export class TransferTOThirdParty {
             if (action.Parameters.hasOwnProperty("CallerId")) {
                 fromNumber = action.Parameters.CallerId.Number;
             }
-            console.log(defaultLogger + callId + " Transfering call to Third Party Number");
+            console.log(Attributes.DEFAULT_LOGGER + callId + " Transfering call to Third Party Number");
             let smaAction = {
                 Type: ChimeActions.CALL_AND_BRIDGE,
                 Parameters: {
@@ -38,16 +40,18 @@ export class TransferTOThirdParty {
                 }
 
             };
+            let pauseAction=contextStore[ContextStore.PAUSE_ACTION]
             if (pauseAction) {
                 smaAction1 = pauseAction;
-                pauseAction = null;
+                contextStore[ContextStore.PAUSE_ACTION]=null
                 return {
                     "SchemaVersion": Attributes.SCHEMA_VERSION,
                     "Actions": [
                         smaAction1, smaAction
                     ],
                     "TransactionAttributes": {
-                        "currentFlowBlock": action
+                        [Attributes.CURRENT_FLOW_BLOCK]: action,
+                        [Attributes.CONNECT_CONTEXT_STORE]:contextStore
                     }
                 }
 
@@ -59,14 +63,14 @@ export class TransferTOThirdParty {
                     smaAction
                 ],
                 "TransactionAttributes": {
-                    "currentFlowBlock": action
+                    [Attributes.CURRENT_FLOW_BLOCK]: action,
+                    [Attributes.CONNECT_CONTEXT_STORE]:contextStore
                 }
             }
         } catch (error) {
-            console.error(defaultLogger + callId + " There is an Error in execution of TransferToThirdParty " + error.message);
-            return await terminatingFlowAction(smaEvent, SpeechAttributeMap, contextAttributes, ActualFlowARN, ContactFlowARNMap, defaultLogger, pauseAction, "error")
+            console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of TransferToThirdParty " + error.message);
+            return await terminatingFlowAction(smaEvent, "error")
         }
 
     }
-
 }
