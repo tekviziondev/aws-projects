@@ -20,7 +20,7 @@ export async function loadContactFlow(amazonConnectInstanceID: string, amazonCon
   let callId: string;
   try {
     
-    var params = {
+    /*var params = {
       MetricData: [
         {
           MetricName: 'Success',
@@ -35,7 +35,7 @@ export async function loadContactFlow(amazonConnectInstanceID: string, amazonCon
         },
       ],
       Namespace: 'ContactFlowProcesser/TekVizion'
-    };
+    };*/
     const legA = getLegACallDetails(smaEvent);
     callId = legA.CallId;
     if (!callId)
@@ -65,23 +65,24 @@ export async function loadContactFlow(amazonConnectInstanceID: string, amazonCon
       }
 
     }
+    /*cw.getM
     cw.putMetricData(params, function(err, data) {
       if (err) {
         console.log("Error", err);
       } else {
         console.log("Success", JSON.stringify(data));
       }
-    });
+    });*/
     
     return rv;
   } catch (error) {
-    cw.putMetricData(params, function(err, data) {
+    /*cw.putMetricData(params, function(err, data) {
       if (err) {
         console.log("Error", err);
       } else {
         console.log("Success", JSON.stringify(data));
       }
-    });
+    });*/
     console.error(defaultLogger + callId + " There is an Error in execution of Loading the Contact Flow " + error.message);
     return null;
   }
