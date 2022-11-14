@@ -1,0 +1,17 @@
+{
+    "Identifier": "e6203888-8b70-4ad6-a35f-1da8cbfc5a55",
+    "Parameters": {
+      "Text": "Welcome to tekvizion"
+    },
+    "Transitions": {
+      "NextAction": "bb3b921c-6af6-4dae-95d1-65bb80ac5e2d",
+      "Errors": [
+        {
+          "NextAction": "57d476d0-edc6-4e21-9162-bd482b019007",
+          "ErrorType": "NoMatchingError"
+        }
+      ],
+      "Conditions": []
+    },
+    "Type": "MessageParticipant"
+  }

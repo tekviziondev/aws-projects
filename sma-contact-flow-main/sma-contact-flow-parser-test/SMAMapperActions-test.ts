@@ -1,6 +1,6 @@
 import {DisconnectParticipant } from '../sma-contact-flow-parser/src/SMA_Mapping_Actions/disconnect-participant'
-import smaEvent from './SMAEvent.json';
-import contextStore from './ContextAttributs.json';
+import smaEvent from './smaEvent.json';
+import contextStore from './contextstoreVariables.json';
 
 
 (async() => {
