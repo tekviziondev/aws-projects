@@ -5,6 +5,7 @@ import { processFlowAction } from "../contact-flow-processor";
 import { Operators } from "../utility/comparison-operators";
 import { getNextActionForError } from "../utility/next-action-error";
 import { Attributes } from "../utility/constant-values";
+import { IContextStore } from "../utility/contextStore";
 /**
   * Comparing Contact Attributes and based on the result navigate to the Next Action
   * @param smaEvent 

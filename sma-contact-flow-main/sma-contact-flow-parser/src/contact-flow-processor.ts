@@ -37,7 +37,7 @@ const connectContextStore: string = "ConnectContextStore";
   */
 export async function processFlow(smaEvent: any, amazonConnectInstanceID: string, amazonConnectFlowID: string, bucketName: string) {
     let callId: string;
-    let contextStore={};
+    let contextStore:any;
     try {
         let type = "Contact_Flow";
         const transactionAttributes = smaEvent.CallDetails.TransactionAttributes;

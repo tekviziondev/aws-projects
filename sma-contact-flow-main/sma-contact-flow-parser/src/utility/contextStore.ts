@@ -9,5 +9,5 @@ export interface IContextStore{
     [ContextStore.SPEECH_ATTRIBUTES]:{},
     [ContextStore.CONTEXT_ATTRIBUTES]:{},
     [ContextStore.TMP_MAP]:{},  
-    [ContextStore.PAUSE_ACTION]:null
+    [ContextStore.PAUSE_ACTION]:any
 }
