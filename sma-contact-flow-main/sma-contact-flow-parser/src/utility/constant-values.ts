@@ -21,11 +21,11 @@ type Data = {
   DIALOG_TYPE: string,
   CONTENT_TYPE: string,
   SCHEMA_VERSION: string,
-  Failure_Speech_SSML:string,
-  Failure_Audio_Location:string,
-  CONNECT_CONTEXT_STORE:string,
-  DEFAULT_LOGGER:string,
-  CURRENT_FLOW_BLOCK:string
+  Failure_Speech_SSML: string,
+  Failure_Audio_Location: string,
+  CONNECT_CONTEXT_STORE: string,
+  DEFAULT_LOGGER: string,
+  CURRENT_FLOW_BLOCK: string
 };
 
 export class ContextStore {
@@ -119,11 +119,11 @@ export const Attributes: Data = {
   DIALOG_TYPE: "ElicitIntent",
   CONTENT_TYPE: "PlainText",
   SCHEMA_VERSION: "1.0",
-  Failure_Speech_SSML:FAILURE_SPEECH_SSML,
-  Failure_Audio_Location:FAILURE_AUDIO_FILE_LOCATION,
-  CONNECT_CONTEXT_STORE:"ConnectContextStore",
-  DEFAULT_LOGGER :"SMA-Contact-Flow-Builder | Call ID - ",
-  CURRENT_FLOW_BLOCK : "currentFlowBlock"
+  Failure_Speech_SSML: FAILURE_SPEECH_SSML,
+  Failure_Audio_Location: FAILURE_AUDIO_FILE_LOCATION,
+  CONNECT_CONTEXT_STORE: "ConnectContextStore",
+  DEFAULT_LOGGER: "SMA-Contact-Flow-Builder | Call ID - ",
+  CURRENT_FLOW_BLOCK: "currentFlowBlock"
 }
 
 export const Supported_Actions = ["Wait", "Loop", "TransferToFlow", "UpdateContactTextToSpeechVoice", "InvokeLambdaFunction", "UpdateContactAttributes", "Compare", "InvokeFlowModule", "EndFlowModuleExecution"];
@@ -131,11 +131,11 @@ export const Supported_Actions = ["Wait", "Loop", "TransferToFlow", "UpdateConta
 export const METRIC_PARAMS = {
   MetricData: [
     {
-      MetricName: "" ,
+      MetricName: "",
       Dimensions: [
         {
           Name: 'InstanceId',
-          Value: '' 
+          Value: ''
         },
         {
           Name: '',

@@ -17,7 +17,7 @@ import { IContextStore } from "../utility/context-store";
   * @returns SMA Action
   */
 export class Wait {
-    async processFlowActionWait(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, contextStore:IContextStore){
+    async processFlowActionWait(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, contextStore: IContextStore) {
         let callId: string;
         try {
             const legA = getLegACallDetails(smaEvent);

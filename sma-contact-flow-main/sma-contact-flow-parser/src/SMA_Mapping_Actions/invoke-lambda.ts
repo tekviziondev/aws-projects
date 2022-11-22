@@ -7,8 +7,8 @@ import { processFlowAction } from "../contact-flow-processor"
 import { getNextActionForError } from "../utility/next-action-error"
 import { Lambda } from "aws-sdk"
 import { IContextStore } from "../utility/context-store";
-import {METRIC_PARAMS} from "../utility/constant-values"
-import {updateMetric} from "../utility/metric-updation"
+import { METRIC_PARAMS } from "../utility/constant-values"
+import { updateMetric } from "../utility/metric-updation"
 
 /**
   * Invokes the External Lambda Function and stores the result of the Lambda function in Key Value Pair
@@ -21,24 +21,24 @@ import {updateMetric} from "../utility/metric-updation"
   * @returns The Next SMA Action to perform
   */
 export class InvokeLambda {
-    async processFlowActionInvokeLambdaFunction(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, contextStore:IContextStore ){
+    async processFlowActionInvokeLambdaFunction(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, contextStore: IContextStore) {
         let callId: string;
-        let regionVal=Attributes.region;        
+        let regionVal = Attributes.region;
         const lambda = new Lambda({ region: regionVal });
         console.log(Attributes.DEFAULT_LOGGER + callId + " Invoke Lombda Action:");
-        let params1=METRIC_PARAMS
-        params1.MetricData[0].Dimensions[0].Value=contextStore.ContextAttributes['$.InstanceARN']
-        if(contextStore['InvokeModuleARN']){
-            params1.MetricData[0].Dimensions[1].Name='Module Flow ID'
-            params1.MetricData[0].Dimensions[1].Value=contextStore['InvokeModuleARN']
+        let params1 = METRIC_PARAMS
+        params1.MetricData[0].Dimensions[0].Value = contextStore.ContextAttributes['$.InstanceARN']
+        if (contextStore['InvokeModuleARN']) {
+            params1.MetricData[0].Dimensions[1].Name = 'Module Flow ID'
+            params1.MetricData[0].Dimensions[1].Value = contextStore['InvokeModuleARN']
         }
-        else if(contextStore['TransferFlowARN']){
-            params1.MetricData[0].Dimensions[1].Name='Contact Flow ID'
-            params1.MetricData[0].Dimensions[1].Value=contextStore['TransferFlowARN']
+        else if (contextStore['TransferFlowARN']) {
+            params1.MetricData[0].Dimensions[1].Name = 'Contact Flow ID'
+            params1.MetricData[0].Dimensions[1].Value = contextStore['TransferFlowARN']
         }
-        else{
-            params1.MetricData[0].Dimensions[1].Name='Contact Flow ID'
-            params1.MetricData[0].Dimensions[1].Value=contextStore['ActualFlowARN']
+        else {
+            params1.MetricData[0].Dimensions[1].Name = 'Contact Flow ID'
+            params1.MetricData[0].Dimensions[1].Value = contextStore['ActualFlowARN']
         }
         try {
             const legA = getLegACallDetails(smaEvent);
@@ -47,35 +47,35 @@ export class InvokeLambda {
                 callId = smaEvent.ActionData.Parameters.CallId;
             let LambdaARN = action.Parameters.LambdaFunctionARN
             let inputForInvoking = await inputForInvokingLambda(action, contextStore);
-            console.log(Attributes.DEFAULT_LOGGER + callId + " Input for invoking lambda Function"+JSON.stringify(inputForInvoking));
+            console.log(Attributes.DEFAULT_LOGGER + callId + " Input for invoking lambda Function" + JSON.stringify(inputForInvoking));
             const params = {
                 FunctionName: LambdaARN,
                 InvocationType: 'RequestResponse',
                 Payload: JSON.stringify(inputForInvoking)
             };
             let result = await lambda.invoke(params).promise()
-            console.log(Attributes.DEFAULT_LOGGER + callId + " Invoke Lombda Action Result is "+result);
+            console.log(Attributes.DEFAULT_LOGGER + callId + " Invoke Lombda Action Result is " + result);
             if (!result) {
-                params1.MetricData[0].MetricName="InvokeLambdaNoResponse"
+                params1.MetricData[0].MetricName = "InvokeLambdaNoResponse"
                 updateMetric(params1);
                 let nextAction = await getNextActionForError(action, actions, ErrorTypes.NO_MATCHING_ERROR, smaEvent)
                 return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName, contextStore);
             }
-            params1.MetricData[0].MetricName="InvokeLambdaSuccess"
+            params1.MetricData[0].MetricName = "InvokeLambdaSuccess"
             updateMetric(params1);
             let x = JSON.parse(result.Payload.toString())
             console.log(Attributes.DEFAULT_LOGGER + callId + " The Result After Invoking Lambda is" + JSON.stringify(x))
             const keys = Object.keys(x);
             keys.forEach((key, index) => {
-                contextStore[ContextStore.CONTEXT_ATTRIBUTES]["$.External." + key]= x[key];
-                contextStore[ContextStore.TMP_MAP][key]= x[key];
+                contextStore[ContextStore.CONTEXT_ATTRIBUTES]["$.External." + key] = x[key];
+                contextStore[ContextStore.TMP_MAP][key] = x[key];
             });
 
             let nextAction = findActionByID(actions, action.Transitions.NextAction);
             console.log(Attributes.DEFAULT_LOGGER + callId + " Next Action identifier:" + action.Transitions.NextAction);
             return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName, contextStore);
         } catch (error) {
-            params1.MetricData[0].MetricName="InvokeLambdaFailure"
+            params1.MetricData[0].MetricName = "InvokeLambdaFailure"
             updateMetric(params1);
             console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution InvokeLambda" + error.message);
             return await terminatingFlowAction(smaEvent, "error")
@@ -93,21 +93,21 @@ export class InvokeLambda {
   * @param bucketName
   * @returns Process Flow Action
   */
-async function inputForInvokingLambda(action: any, contextStore:any) {
+async function inputForInvokingLambda(action: any, contextStore: any) {
     let InvocationAttributes: any[][] = Object.entries(action.Parameters.LambdaInvocationAttributes);
-    let contextAttributes=contextStore[ContextStore.CONTEXT_ATTRIBUTES]
- 
+    let contextAttributes = contextStore[ContextStore.CONTEXT_ATTRIBUTES]
+
     for (let i = 0; i < InvocationAttributes.length; i++) {
         // checking if the attribute value contains any user defined, system or External attributes for replacing it to the corresponding value
         if (InvocationAttributes[i][1].includes("$.External.") || InvocationAttributes[i][1].includes("$.Attributes.")) {
             const keys = Object.keys(contextAttributes);
-                keys.forEach((key, index) => {
-                    if (InvocationAttributes[i][1] == key)
+            keys.forEach((key, index) => {
+                if (InvocationAttributes[i][1] == key)
                     InvocationAttributes[i][1] = InvocationAttributes[i][1].replace(key, contextAttributes[key])
             });
         }
     }
-    
+
     let lambdaFunctionParameters = Object.fromEntries(InvocationAttributes.map(([k, v]) => [k, v]));
     let inputForInvoking = {
         "Details": {

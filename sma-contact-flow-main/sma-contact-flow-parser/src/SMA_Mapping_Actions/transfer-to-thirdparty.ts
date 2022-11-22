@@ -3,8 +3,8 @@ import { Attributes, ContextStore } from "../utility/constant-values"
 import { ChimeActions } from "../utility/chime-action-types";
 import { terminatingFlowAction } from "../utility/termination-action";
 import { IContextStore } from "../utility/context-store";
-import {METRIC_PARAMS} from "../utility/constant-values"
-import {updateMetric} from "../utility/metric-updation"
+import { METRIC_PARAMS } from "../utility/constant-values"
+import { updateMetric } from "../utility/metric-updation"
 
 
 /**
@@ -16,22 +16,22 @@ import {updateMetric} from "../utility/metric-updation"
   */
 
 export class TransferTOThirdParty {
-    async processFlowActionTransferParticipantToThirdParty(smaEvent: any, action: any,  contextStore:IContextStore){
+    async processFlowActionTransferParticipantToThirdParty(smaEvent: any, action: any, contextStore: IContextStore) {
         let callId: string;
         let smaAction1: any;
-        let params=METRIC_PARAMS
-        params.MetricData[0].Dimensions[0].Value=contextStore.ContextAttributes['$.InstanceARN']
-        if(contextStore['InvokeModuleARN']){
-            params.MetricData[0].Dimensions[1].Name='Module Flow ID'
-            params.MetricData[0].Dimensions[1].Value=contextStore['InvokeModuleARN']
+        let params = METRIC_PARAMS
+        params.MetricData[0].Dimensions[0].Value = contextStore.ContextAttributes['$.InstanceARN']
+        if (contextStore['InvokeModuleARN']) {
+            params.MetricData[0].Dimensions[1].Name = 'Module Flow ID'
+            params.MetricData[0].Dimensions[1].Value = contextStore['InvokeModuleARN']
         }
-        else if(contextStore['TransferFlowARN']){
-            params.MetricData[0].Dimensions[1].Name='Contact Flow ID'
-            params.MetricData[0].Dimensions[1].Value=contextStore['TransferFlowARN']
+        else if (contextStore['TransferFlowARN']) {
+            params.MetricData[0].Dimensions[1].Name = 'Contact Flow ID'
+            params.MetricData[0].Dimensions[1].Value = contextStore['TransferFlowARN']
         }
-        else{
-            params.MetricData[0].Dimensions[1].Name='Contact Flow ID'
-            params.MetricData[0].Dimensions[1].Value=contextStore['ActualFlowARN']
+        else {
+            params.MetricData[0].Dimensions[1].Name = 'Contact Flow ID'
+            params.MetricData[0].Dimensions[1].Value = contextStore['ActualFlowARN']
         }
         try {
             const legA = getLegACallDetails(smaEvent);
@@ -57,12 +57,12 @@ export class TransferTOThirdParty {
                 }
 
             };
-            params.MetricData[0].MetricName="TransferToThirdPartySuccess"
+            params.MetricData[0].MetricName = "TransferToThirdPartySuccess"
             updateMetric(params);
-            let pauseAction=contextStore[ContextStore.PAUSE_ACTION]
+            let pauseAction = contextStore[ContextStore.PAUSE_ACTION]
             if (pauseAction) {
                 smaAction1 = pauseAction;
-                contextStore[ContextStore.PAUSE_ACTION]=null
+                contextStore[ContextStore.PAUSE_ACTION] = null
                 return {
                     "SchemaVersion": Attributes.SCHEMA_VERSION,
                     "Actions": [
@@ -70,7 +70,7 @@ export class TransferTOThirdParty {
                     ],
                     "TransactionAttributes": {
                         [Attributes.CURRENT_FLOW_BLOCK]: action,
-                        [Attributes.CONNECT_CONTEXT_STORE]:contextStore
+                        [Attributes.CONNECT_CONTEXT_STORE]: contextStore
                     }
                 }
 
@@ -82,11 +82,11 @@ export class TransferTOThirdParty {
                 ],
                 "TransactionAttributes": {
                     [Attributes.CURRENT_FLOW_BLOCK]: action,
-                    [Attributes.CONNECT_CONTEXT_STORE]:contextStore
+                    [Attributes.CONNECT_CONTEXT_STORE]: contextStore
                 }
             }
         } catch (error) {
-            params.MetricData[0].MetricName="TransferToThirdPartyFailure"
+            params.MetricData[0].MetricName = "TransferToThirdPartyFailure"
             updateMetric(params);
             console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of TransferToThirdParty " + error.message);
             return await terminatingFlowAction(smaEvent, "error")

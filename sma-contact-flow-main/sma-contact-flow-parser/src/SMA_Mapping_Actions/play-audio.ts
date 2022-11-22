@@ -4,8 +4,8 @@ import { getAudioParameters } from "../utility/audio-parameters";
 import { terminatingFlowAction } from "../utility/termination-action";
 import { Attributes, ContextStore } from "../utility/constant-values";
 import { IContextStore } from "../utility/context-store";
-import {METRIC_PARAMS} from "../utility/constant-values"
-import {updateMetric} from "../utility/metric-updation"
+import { METRIC_PARAMS } from "../utility/constant-values"
+import { updateMetric } from "../utility/metric-updation"
 /**
   * Making a SMA action to play the Audio from S3 bucket
   * @param smaEvent 
@@ -15,27 +15,27 @@ import {updateMetric} from "../utility/metric-updation"
   */
 
 export class PlayAudio {
-    async processPlayAudio(smaEvent: any, action: any, contextStore:IContextStore) {
+    async processPlayAudio(smaEvent: any, action: any, contextStore: IContextStore) {
         let callId: string;
         let smaAction1: any;
-        let params=METRIC_PARAMS
-        params.MetricData[0].Dimensions[0].Value=contextStore.ContextAttributes['$.InstanceARN']
-        if(contextStore['InvokeModuleARN']){
-            params.MetricData[0].Dimensions[1].Name='Module Flow ID'
-            params.MetricData[0].Dimensions[1].Value=contextStore['InvokeModuleARN']
+        let params = METRIC_PARAMS
+        params.MetricData[0].Dimensions[0].Value = contextStore.ContextAttributes['$.InstanceARN']
+        if (contextStore['InvokeModuleARN']) {
+            params.MetricData[0].Dimensions[1].Name = 'Module Flow ID'
+            params.MetricData[0].Dimensions[1].Value = contextStore['InvokeModuleARN']
         }
-        else if(contextStore['TransferFlowARN']){
-            params.MetricData[0].Dimensions[1].Name='Contact Flow ID'
-            params.MetricData[0].Dimensions[1].Value=contextStore['TransferFlowARN']
+        else if (contextStore['TransferFlowARN']) {
+            params.MetricData[0].Dimensions[1].Name = 'Contact Flow ID'
+            params.MetricData[0].Dimensions[1].Value = contextStore['TransferFlowARN']
         }
-        else{
-            params.MetricData[0].Dimensions[1].Name='Contact Flow ID'
-            params.MetricData[0].Dimensions[1].Value=contextStore['ActualFlowARN']
+        else {
+            params.MetricData[0].Dimensions[1].Name = 'Contact Flow ID'
+            params.MetricData[0].Dimensions[1].Value = contextStore['ActualFlowARN']
         }
         try {
             const legA = getLegACallDetails(smaEvent);
             callId = legA.CallId;
-            let pauseAction=contextStore[ContextStore.PAUSE_ACTION];
+            let pauseAction = contextStore[ContextStore.PAUSE_ACTION];
             if (!callId)
                 callId = smaEvent.ActionData.Parameters.CallId;
             console.log(Attributes.DEFAULT_LOGGER + callId + "Play Audio Action");
@@ -47,11 +47,11 @@ export class PlayAudio {
                     "AudioSource": audio_parameters
                 }
             };
-            params.MetricData[0].MetricName="PlayAudioSuccess"
+            params.MetricData[0].MetricName = "PlayAudioSuccess"
             updateMetric(params);
             if (pauseAction) {
                 smaAction1 = pauseAction;
-                contextStore[ContextStore.PAUSE_ACTION]=null
+                contextStore[ContextStore.PAUSE_ACTION] = null
                 return {
                     "SchemaVersion": Attributes.SCHEMA_VERSION,
                     "Actions": [
@@ -59,7 +59,7 @@ export class PlayAudio {
                     ],
                     "TransactionAttributes": {
                         [Attributes.CURRENT_FLOW_BLOCK]: action,
-                        [Attributes.CONNECT_CONTEXT_STORE]:contextStore
+                        [Attributes.CONNECT_CONTEXT_STORE]: contextStore
                     }
                 }
 
@@ -71,14 +71,14 @@ export class PlayAudio {
                 ],
                 "TransactionAttributes": {
                     [Attributes.CURRENT_FLOW_BLOCK]: action,
-                    [Attributes.CONNECT_CONTEXT_STORE]:contextStore
+                    [Attributes.CONNECT_CONTEXT_STORE]: contextStore
                 }
             }
         } catch (error) {
-            params.MetricData[0].MetricName="PlayAudioFailure"
+            params.MetricData[0].MetricName = "PlayAudioFailure"
             updateMetric(params);
             console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of PlayAudio " + error.message);
-            return await terminatingFlowAction(smaEvent,"error")
+            return await terminatingFlowAction(smaEvent, "error")
         }
     }
 

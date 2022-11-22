@@ -18,7 +18,7 @@ import { IContextStore } from "./context-store";
   * @param contextStore
   * @returns SMA Action
   */
-export async function processFlowConditionValidation(smaEvent: any, actionObj: any, contactFlow: any, recieved_digits: any, amazonConnectInstanceID: string, bucketName: string, contextStore:IContextStore) {
+export async function processFlowConditionValidation(smaEvent: any, actionObj: any, contactFlow: any, recieved_digits: any, amazonConnectInstanceID: string, bucketName: string, contextStore: IContextStore) {
     let nextAction: any;
     let nextAction_id: any;
     let callId: string;

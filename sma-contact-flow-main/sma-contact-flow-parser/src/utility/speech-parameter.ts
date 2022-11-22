@@ -11,7 +11,7 @@ import { terminatingFlowAction } from "./termination-action";
  * @param contextStore
  * @returns Speech Parameters
  */
-export async function getSpeechParameters(smaEvent: any, action: any, contextStore:IContextStore) {
+export async function getSpeechParameters(smaEvent: any, action: any, contextStore: IContextStore) {
   let callId: string;
   try {
     const legA = getLegACallDetails(smaEvent);
@@ -33,9 +33,9 @@ export async function getSpeechParameters(smaEvent: any, action: any, contextSto
         type = Attributes.SSML;
       }
     }
-    return await speechParameters(text,type,speechAttributes,contextAttributes); 
+    return await speechParameters(text, type, speechAttributes, contextAttributes);
   } catch (error) {
-    console.error(Attributes.DEFAULT_LOGGER +callId +" There is an Error in execution of getting the Speech parameters " +error.message);
+    console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of getting the Speech parameters " + error.message);
     return await terminatingFlowAction(smaEvent, "error");
   }
 }
@@ -46,7 +46,7 @@ export async function getSpeechParameters(smaEvent: any, action: any, contextSto
  * @param defaultLogger
  * @returns Failure Speech Parameters
  */
-export async function FailureSpeechParameters(smaEvent: any,contextStore: any) {
+export async function FailureSpeechParameters(smaEvent: any, contextStore: any) {
   let callId: string;
   try {
     const legA = getLegACallDetails(smaEvent);
@@ -59,48 +59,48 @@ export async function FailureSpeechParameters(smaEvent: any,contextStore: any) {
       failureSpeech = Attributes.Failure_Speech_SSML;
     else
       failureSpeech = "<speak>  We're sorry.  We didn't get that. Please try again. <break time=\"200ms\"/></speak>";
-    return await speechParameters(failureSpeech,Attributes.SSML,speechAttributes,contextAttributes);
+    return await speechParameters(failureSpeech, Attributes.SSML, speechAttributes, contextAttributes);
   } catch (error) {
-    console.error(Attributes.DEFAULT_LOGGER +callId +" There is an Error in execution of getting the Failure Speech parameters " +error.message);
+    console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of getting the Failure Speech parameters " + error.message);
     return await terminatingFlowAction(smaEvent, "error");
   }
 }
 
-async function speechParameters(text:string,type:string,speechAttributes: any,contextAttributes:any) {
-    let rv = null;
-    let voiceId = Attributes.VOICE_ID;
-    let engine = Attributes.ENGINE;
-    let languageCode = Attributes.LANGUAGE_CODE;
-    if (speechAttributes && speechAttributes.hasOwnProperty(SpeechParameters.TEXT_TO_SPEECH_VOICE)) {
-      voiceId = speechAttributes[SpeechParameters.TEXT_TO_SPEECH_VOICE];
-    }
-    if (speechAttributes && speechAttributes.hasOwnProperty(SpeechParameters.TEXT_TO_SPEECH_ENGINE)) {
-      engine = speechAttributes[SpeechParameters.TEXT_TO_SPEECH_ENGINE].toLowerCase();
-    }
-    if (speechAttributes && speechAttributes.hasOwnProperty(SpeechParameters.LANGUAGE_CODE)) {
-      languageCode = speechAttributes[SpeechParameters.LANGUAGE_CODE];
-    }
+async function speechParameters(text: string, type: string, speechAttributes: any, contextAttributes: any) {
+  let rv = null;
+  let voiceId = Attributes.VOICE_ID;
+  let engine = Attributes.ENGINE;
+  let languageCode = Attributes.LANGUAGE_CODE;
+  if (speechAttributes && speechAttributes.hasOwnProperty(SpeechParameters.TEXT_TO_SPEECH_VOICE)) {
+    voiceId = speechAttributes[SpeechParameters.TEXT_TO_SPEECH_VOICE];
+  }
+  if (speechAttributes && speechAttributes.hasOwnProperty(SpeechParameters.TEXT_TO_SPEECH_ENGINE)) {
+    engine = speechAttributes[SpeechParameters.TEXT_TO_SPEECH_ENGINE].toLowerCase();
+  }
+  if (speechAttributes && speechAttributes.hasOwnProperty(SpeechParameters.LANGUAGE_CODE)) {
+    languageCode = speechAttributes[SpeechParameters.LANGUAGE_CODE];
+  }
 
-    if (text.includes("$.External.") || text.includes("$.Attributes.") || text.includes("$.")) {
-         // checking if the text/SSML contains any user defined, system or External attributes to replace with corresponding values
-         let x: Number;
-        const keys = Object.keys(contextAttributes);
-        console.log("Keys: " + keys);
-        keys.forEach((key, index) => {
-          if (text.includes(key)) {
-            x = count(text, key);
-            for (let index = 0; index < x; index++) {
-              text = text.replace(key, contextAttributes[key]);
-            }
-          }
-        });
+  if (text.includes("$.External.") || text.includes("$.Attributes.") || text.includes("$.")) {
+    // checking if the text/SSML contains any user defined, system or External attributes to replace with corresponding values
+    let x: Number;
+    const keys = Object.keys(contextAttributes);
+    console.log("Keys: " + keys);
+    keys.forEach((key, index) => {
+      if (text.includes(key)) {
+        x = count(text, key);
+        for (let index = 0; index < x; index++) {
+          text = text.replace(key, contextAttributes[key]);
+        }
       }
-    rv = {
-        Text: text,
-        TextType: type,
-        Engine: engine,
-        LanguageCode: languageCode,
-        VoiceId: voiceId,
-      };
-      return rv;
+    });
+  }
+  rv = {
+    Text: text,
+    TextType: type,
+    Engine: engine,
+    LanguageCode: languageCode,
+    VoiceId: voiceId,
+  };
+  return rv;
 }

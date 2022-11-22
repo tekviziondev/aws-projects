@@ -5,8 +5,8 @@ import { getSpeechParameters, FailureSpeechParameters } from "../utility/speech-
 import { PlayAudioAndGetDigits } from "./play-audio-getdigits";
 import { Attributes, ContextStore } from "../utility/constant-values";
 import { IContextStore } from "../utility/context-store";
-import {METRIC_PARAMS} from "../utility/constant-values"
-import {updateMetric} from "../utility/metric-updation"
+import { METRIC_PARAMS } from "../utility/constant-values"
+import { updateMetric } from "../utility/metric-updation"
 /**
   * Making a SMA action to perform delivering an audio message to obtain customer input.
   * @param smaEvent 
@@ -15,21 +15,21 @@ import {updateMetric} from "../utility/metric-updation"
   * @returns SMA Action
   */
 export class GetParticipantInput {
-    async processFlowActionGetParticipantInput(smaEvent: any, action: any,  contextStore:IContextStore) {
+    async processFlowActionGetParticipantInput(smaEvent: any, action: any, contextStore: IContextStore) {
         let callId: string;
-        let params=METRIC_PARAMS
-        params.MetricData[0].Dimensions[0].Value=contextStore.ContextAttributes['$.InstanceARN']
-        if(contextStore['InvokeModuleARN']){
-            params.MetricData[0].Dimensions[1].Name='Module Flow ID'
-            params.MetricData[0].Dimensions[1].Value=contextStore['InvokeModuleARN']
+        let params = METRIC_PARAMS
+        params.MetricData[0].Dimensions[0].Value = contextStore.ContextAttributes['$.InstanceARN']
+        if (contextStore['InvokeModuleARN']) {
+            params.MetricData[0].Dimensions[1].Name = 'Module Flow ID'
+            params.MetricData[0].Dimensions[1].Value = contextStore['InvokeModuleARN']
         }
-        else if(contextStore['TransferFlowARN']){
-            params.MetricData[0].Dimensions[1].Name='Contact Flow ID'
-            params.MetricData[0].Dimensions[1].Value=contextStore['TransferFlowARN']
+        else if (contextStore['TransferFlowARN']) {
+            params.MetricData[0].Dimensions[1].Name = 'Contact Flow ID'
+            params.MetricData[0].Dimensions[1].Value = contextStore['TransferFlowARN']
         }
-        else{
-            params.MetricData[0].Dimensions[1].Name='Contact Flow ID'
-            params.MetricData[0].Dimensions[1].Value=contextStore['ActualFlowARN']
+        else {
+            params.MetricData[0].Dimensions[1].Name = 'Contact Flow ID'
+            params.MetricData[0].Dimensions[1].Value = contextStore['ActualFlowARN']
         }
         try {
             let smaAction1: any;
@@ -74,12 +74,12 @@ export class GetParticipantInput {
                 const timeLimit: number = Number.parseInt(action.Parameters.InputTimeLimitSeconds);
                 smaAction.Parameters["RepeatDurationInMilliseconds"] = timeLimit * 1000;
             }
-            params.MetricData[0].MetricName="SpeakAndGetDigitsSuccess"
+            params.MetricData[0].MetricName = "SpeakAndGetDigitsSuccess"
             updateMetric(params);
-            let pauseAction=contextStore[ContextStore.PAUSE_ACTION];
+            let pauseAction = contextStore[ContextStore.PAUSE_ACTION];
             if (pauseAction) {
                 smaAction1 = pauseAction;
-                contextStore[ContextStore.PAUSE_ACTION]=null
+                contextStore[ContextStore.PAUSE_ACTION] = null
                 return {
                     "SchemaVersion": Attributes.SCHEMA_VERSION,
                     "Actions": [
@@ -103,10 +103,10 @@ export class GetParticipantInput {
                 }
             }
         } catch (error) {
-            params.MetricData[0].MetricName="SpeakAndGetDigitsFailure"
+            params.MetricData[0].MetricName = "SpeakAndGetDigitsFailure"
             updateMetric(params);
             console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of GetParticipantInput" + error.message);
-            return await terminatingFlowAction(smaEvent,  "error")
+            return await terminatingFlowAction(smaEvent, "error")
         }
     }
 }
