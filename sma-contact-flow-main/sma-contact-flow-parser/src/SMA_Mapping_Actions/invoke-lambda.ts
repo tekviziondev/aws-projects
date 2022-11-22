@@ -7,6 +7,8 @@ import { processFlowAction } from "../contact-flow-processor"
 import { getNextActionForError } from "../utility/next-action-error"
 import { Lambda } from "aws-sdk"
 import { IContextStore } from "../utility/context-store";
+import {METRIC_PARAMS} from "../utility/constant-values"
+import {updateMetric} from "../utility/metric-updation"
 
 /**
   * Invokes the External Lambda Function and stores the result of the Lambda function in Key Value Pair
@@ -21,12 +23,23 @@ import { IContextStore } from "../utility/context-store";
 export class InvokeLambda {
     async processFlowActionInvokeLambdaFunction(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, contextStore:IContextStore ){
         let callId: string;
-        let regionVal="";
-        if(Attributes.region)
-        regionVal=Attributes.region;
-        else
-        regionVal='us-east-1';
+        let regionVal=Attributes.region;        
         const lambda = new Lambda({ region: regionVal });
+        console.log(Attributes.DEFAULT_LOGGER + callId + " Invoke Lombda Action:");
+        let params1=METRIC_PARAMS
+        params1.MetricData[0].Dimensions[0].Value=contextStore.ContextAttributes['$.InstanceARN']
+        if(contextStore['InvokeModuleARN']){
+            params1.MetricData[0].Dimensions[1].Name='Module Flow ID'
+            params1.MetricData[0].Dimensions[1].Value=contextStore['InvokeModuleARN']
+        }
+        else if(contextStore['TransferFlowARN']){
+            params1.MetricData[0].Dimensions[1].Name='Contact Flow ID'
+            params1.MetricData[0].Dimensions[1].Value=contextStore['TransferFlowARN']
+        }
+        else{
+            params1.MetricData[0].Dimensions[1].Name='Contact Flow ID'
+            params1.MetricData[0].Dimensions[1].Value=contextStore['ActualFlowARN']
+        }
         try {
             const legA = getLegACallDetails(smaEvent);
             callId = legA.CallId;
@@ -34,16 +47,22 @@ export class InvokeLambda {
                 callId = smaEvent.ActionData.Parameters.CallId;
             let LambdaARN = action.Parameters.LambdaFunctionARN
             let inputForInvoking = await inputForInvokingLambda(action, contextStore);
+            console.log(Attributes.DEFAULT_LOGGER + callId + " Input for invoking lambda Function"+JSON.stringify(inputForInvoking));
             const params = {
                 FunctionName: LambdaARN,
                 InvocationType: 'RequestResponse',
                 Payload: JSON.stringify(inputForInvoking)
             };
             let result = await lambda.invoke(params).promise()
+            console.log(Attributes.DEFAULT_LOGGER + callId + " Invoke Lombda Action Result is "+result);
             if (!result) {
+                params1.MetricData[0].MetricName="InvokeLambdaNoResponse"
+                updateMetric(params1);
                 let nextAction = await getNextActionForError(action, actions, ErrorTypes.NO_MATCHING_ERROR, smaEvent)
                 return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName, contextStore);
             }
+            params1.MetricData[0].MetricName="InvokeLambdaSuccess"
+            updateMetric(params1);
             let x = JSON.parse(result.Payload.toString())
             console.log(Attributes.DEFAULT_LOGGER + callId + " The Result After Invoking Lambda is" + JSON.stringify(x))
             const keys = Object.keys(x);
@@ -56,6 +75,8 @@ export class InvokeLambda {
             console.log(Attributes.DEFAULT_LOGGER + callId + " Next Action identifier:" + action.Transitions.NextAction);
             return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName, contextStore);
         } catch (error) {
+            params1.MetricData[0].MetricName="InvokeLambdaFailure"
+            updateMetric(params1);
             console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution InvokeLambda" + error.message);
             return await terminatingFlowAction(smaEvent, "error")
         }

@@ -2,6 +2,11 @@ import { ChimeActions } from "../utility/chime-action-types";
 import { getLegACallDetails } from "../utility/call-details";
 import { Attributes, ContextStore } from "../utility/constant-values";
 import { IContextStore } from "../utility/context-store";
+import {METRIC_PARAMS} from "../utility/constant-values"
+import {CloudWatch} from 'aws-sdk';
+import {updateMetric} from "../utility/metric-updation"
+var cw = new CloudWatch({apiVersion: '2010-08-01'});
+
 /**
   * Making a SMA action to perform Ends the interaction.
   * @param smaEvent 
@@ -12,7 +17,22 @@ export class DisconnectParticipant {
     async processFlowActionDisconnectParticipant(smaEvent: any, contextStore:IContextStore){
         let callId: string;
         let smaAction1: any;
-        const legA = getLegACallDetails(smaEvent);
+        let params=METRIC_PARAMS
+        params.MetricData[0].Dimensions[0].Value=contextStore.ContextAttributes['$.InstanceARN']
+        if(contextStore['InvokeModuleARN']){
+            params.MetricData[0].Dimensions[1].Name='Module Flow ID'
+            params.MetricData[0].Dimensions[1].Value=contextStore['InvokeModuleARN']
+        }
+        else if(contextStore['TransferFlowARN']){
+            params.MetricData[0].Dimensions[1].Name='Contact Flow ID'
+            params.MetricData[0].Dimensions[1].Value=contextStore['TransferFlowARN']
+        }
+        else{
+            params.MetricData[0].Dimensions[1].Name='Contact Flow ID'
+            params.MetricData[0].Dimensions[1].Value=contextStore['ActualFlowARN']
+        }
+        try {
+            const legA = getLegACallDetails(smaEvent);
         callId = legA.CallId;
         if (!callId)
             callId = smaEvent.ActionData.Parameters.CallId;
@@ -25,6 +45,8 @@ export class DisconnectParticipant {
                 "CallId": callId
             }
         };
+        params.MetricData[0].MetricName="NO_OF_DISCONNECTED_CALLS"
+        updateMetric(params);    
         let pauseAction=contextStore[ContextStore.PAUSE_ACTION]
         if (pauseAction) {
             smaAction1 = pauseAction;
@@ -44,5 +66,9 @@ export class DisconnectParticipant {
             ],
             
         }
+        } catch (error) {
+            console.log("There is an Error in Disconnceting Participant for call ID"+callId +error.message)
+        }
+        
     }
 }

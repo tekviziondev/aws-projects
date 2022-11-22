@@ -3,6 +3,8 @@ import { ChimeActions } from "../utility/chime-action-types";
 import { Attributes, ContextStore } from "../utility/constant-values";
 import { IContextStore } from "../utility/context-store";
 import { terminatingFlowAction } from "../utility/termination-action";
+import {METRIC_PARAMS} from "../utility/constant-values"
+import {updateMetric} from "../utility/metric-updation"
 
 /**
   * Making a SMA action to perform Call Recording and Start storing it in the S3 Bucket Location
@@ -16,6 +18,20 @@ export class CallRecording {
     async processFlowActionUpdateContactRecordingBehavior(smaEvent: any, action: any,contextStore:IContextStore){
         let callId: string;
         let pauseAction=contextStore[ContextStore.PAUSE_ACTION]
+        let params=METRIC_PARAMS
+        params.MetricData[0].Dimensions[0].Value=contextStore.ContextAttributes['$.InstanceARN']
+        if(contextStore['InvokeModuleARN']){
+            params.MetricData[0].Dimensions[1].Name='Module Flow ID'
+            params.MetricData[0].Dimensions[1].Value=contextStore['InvokeModuleARN']
+        }
+        else if(contextStore['TransferFlowARN']){
+            params.MetricData[0].Dimensions[1].Name='Contact Flow ID'
+            params.MetricData[0].Dimensions[1].Value=contextStore['TransferFlowARN']
+        }
+        else{
+            params.MetricData[0].Dimensions[1].Name='Contact Flow ID'
+            params.MetricData[0].Dimensions[1].Value=contextStore['ActualFlowARN']
+        }
         try {
             let smaAction1: any;
             const legA = getLegACallDetails(smaEvent);
@@ -49,6 +65,8 @@ export class CallRecording {
                 }
             };
         }
+        params.MetricData[0].MetricName=smaAction.Type+"Success"
+        updateMetric(params);
             if (pauseAction) {
                 smaAction1 = pauseAction;
                 contextStore[ContextStore.PAUSE_ACTION]=null

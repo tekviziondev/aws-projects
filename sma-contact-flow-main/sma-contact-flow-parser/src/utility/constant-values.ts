@@ -127,3 +127,24 @@ export const Attributes: Data = {
 }
 
 export const Supported_Actions = ["Wait", "Loop", "TransferToFlow", "UpdateContactTextToSpeechVoice", "InvokeLambdaFunction", "UpdateContactAttributes", "Compare", "InvokeFlowModule", "EndFlowModuleExecution"];
+
+export const METRIC_PARAMS = {
+  MetricData: [
+    {
+      MetricName: "" ,
+      Dimensions: [
+        {
+          Name: 'InstanceId',
+          Value: '' 
+        },
+        {
+          Name: '',
+          Value: ''
+        }
+      ],
+      Unit: 'None',
+      Value: 1.0
+    },
+  ],
+  Namespace: 'tekvizion'
+};

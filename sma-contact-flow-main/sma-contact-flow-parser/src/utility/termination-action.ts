@@ -1,6 +1,10 @@
 import { ChimeActions } from "./chime-action-types";
 import { getLegACallDetails } from "./call-details";
 import { Attributes, ContextStore, SpeechParameters } from "./constant-values";
+import {METRIC_PARAMS} from "../utility/constant-values"
+import {CloudWatch} from 'aws-sdk';
+var cw = new CloudWatch({apiVersion: '2010-08-01'});
+import {updateMetric} from "../utility/metric-updation"
 /**
   * This Terminates the existing call if there are any error occured in the Flow execution
   * @param smaEvent 
@@ -12,7 +16,21 @@ export async function terminatingFlowAction(smaEvent: any,  actionType: string) 
     let type: string;
     let x: Number;
     let callId: string;
-
+    let contextStore=smaEvent.CallDetails.TransactionAttributes.ConnectContextStore
+    let params=METRIC_PARAMS
+    params.MetricData[0].Dimensions[0].Value=contextStore.ContextAttributes['$.InstanceARN']
+    if(contextStore['InvokeModuleARN']){
+        params.MetricData[0].Dimensions[1].Name='Module Flow ID'
+        params.MetricData[0].Dimensions[1].Value=contextStore['InvokeModuleARN']
+    }
+    else if(contextStore['TransferFlowARN']){
+        params.MetricData[0].Dimensions[1].Name='Contact Flow ID'
+        params.MetricData[0].Dimensions[1].Value=contextStore['TransferFlowARN']
+    }
+    else{
+        params.MetricData[0].Dimensions[1].Name='Contact Flow ID'
+        params.MetricData[0].Dimensions[1].Value=contextStore['ActualFlowARN']
+    }
     try {
         let voiceId = Attributes.VOICE_ID
         let engine = Attributes.ENGINE
@@ -42,6 +60,8 @@ export async function terminatingFlowAction(smaEvent: any,  actionType: string) 
             text = "There is an Error in the Exceution"
         }
         else {
+            params.MetricData[0].MetricName="UnSupportedAction"
+            updateMetric(params)
             console.log(Attributes.DEFAULT_LOGGER + callId + "The Action " + actionType + " is not supported , The Flow is going to Terminate, Please use only the Supported Action");
             text = "The action " + actionType + " is unsupported Action defined in the Contact flow, your call is going to disconnect"
         }
@@ -64,6 +84,8 @@ export async function terminatingFlowAction(smaEvent: any,  actionType: string) 
                 "CallId": callId
             }
         };
+        params.MetricData[0].MetricName="NO_OF_DISCONNECTED_CALLS"
+        updateMetric(params);    
         return {
             "SchemaVersion": Attributes.SCHEMA_VERSION,
             "Actions": [smaAction, smaAction1]

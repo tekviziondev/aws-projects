@@ -23,7 +23,8 @@ import { EventTypes } from "./utility/event-types";
 import { findActionByID } from "./utility/find-action-id";
 import { getNextActionForError } from "./utility/next-action-error";
 import { terminatingFlowAction } from "./utility/termination-action";
-
+import {METRIC_PARAMS} from "./utility/constant-values"
+import {updateMetric} from "./utility/metric-updation"
 const connectContextStore: string = "ConnectContextStore";
 
 /**
@@ -85,7 +86,13 @@ export async function processFlow(smaEvent: any, amazonConnectInstanceID: string
         }
         else {
             if (smaEvent.InvocationEventType === EventTypes.NEW_INBOUND_CALL){
-               let  contextAttributes= await storeSystemAttributs(smaEvent, amazonConnectFlowID, amazonConnectFlowID)
+                let params=METRIC_PARAMS
+                params.MetricData[0].MetricName="NO_OF_INCOMING_CALLS"
+                params.MetricData[0].Dimensions[0].Value=amazonConnectInstanceID
+                params.MetricData[0].Dimensions[1].Name='Contact Flow ID'
+                params.MetricData[0].Dimensions[1].Value=amazonConnectFlowID
+                updateMetric(params);
+               let  contextAttributes= await storeSystemAttributs(smaEvent, amazonConnectFlowID, amazonConnectInstanceID)
                  contextStore={
                     [ContextStore.LOOP_COUNT]:"0",
                     [ContextStore.TRANSFER_FLOW_ARN]:"",
@@ -284,6 +291,8 @@ function updateConnectContextStore(transactionAttributes: any, key: string, valu
         transactionAttributes[connectContextStore][key] = value;
     }
     return transactionAttributes;
+
+
 }
 
 /**
