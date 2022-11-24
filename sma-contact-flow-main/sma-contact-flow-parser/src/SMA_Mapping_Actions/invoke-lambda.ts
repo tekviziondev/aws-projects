@@ -27,18 +27,22 @@ export class InvokeLambda {
         const lambda = new Lambda({ region: regionVal });
         console.log(Attributes.DEFAULT_LOGGER + callId + " Invoke Lombda Action:");
         let params1 = METRIC_PARAMS
-        params1.MetricData[0].Dimensions[0].Value = contextStore.ContextAttributes['$.InstanceARN']
-        if (contextStore['InvokeModuleARN']) {
-            params1.MetricData[0].Dimensions[1].Name = 'Module Flow ID'
-            params1.MetricData[0].Dimensions[1].Value = contextStore['InvokeModuleARN']
-        }
-        else if (contextStore['TransferFlowARN']) {
-            params1.MetricData[0].Dimensions[1].Name = 'Contact Flow ID'
-            params1.MetricData[0].Dimensions[1].Value = contextStore['TransferFlowARN']
-        }
-        else {
-            params1.MetricData[0].Dimensions[1].Name = 'Contact Flow ID'
-            params1.MetricData[0].Dimensions[1].Value = contextStore['ActualFlowARN']
+        try {
+            params1.MetricData[0].Dimensions[0].Value = contextStore.ContextAttributes['$.InstanceARN']
+            if (contextStore['InvokeModuleARN']) {
+                params1.MetricData[0].Dimensions[1].Name = 'Module Flow ID'
+                params1.MetricData[0].Dimensions[1].Value = contextStore['InvokeModuleARN']
+            }
+            else if (contextStore['TransferFlowARN']) {
+                params1.MetricData[0].Dimensions[1].Name = 'Contact Flow ID'
+                params1.MetricData[0].Dimensions[1].Value = contextStore['TransferFlowARN']
+            }
+            else {
+                params1.MetricData[0].Dimensions[1].Name = 'Contact Flow ID'
+                params1.MetricData[0].Dimensions[1].Value = contextStore['ActualFlowARN']
+            }
+        } catch (error) {
+            console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId + " There is an Error in creating the Metric Params " + error.message);
         }
         try {
             const legA = getLegACallDetails(smaEvent);

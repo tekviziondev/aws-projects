@@ -23,19 +23,23 @@ import { updateMetric } from "../utility/metric-updation"
 export class CompareAttribute {
     async processFlowActionCompareContactAttributes(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, contextStore: IContextStore) {
         let nextAction: any;
-        let params = METRIC_PARAMS
-        params.MetricData[0].Dimensions[0].Value = contextStore.ContextAttributes['$.InstanceARN']
-        if (contextStore['InvokeModuleARN']) {
-            params.MetricData[0].Dimensions[1].Name = 'Module Flow ID'
-            params.MetricData[0].Dimensions[1].Value = contextStore['InvokeModuleARN']
-        }
-        else if (contextStore['TransferFlowARN']) {
-            params.MetricData[0].Dimensions[1].Name = 'Contact Flow ID'
-            params.MetricData[0].Dimensions[1].Value = contextStore['TransferFlowARN']
-        }
-        else {
-            params.MetricData[0].Dimensions[1].Name = 'Contact Flow ID'
-            params.MetricData[0].Dimensions[1].Value = contextStore['ActualFlowARN']
+       let params = METRIC_PARAMS
+        try {
+            params.MetricData[0].Dimensions[0].Value = contextStore.ContextAttributes['$.InstanceARN']
+            if (contextStore['InvokeModuleARN']) {
+                params.MetricData[0].Dimensions[1].Name = 'Module Flow ID'
+                params.MetricData[0].Dimensions[1].Value = contextStore['InvokeModuleARN']
+            }
+            else if (contextStore['TransferFlowARN']) {
+                params.MetricData[0].Dimensions[1].Name = 'Contact Flow ID'
+                params.MetricData[0].Dimensions[1].Value = contextStore['TransferFlowARN']
+            }
+            else {
+                params.MetricData[0].Dimensions[1].Name = 'Contact Flow ID'
+                params.MetricData[0].Dimensions[1].Value = contextStore['ActualFlowARN']
+            }
+        } catch (error) {
+            console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId + " There is an Error in creating the Metric Params " + error.message);
         }
         try {
             let callId: string;

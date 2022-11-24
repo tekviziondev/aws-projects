@@ -20,18 +20,22 @@ export class MessageParticipant {
         let callId: string;
         const legA = getLegACallDetails(smaEvent);
         let params = METRIC_PARAMS
-        params.MetricData[0].Dimensions[0].Value = contextStore.ContextAttributes['$.InstanceARN']
-        if (contextStore['InvokeModuleARN']) {
-            params.MetricData[0].Dimensions[1].Name = 'Module Flow ID'
-            params.MetricData[0].Dimensions[1].Value = contextStore['InvokeModuleARN']
-        }
-        else if (contextStore['TransferFlowARN']) {
-            params.MetricData[0].Dimensions[1].Name = 'Contact Flow ID'
-            params.MetricData[0].Dimensions[1].Value = contextStore['TransferFlowARN']
-        }
-        else {
-            params.MetricData[0].Dimensions[1].Name = 'Contact Flow ID'
-            params.MetricData[0].Dimensions[1].Value = contextStore['ActualFlowARN']
+        try {
+            params.MetricData[0].Dimensions[0].Value = contextStore.ContextAttributes['$.InstanceARN']
+            if (contextStore['InvokeModuleARN']) {
+                params.MetricData[0].Dimensions[1].Name = 'Module Flow ID'
+                params.MetricData[0].Dimensions[1].Value = contextStore['InvokeModuleARN']
+            }
+            else if (contextStore['TransferFlowARN']) {
+                params.MetricData[0].Dimensions[1].Name = 'Contact Flow ID'
+                params.MetricData[0].Dimensions[1].Value = contextStore['TransferFlowARN']
+            }
+            else {
+                params.MetricData[0].Dimensions[1].Name = 'Contact Flow ID'
+                params.MetricData[0].Dimensions[1].Value = contextStore['ActualFlowARN']
+            }
+        } catch (error) {
+            console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId + " There is an Error in creating the Metric Params " + error.message);
         }
         try {
             callId = legA.CallId;
