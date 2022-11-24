@@ -3,6 +3,7 @@ import { S3 } from 'aws-sdk';
 import { getLegACallDetails } from './utility/call-details'
 import { METRIC_PARAMS } from "./utility/constant-values"
 import { updateMetric } from "./utility/metric-updation"
+import { Attributes } from "./utility/constant-values";
 
 let s3Bucket: string;
 const cacheTimeInMilliseconds: number = 5000;
@@ -20,14 +21,19 @@ export async function loadContactFlow(amazonConnectInstanceID: string, amazonCon
   let callId: string;
   let metric_type: string;
   let params = METRIC_PARAMS
-  params.MetricData[0].Dimensions[0].Value = amazonConnectInstanceID
-  params.MetricData[0].Dimensions[1].Value = amazonConnectContactFlowID
-  params.MetricData[0].Dimensions[1].Name = "Contact Flow ID"
-  metric_type = "ContactFlow"
-  if (type === "Invoke_Module") {
-    metric_type = "Module"
-    params.MetricData[0].Dimensions[1].Name = 'Module Flow ID'
+  try {
+    params.MetricData[0].Dimensions[0].Value = amazonConnectInstanceID
+    params.MetricData[0].Dimensions[1].Value = amazonConnectContactFlowID
+    params.MetricData[0].Dimensions[1].Name = "Contact Flow ID"
+    metric_type = "ContactFlow"
+    if (type === "Invoke_Module") {
+      metric_type = "Module"
+      params.MetricData[0].Dimensions[1].Name = 'Module Flow ID'
+    }
+  } catch (error) {
+    console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId+ Attributes.METRIC_ERROR + error.message);
   }
+ 
 
   try {
     const legA = getLegACallDetails(smaEvent);

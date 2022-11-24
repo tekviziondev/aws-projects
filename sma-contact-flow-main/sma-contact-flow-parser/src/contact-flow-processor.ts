@@ -87,11 +87,16 @@ export async function processFlow(smaEvent: any, amazonConnectInstanceID: string
         else {
             if (smaEvent.InvocationEventType === EventTypes.NEW_INBOUND_CALL) {
                 let params = METRIC_PARAMS
-                params.MetricData[0].MetricName = "NO_OF_INCOMING_CALLS"
-                params.MetricData[0].Dimensions[0].Value = amazonConnectInstanceID
-                params.MetricData[0].Dimensions[1].Name = 'Contact Flow ID'
-                params.MetricData[0].Dimensions[1].Value = amazonConnectFlowID
-                updateMetric(params);
+                try {
+                    params.MetricData[0].MetricName = "NO_OF_INCOMING_CALLS"
+                    params.MetricData[0].Dimensions[0].Value = amazonConnectInstanceID
+                    params.MetricData[0].Dimensions[1].Name = 'Contact Flow ID'
+                    params.MetricData[0].Dimensions[1].Value = amazonConnectFlowID
+                    updateMetric(params);
+                } catch (error) {
+                    console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId + Attributes.METRIC_ERROR + error.message);
+                }
+
                 let contextAttributes = await storeSystemAttributs(smaEvent, amazonConnectFlowID, amazonConnectInstanceID)
                 contextStore = {
                     [ContextStore.LOOP_COUNT]: "0",

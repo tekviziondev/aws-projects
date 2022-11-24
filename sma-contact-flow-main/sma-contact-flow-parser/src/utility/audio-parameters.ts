@@ -85,7 +85,7 @@ export async function failureAudioParameters(smaEvent: any, action: any) {
         console.log(Attributes.DEFAULT_LOGGER + callId + " Failure Audio Parameters : " + rv);
         return rv;
     } catch (error) {
-        console.log(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of Get Failure Audio Parameters " + error.message);
+        console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of Get Failure Audio Parameters " + error.message);
         return await terminatingFlowAction(smaEvent, "error")
     }
 }

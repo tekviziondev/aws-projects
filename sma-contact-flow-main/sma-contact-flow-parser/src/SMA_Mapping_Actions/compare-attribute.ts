@@ -23,7 +23,7 @@ import { updateMetric } from "../utility/metric-updation"
 export class CompareAttribute {
     async processFlowActionCompareContactAttributes(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, contextStore: IContextStore) {
         let nextAction: any;
-       let params = METRIC_PARAMS
+        let params = METRIC_PARAMS
         try {
             params.MetricData[0].Dimensions[0].Value = contextStore.ContextAttributes['$.InstanceARN']
             if (contextStore['InvokeModuleARN']) {
@@ -39,7 +39,7 @@ export class CompareAttribute {
                 params.MetricData[0].Dimensions[1].Value = contextStore['ActualFlowARN']
             }
         } catch (error) {
-            console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId + " There is an Error in creating the Metric Params " + error.message);
+            console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId+ Attributes.METRIC_ERROR + error.message);
         }
         try {
             let callId: string;

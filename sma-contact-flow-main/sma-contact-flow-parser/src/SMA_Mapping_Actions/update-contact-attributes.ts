@@ -38,7 +38,7 @@ export class UpdateContactAttrbts {
                 params.MetricData[0].Dimensions[1].Value = contextStore['ActualFlowARN']
             }
         } catch (error) {
-            console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in creating the Metric Params " + error.message);
+            console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId+ Attributes.METRIC_ERROR + error.message);
         }
 
         try {
