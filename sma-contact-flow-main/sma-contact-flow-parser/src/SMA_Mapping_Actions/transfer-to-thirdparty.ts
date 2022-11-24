@@ -3,6 +3,9 @@ import { Attributes, ContextStore } from "../utility/constant-values"
 import { ChimeActions } from "../utility/chime-action-types";
 import { terminatingFlowAction } from "../utility/termination-action";
 import { IContextStore } from "../utility/context-store";
+import { METRIC_PARAMS } from "../utility/constant-values"
+import { updateMetric } from "../utility/metric-updation"
+
 
 /**
   * Making a SMA action to perform Transfer a call to a phone number for voice interactions.
@@ -13,9 +16,27 @@ import { IContextStore } from "../utility/context-store";
   */
 
 export class TransferTOThirdParty {
-    async processFlowActionTransferParticipantToThirdParty(smaEvent: any, action: any,  contextStore:IContextStore){
+    async processFlowActionTransferParticipantToThirdParty(smaEvent: any, action: any, contextStore: IContextStore) {
         let callId: string;
         let smaAction1: any;
+        let params = METRIC_PARAMS
+        try {
+            params.MetricData[0].Dimensions[0].Value = contextStore.ContextAttributes['$.InstanceARN']
+            if (contextStore['InvokeModuleARN']) {
+                params.MetricData[0].Dimensions[1].Name = 'Module Flow ID'
+                params.MetricData[0].Dimensions[1].Value = contextStore['InvokeModuleARN']
+            }
+            else if (contextStore['TransferFlowARN']) {
+                params.MetricData[0].Dimensions[1].Name = 'Contact Flow ID'
+                params.MetricData[0].Dimensions[1].Value = contextStore['TransferFlowARN']
+            }
+            else {
+                params.MetricData[0].Dimensions[1].Name = 'Contact Flow ID'
+                params.MetricData[0].Dimensions[1].Value = contextStore['ActualFlowARN']
+            }
+        } catch (error) {
+            console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId+ Attributes.METRIC_ERROR + error.message);
+        }
         try {
             const legA = getLegACallDetails(smaEvent);
             callId = legA.CallId;
@@ -40,10 +61,12 @@ export class TransferTOThirdParty {
                 }
 
             };
-            let pauseAction=contextStore[ContextStore.PAUSE_ACTION]
+            params.MetricData[0].MetricName = "TransferToThirdPartySuccess"
+            updateMetric(params);
+            let pauseAction = contextStore[ContextStore.PAUSE_ACTION]
             if (pauseAction) {
                 smaAction1 = pauseAction;
-                contextStore[ContextStore.PAUSE_ACTION]=null
+                contextStore[ContextStore.PAUSE_ACTION] = null
                 return {
                     "SchemaVersion": Attributes.SCHEMA_VERSION,
                     "Actions": [
@@ -51,12 +74,11 @@ export class TransferTOThirdParty {
                     ],
                     "TransactionAttributes": {
                         [Attributes.CURRENT_FLOW_BLOCK]: action,
-                        [Attributes.CONNECT_CONTEXT_STORE]:contextStore
+                        [Attributes.CONNECT_CONTEXT_STORE]: contextStore
                     }
                 }
 
             }
-
             return {
                 "SchemaVersion": Attributes.SCHEMA_VERSION,
                 "Actions": [
@@ -64,10 +86,12 @@ export class TransferTOThirdParty {
                 ],
                 "TransactionAttributes": {
                     [Attributes.CURRENT_FLOW_BLOCK]: action,
-                    [Attributes.CONNECT_CONTEXT_STORE]:contextStore
+                    [Attributes.CONNECT_CONTEXT_STORE]: contextStore
                 }
             }
         } catch (error) {
+            params.MetricData[0].MetricName = "TransferToThirdPartyFailure"
+            updateMetric(params);
             console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of TransferToThirdParty " + error.message);
             return await terminatingFlowAction(smaEvent, "error")
         }

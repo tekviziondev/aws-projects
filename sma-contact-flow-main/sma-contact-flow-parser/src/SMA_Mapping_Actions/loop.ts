@@ -16,7 +16,7 @@ import { IContextStore } from "../utility/context-store";
   * @returns SMA Action
   */
 export class Loop {
-    async processFlowActionLoop(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, contextStore:IContextStore) {
+    async processFlowActionLoop(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, contextStore: IContextStore) {
         let callId: string;
         try {
             const legA = getLegACallDetails(smaEvent);
@@ -25,27 +25,27 @@ export class Loop {
                 callId = smaEvent.ActionData.Parameters.CallId;
             let ActualloopCountVal = action.Parameters.LoopCount;
             let loopCountVal = contextStore[ContextStore.LOOP_COUNT]
-            console.log("loopCountVal: "+loopCountVal);
-            if (loopCountVal !== ActualloopCountVal){
-                    let nextAction = "";
-                    if(action.Transitions.Conditions[0].Condition.Operands[0]==='ContinueLooping')
-                    nextAction= findActionByID(actions, action.Transitions.Conditions[0].NextAction)
-                    else
-                    nextAction= findActionByID(actions, action.Transitions.Conditions[1].NextAction)
-                    console.log(Attributes.DEFAULT_LOGGER + callId + " Next Action identifier:" + action.Transitions.Conditions[0].NextAction);
-                    let count = String(Number.parseInt(loopCountVal) + 1)
-                    contextStore[ContextStore.LOOP_COUNT] = count;
-                    return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName, contextStore);
-                } else {
-                    contextStore[ContextStore.LOOP_COUNT] = "0";
-                    let nextAction = "";
-                    if(action.Transitions.Conditions[0].Condition.Operands[0]==='DoneLooping')
-                    nextAction= findActionByID(actions, action.Transitions.Conditions[0].NextAction)
-                    else
-                    nextAction= findActionByID(actions, action.Transitions.Conditions[1].NextAction)
-                    console.log(Attributes.DEFAULT_LOGGER + callId + " Next Action identifier:" + action.Transitions.Conditions[1].NextAction);
-                    return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName, contextStore);
-                }
+            console.log("loopCountVal: " + loopCountVal);
+            if (loopCountVal !== ActualloopCountVal) {
+                let nextAction = "";
+                if (action.Transitions.Conditions[0].Condition.Operands[0] === 'ContinueLooping')
+                    nextAction = findActionByID(actions, action.Transitions.Conditions[0].NextAction)
+                else
+                    nextAction = findActionByID(actions, action.Transitions.Conditions[1].NextAction)
+                console.log(Attributes.DEFAULT_LOGGER + callId + " Next Action identifier:" + action.Transitions.Conditions[0].NextAction);
+                let count = String(Number.parseInt(loopCountVal) + 1)
+                contextStore[ContextStore.LOOP_COUNT] = count;
+                return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName, contextStore);
+            } else {
+                contextStore[ContextStore.LOOP_COUNT] = "0";
+                let nextAction = "";
+                if (action.Transitions.Conditions[0].Condition.Operands[0] === 'DoneLooping')
+                    nextAction = findActionByID(actions, action.Transitions.Conditions[0].NextAction)
+                else
+                    nextAction = findActionByID(actions, action.Transitions.Conditions[1].NextAction)
+                console.log(Attributes.DEFAULT_LOGGER + callId + " Next Action identifier:" + action.Transitions.Conditions[1].NextAction);
+                return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName, contextStore);
+            }
         } catch (error) {
             console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of Loop " + error.message);
             return await terminatingFlowAction(smaEvent, "error")

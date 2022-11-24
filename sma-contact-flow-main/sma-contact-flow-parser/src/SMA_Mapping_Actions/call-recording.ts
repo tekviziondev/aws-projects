@@ -3,6 +3,8 @@ import { ChimeActions } from "../utility/chime-action-types";
 import { Attributes, ContextStore } from "../utility/constant-values";
 import { IContextStore } from "../utility/context-store";
 import { terminatingFlowAction } from "../utility/termination-action";
+import { METRIC_PARAMS } from "../utility/constant-values"
+import { updateMetric } from "../utility/metric-updation"
 
 /**
   * Making a SMA action to perform Call Recording and Start storing it in the S3 Bucket Location
@@ -13,45 +15,65 @@ import { terminatingFlowAction } from "../utility/termination-action";
   */
 
 export class CallRecording {
-    async processFlowActionUpdateContactRecordingBehavior(smaEvent: any, action: any,contextStore:IContextStore){
+    async processFlowActionUpdateContactRecordingBehavior(smaEvent: any, action: any, contextStore: IContextStore) {
         let callId: string;
-        let pauseAction=contextStore[ContextStore.PAUSE_ACTION]
+        let pauseAction = contextStore[ContextStore.PAUSE_ACTION]
+        let params = METRIC_PARAMS
+        try {
+            params.MetricData[0].Dimensions[0].Value = contextStore.ContextAttributes['$.InstanceARN']
+            if (contextStore['InvokeModuleARN']) {
+                params.MetricData[0].Dimensions[1].Name = 'Module Flow ID'
+                params.MetricData[0].Dimensions[1].Value = contextStore['InvokeModuleARN']
+            }
+            else if (contextStore['TransferFlowARN']) {
+                params.MetricData[0].Dimensions[1].Name = 'Contact Flow ID'
+                params.MetricData[0].Dimensions[1].Value = contextStore['TransferFlowARN']
+            }
+            else {
+                params.MetricData[0].Dimensions[1].Name = 'Contact Flow ID'
+                params.MetricData[0].Dimensions[1].Value = contextStore['ActualFlowARN']
+            }
+        } catch (error) {
+            console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId+ Attributes.METRIC_ERROR + error.message);
+        }
         try {
             let smaAction1: any;
             const legA = getLegACallDetails(smaEvent);
             callId = legA.CallId;
-            let smaAction:any;
+            let smaAction: any;
             if (!callId)
                 callId = smaEvent.ActionData.Parameters.CallId;
             if (action.Parameters.RecordingBehavior.RecordedParticipants.length < 1) {
-                 smaAction = {
+                smaAction = {
                     Type: ChimeActions.STOP_CALL_RECORDING,
                     Parameters: {
                         "CallId": legA.CallId
                     }
                 };
-               
-            }else{
-                let destinationLocation="";
-                if(Attributes.destinationLocation)
-                destinationLocation=Attributes.destinationLocation;
+
+            } else {
+                let destinationLocation = "";
+                if (Attributes.destinationLocation)
+                    destinationLocation = Attributes.destinationLocation;
                 else
-                destinationLocation="flow-cache1"
-             smaAction = {
-                Type: ChimeActions.START_CALL_RECORDING,
-                Parameters: {
-                    "CallId": legA.CallId,
-                    "Track": Attributes.TRACK,
-                    Destination: {
-                        "Type": Attributes.DESTINATION_TYPE,
-                        "Location": destinationLocation
+                    destinationLocation = "flow-cache1"
+                smaAction = {
+                    Type: ChimeActions.START_CALL_RECORDING,
+                    Parameters: {
+                        "CallId": legA.CallId,
+                        "Track": Attributes.TRACK,
+                        Destination: {
+                            "Type": Attributes.DESTINATION_TYPE,
+                            "Location": destinationLocation
+                        }
                     }
-                }
-            };
-        }
+                };
+            }
+            params.MetricData[0].MetricName = smaAction.Type + "Success"
+            updateMetric(params);
             if (pauseAction) {
                 smaAction1 = pauseAction;
-                contextStore[ContextStore.PAUSE_ACTION]=null
+                contextStore[ContextStore.PAUSE_ACTION] = null
                 return {
                     "SchemaVersion": Attributes.SCHEMA_VERSION,
                     "Actions": [
@@ -59,7 +81,7 @@ export class CallRecording {
                     ],
                     "TransactionAttributes": {
                         [Attributes.CURRENT_FLOW_BLOCK]: action,
-                        [Attributes.CONNECT_CONTEXT_STORE]:contextStore
+                        [Attributes.CONNECT_CONTEXT_STORE]: contextStore
                     }
                 }
 
@@ -71,7 +93,7 @@ export class CallRecording {
                 ],
                 "TransactionAttributes": {
                     [Attributes.CURRENT_FLOW_BLOCK]: action,
-                    [Attributes.CONNECT_CONTEXT_STORE]:contextStore
+                    [Attributes.CONNECT_CONTEXT_STORE]: contextStore
                 }
             }
         } catch (error) {

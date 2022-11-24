@@ -63,11 +63,11 @@ export async function failureAudioParameters(smaEvent: any, action: any) {
         let uri: string;
         let uriObj: string[];
         let key: string;
-        let failureAudio="";
-        if(Attributes.Failure_Audio_Location)
-        failureAudio=Attributes.Failure_Audio_Location;
+        let failureAudio = "";
+        if (Attributes.Failure_Audio_Location)
+            failureAudio = Attributes.Failure_Audio_Location;
         else
-        failureAudio="s3://flow-cache1/failure_audio.mp3";
+            failureAudio = "s3://flow-cache1/failure_audio.mp3";
         if (action.Parameters.Media.SourceType) {
             console.log(Attributes.DEFAULT_LOGGER + callId + " Audio Parameters SourceType Exists");
             uri = failureAudio;
@@ -85,7 +85,7 @@ export async function failureAudioParameters(smaEvent: any, action: any) {
         console.log(Attributes.DEFAULT_LOGGER + callId + " Failure Audio Parameters : " + rv);
         return rv;
     } catch (error) {
-        console.log(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of Get Failure Audio Parameters " + error.message);
+        console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of Get Failure Audio Parameters " + error.message);
         return await terminatingFlowAction(smaEvent, "error")
     }
 }

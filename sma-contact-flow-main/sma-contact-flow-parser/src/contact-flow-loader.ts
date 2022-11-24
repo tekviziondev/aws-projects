@@ -1,11 +1,13 @@
 import { Connect } from 'aws-sdk';
 import { S3 } from 'aws-sdk';
 import { getLegACallDetails } from './utility/call-details'
+import { METRIC_PARAMS } from "./utility/constant-values"
+import { updateMetric } from "./utility/metric-updation"
+import { Attributes } from "./utility/constant-values";
 
 let s3Bucket: string;
 const cacheTimeInMilliseconds: number = 5000;
 const defaultLogger = "SMA-Contact-Flow-Parser | Call ID - "
-
 
 /**
   * Get the Amazon contact flow details from the Amazon connect.
@@ -17,6 +19,22 @@ const defaultLogger = "SMA-Contact-Flow-Parser | Call ID - "
   */
 export async function loadContactFlow(amazonConnectInstanceID: string, amazonConnectContactFlowID: string, bucket: string, smaEvent: any, type: string) {
   let callId: string;
+  let metric_type: string;
+  let params = METRIC_PARAMS
+  try {
+    params.MetricData[0].Dimensions[0].Value = amazonConnectInstanceID
+    params.MetricData[0].Dimensions[1].Value = amazonConnectContactFlowID
+    params.MetricData[0].Dimensions[1].Name = "Contact Flow ID"
+    metric_type = "ContactFlow"
+    if (type === "Invoke_Module") {
+      metric_type = "Module"
+      params.MetricData[0].Dimensions[1].Name = 'Module Flow ID'
+    }
+  } catch (error) {
+    console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId+ Attributes.METRIC_ERROR + error.message);
+  }
+ 
+
   try {
     const legA = getLegACallDetails(smaEvent);
     callId = legA.CallId;
@@ -47,9 +65,12 @@ export async function loadContactFlow(amazonConnectInstanceID: string, amazonCon
       }
 
     }
+    params.MetricData[0].MetricName = metric_type + "Success"
+    updateMetric(params);
     return rv;
   } catch (error) {
-    
+    params.MetricData[0].MetricName = metric_type + "Failure"
+    updateMetric(params);
     console.error(defaultLogger + callId + " There is an Error in execution of Loading the Contact Flow " + error.message);
     return null;
   }
