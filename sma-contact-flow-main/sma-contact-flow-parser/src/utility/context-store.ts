@@ -1,4 +1,3 @@
-
 export interface IContextStore {
     LoopCount: any;
     TransferFlowARN: string;

@@ -1,3 +1,4 @@
+//operators used for comparing the contact attributes
 export enum Operators {
   EQAULS = "Equals",
   NUMBER_LESS_THAN = "NumberLessThan",

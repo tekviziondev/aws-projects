@@ -42,7 +42,7 @@ export class InvokeLambda {
                 params1.MetricData[0].Dimensions[1].Value = contextStore['ActualFlowARN']
             }
         } catch (error) {
-            console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId+ Attributes.METRIC_ERROR + error.message);
+            console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId + Attributes.METRIC_ERROR + error.message);
         }
         try {
             const legA = getLegACallDetails(smaEvent);
@@ -81,7 +81,7 @@ export class InvokeLambda {
         } catch (error) {
             params1.MetricData[0].MetricName = "InvokeLambdaFailure"
             updateMetric(params1);
-            console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution InvokeLambda" + error.message);
+            console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution InvokeLambda" + error.message);
             return await terminatingFlowAction(smaEvent, "error")
         }
     }

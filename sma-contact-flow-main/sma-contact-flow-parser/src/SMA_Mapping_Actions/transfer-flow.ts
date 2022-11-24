@@ -52,7 +52,7 @@ export class TrasferToFlow {
         } catch (error) {
             params.MetricData[0].MetricName = "TransferToFlowFailure"
             updateMetric(params);
-            console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of TransferToFlow " + error.message);
+            console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution of TransferToFlow " + error.message);
             return await terminatingFlowAction(smaEvent, "error")
         }
 

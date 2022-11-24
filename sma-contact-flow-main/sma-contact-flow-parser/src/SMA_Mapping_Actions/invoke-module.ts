@@ -55,7 +55,7 @@ export class InvokeModule {
         } catch (error) {
             params.MetricData[0].MetricName = "InvokeModuleFailure"
             updateMetric(params);
-            console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of InvokeModule" + error.message);
+            console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution of InvokeModule" + error.message);
             return await terminatingFlowAction(smaEvent, "error")
         }
 

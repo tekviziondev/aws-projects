@@ -99,7 +99,7 @@ export class PlayAudioAndGetDigits {
         } catch (error) {
             params.MetricData[0].MetricName = "PlayAudioGetDigitsFailure"
             updateMetric(params);
-            console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of PlayAudioAndGetDigits " + error.message);
+            console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution of PlayAudioAndGetDigits " + error.message);
             return await terminatingFlowAction(smaEvent, "error")
         }
 

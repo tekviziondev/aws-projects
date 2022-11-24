@@ -54,7 +54,7 @@ export class EndModule {
     } catch (error) {
       params.MetricData[0].MetricName = "FlowModuleExecutionFailure"
       updateMetric(params);
-      console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution EndFlowModule" + error.message);
+      console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution EndFlowModule" + error.message);
       return await terminatingFlowAction(smaEvent, "error")
     }
 

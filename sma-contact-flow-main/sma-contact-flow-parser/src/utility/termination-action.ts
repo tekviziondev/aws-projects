@@ -95,7 +95,7 @@ export async function terminatingFlowAction(smaEvent: any, actionType: string) {
             "Actions": [smaAction, smaAction1]
         }
     } catch (error) {
-        console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of Terminating Events" + error.message);
+        console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution of Terminating Events" + error.message);
         return null;
     }
 }

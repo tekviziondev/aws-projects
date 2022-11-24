@@ -7,7 +7,7 @@ import { METRIC_PARAMS } from "../utility/constant-values"
 import { updateMetric } from "../utility/metric-updation"
 
 /**
-  * Making a SMA action to perform Call Recording and Start storing it in the S3 Bucket Location
+  * Making a SMA action to perform Call Recording and Start storing it in the S3 Bucket Location or Stop Call Recording
   * @param smaEvent 
   * @param action
   * @param contextStore
@@ -97,7 +97,7 @@ export class CallRecording {
                 }
             }
         } catch (error) {
-            console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution UpdateContactRecordingBehavior |" + error.message);
+            console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution UpdateContactRecordingBehavior |" + error.message);
             return await terminatingFlowAction(smaEvent, "error")
         }
     }

@@ -8,7 +8,7 @@ import { ErrorTypes } from "./error-types"
 import { Attributes } from "../utility/constant-values";
 import { IContextStore } from "./context-store";
 /**
-  * This function will validate the Recieved digits based on the condition defined in the Block
+  * This function will validate the Recieved digits from the SMA Event and perform the next action based on the condition defined in the Contact Flow
   * @param smaEvent 
   * @param actionObj
   * @param contactFlow
@@ -58,7 +58,7 @@ export async function processFlowConditionValidation(smaEvent: any, actionObj: a
             return await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName, contextStore);
         }
     } catch (error) {
-        console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of validating the Recieved Digits " + error.message);
+        console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution of validating the Recieved Digits " + error.message);
         return await terminatingFlowAction(smaEvent, "error")
     }
 }

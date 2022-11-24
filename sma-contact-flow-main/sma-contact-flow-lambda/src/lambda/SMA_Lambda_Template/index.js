@@ -16,6 +16,9 @@ exports.handler = async (event, context, callback) => {
         case "NEW_INBOUND_CALL":
             try {
                 console.log("Got Here");
+                /*
+                 * calling the Tekvizion SMA-Contact-Flow-Parser Library to get the first corresponding  SMA action object from the amazon connect contact flow.
+                 */
                 const actionObj = await sma_contact_flow_parser_1.processFlow(event, amazonConnectInstanceID, amazonConnectFlowID, s3BucketName);
                 console.log("CallID :" + call_Id + "| Action Object : " + JSON.stringify(actionObj) + " is going to execute");
                 return actionObj;
@@ -26,7 +29,10 @@ exports.handler = async (event, context, callback) => {
             break;
         case "ACTION_SUCCESSFUL":
             try {
-                console.log("CallID :" + call_Id + +" |"+event.ActionData.Type+ " Action is executed successfully");
+                console.log("CallID :" + call_Id + +" |" + event.ActionData.Type + " Action is executed successfully");
+                /*
+                 * calling the Tekvizion SMA-Contact-Flow-Parser Library to get the  corresponding next SMA action object from the amazon connect contact flow.
+                 */
                 const actionObj = await sma_contact_flow_parser_1.processFlow(event, amazonConnectInstanceID, amazonConnectFlowID, s3BucketName);
                 console.log("CallID :" + call_Id + "| Action Object : " + JSON.stringify(actionObj) + " is going to execute");
                 return actionObj;
@@ -37,7 +43,10 @@ exports.handler = async (event, context, callback) => {
             break;
         case "ACTION_FAILED":
             try {
-                console.log("CallID :" + call_Id + +" |"+event.ActionData.Type+ " Action is failed to execute");
+                console.log("CallID :" + call_Id + +" |" + event.ActionData.Type + " Action is failed to execute");
+                /*
+                 * calling the Tekvizion SMA-Contact-Flow-Parser Library to get the corresponding error SMA action object from the amazon connect contact flow.
+                 */
                 const actionObj = await sma_contact_flow_parser_1.processFlow(event, amazonConnectInstanceID, amazonConnectFlowID, s3BucketName);
                 console.log("CallID :" + call_Id + "| Action Object : " + JSON.stringify(actionObj) + " is going to execute");
                 return actionObj;

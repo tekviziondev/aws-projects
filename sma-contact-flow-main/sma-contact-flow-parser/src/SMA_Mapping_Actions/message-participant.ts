@@ -96,7 +96,7 @@ export class MessageParticipant {
         } catch (error) {
             params.MetricData[0].MetricName = "SpeakFailure"
             updateMetric(params);
-            console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of MessageParticipant " + error.message);
+            console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution of MessageParticipant " + error.message);
             return await terminatingFlowAction(smaEvent, "error")
         }
 

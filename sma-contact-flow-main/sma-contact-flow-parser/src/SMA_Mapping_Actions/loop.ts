@@ -47,7 +47,7 @@ export class Loop {
                 return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName, contextStore);
             }
         } catch (error) {
-            console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of Loop " + error.message);
+            console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution of Loop " + error.message);
             return await terminatingFlowAction(smaEvent, "error")
         }
 

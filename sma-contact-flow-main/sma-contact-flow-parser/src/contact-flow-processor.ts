@@ -28,8 +28,7 @@ import { updateMetric } from "./utility/metric-updation"
 const connectContextStore: string = "ConnectContextStore";
 
 /**
-  * This function get connect flow data from contact flow loader 
-  * and send the connect flow data to respective functions.
+  * This function gets the  contact flow data from contact flow loader function and sends the contact flow data to the respective functions.
   * @param smaEvent 
   * @param amazonConnectInstanceID
   * @param amazonConnectFlowID
@@ -134,8 +133,7 @@ export async function processFlow(smaEvent: any, amazonConnectInstanceID: string
   */
 async function storeSystemAttributs(smaEvent: any, amazonConnectFlowID: any, amazonConnectInstanceID: any) {
     const legA = getLegACallDetails(smaEvent);
-    //console.log("First Customer Endpoint: "+legA.From);
-
+    
     let contextAttributes = {
         [ContextAttributes.CUSTOMER_ENDPOINT_ADDRESS]: legA.From,
         [ContextAttributes.SYSTEM_ENDPOINT_ADDRESS]: legA.To,
@@ -151,8 +149,7 @@ async function storeSystemAttributs(smaEvent: any, amazonConnectFlowID: any, ama
 }
 
 /**
-  * This function is starting of the flow exection.
-  * Get current action from the flow block and send to process flow action
+  * This function is starting of the flow exection and gets the current action from the flow block and send to process flow action
   * @param smaEvent 
   * @param contactFlow
   * @param TransactionAttributes
@@ -185,7 +182,7 @@ export async function processRootFlowBlock(smaEvent: any, contactFlow: any, amaz
         }
         return null;
     } catch (error) {
-        console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in getting the Root Flow Block" + error.message);
+        console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in getting the Root Flow Block" + error.message);
         return await terminatingFlowAction(smaEvent, "error")
     }
 }
@@ -253,13 +250,13 @@ export async function processFlowAction(smaEvent: any, action: any, actions: any
     }
 }
 /**
-  * After received success event from SMA,process the next action.
+  * Processing the contact flow after recieving the successfull SMA event
   * @param smaEvent 
   * @param action
   * @param amazonConnectInstanceID
   * @param bucketName
   * @param contextStore
-  * @returns Process Flow Action
+  * @returns Process Flow Action or processFlowConditionValidation or terminatingFlowAction
   */
 
 async function processFlowActionSuccess(smaEvent: any, action: any, contactFlow: any, amazonConnectInstanceID: string, bucketName: string, contextStore: any) {
@@ -284,7 +281,7 @@ async function processFlowActionSuccess(smaEvent: any, action: any, contactFlow:
         }
         return await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName, smaEvent.CallDetails.TransactionAttributes[Attributes.CONNECT_CONTEXT_STORE]);
     } catch (error) {
-        console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in Proccessing the Success SMA Event " + error.message);
+        console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in Proccessing the Success SMA Event " + error.message);
         return null;
     }
 }
@@ -301,13 +298,13 @@ function updateConnectContextStore(transactionAttributes: any, key: string, valu
 }
 
 /**
-  * After received failure event from SMA,process the next action.
+  * Processing the contact flow after receiving the failure event from SMA
   * @param smaEvent 
   * @param actionObj 
   * @param amazonConnectInstanceID
   * @param bucketName
   * @param contextStore
-  * @returns Process Flow Action
+  * @returns Process Flow Action or terminatingFlowAction
   */
 async function processFlowActionFailed(smaEvent: any, actionObj: any, contactFlow: any, amazonConnectInstanceID: string, bucketName: string, contextStore: any) {
     let callId: string;
@@ -352,7 +349,7 @@ async function processFlowActionFailed(smaEvent: any, actionObj: any, contactFlo
         return await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName, contextStore);
 
     } catch (error) {
-        console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in Proccessing the Failed SMA Event " + error.message);
+        console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in Proccessing the Failed SMA Event " + error.message);
         return null;
     }
 }

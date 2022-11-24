@@ -33,7 +33,7 @@ export async function getNextActionForError(currentAction: any, contactFlow: any
         }
         return nextAction;
     } catch (error) {
-        console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of getting the Next action for Error case " + error.message);
+        console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution of getting the Next action for Error case " + error.message);
         return await terminatingFlowAction(smaEvent, "error")
     }
 }

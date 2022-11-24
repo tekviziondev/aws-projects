@@ -119,7 +119,7 @@ export class LexBot {
     } catch (error) {
       params.MetricData[0].MetricName = "LexBotFailure"
       updateMetric(params);
-      console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of ConnectParticipantWithLexBot " + error.message);
+      console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution of ConnectParticipantWithLexBot " + error.message);
       return await terminatingFlowAction(smaEvent, "error")
     }
 

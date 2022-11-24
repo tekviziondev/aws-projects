@@ -71,7 +71,7 @@ export class DisconnectParticipant {
 
             }
         } catch (error) {
-            console.log("There is an Error in Disconnceting Participant for call ID" + callId + error.message)
+            console.log("There is an error in Disconnceting Participant for call ID" + callId + error.message)
         }
 
     }

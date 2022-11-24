@@ -66,7 +66,7 @@ export class SetVoice {
         } catch (error) {
             params.MetricData[0].MetricName = "UpdateContactTextToSpeechVoiceFailure"
             updateMetric(params);
-            console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of UpdateContactTextToSpeechVoice " + error.message);
+            console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution of UpdateContactTextToSpeechVoice " + error.message);
             return await terminatingFlowAction(smaEvent, "error")
         }
     }

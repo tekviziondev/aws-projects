@@ -61,7 +61,7 @@ export async function FailureSpeechParameters(smaEvent: any, contextStore: any) 
       failureSpeech = "<speak>  We're sorry.  We didn't get that. Please try again. <break time=\"200ms\"/></speak>";
     return await speechParameters(failureSpeech, Attributes.SSML, speechAttributes, contextAttributes);
   } catch (error) {
-    console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of getting the Failure Speech parameters " + error.message);
+    console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution of getting the Failure Speech parameters " + error.message);
     return await terminatingFlowAction(smaEvent, "error");
   }
 }
