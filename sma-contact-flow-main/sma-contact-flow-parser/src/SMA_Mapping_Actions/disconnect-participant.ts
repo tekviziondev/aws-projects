@@ -1,11 +1,9 @@
-import { ChimeActions } from "../utility/chime-action-types";
+import { ChimeActions } from "../const/chime-action-types";
 import { getLegACallDetails } from "../utility/call-details";
-import { Attributes, ContextStore } from "../utility/constant-values";
-import { IContextStore } from "../utility/context-store";
-import { METRIC_PARAMS } from "../utility/constant-values"
-import { CloudWatch } from 'aws-sdk';
+import { Attributes, ContextStore } from "../const/constant-values";
+import { IContextStore } from "../const/context-store";
+import { METRIC_PARAMS } from "../const/constant-values"
 import { updateMetric } from "../utility/metric-updation"
-var cw = new CloudWatch({ apiVersion: '2010-08-01' });
 
 /**
   * Making a SMA action to perform Ends the interaction.
@@ -45,8 +43,8 @@ export class DisconnectParticipant {
             let smaAction = {
                 Type: ChimeActions.HANGUP,
                 Parameters: {
-                    "SipResponseCode": "0",
-                    "CallId": callId
+                    "SipResponseCode": "0", //Mandatory
+                    "CallId": callId //Mandatory
                 }
             };
             params.MetricData[0].MetricName = "NO_OF_DISCONNECTED_CALLS"

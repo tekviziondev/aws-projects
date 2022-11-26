@@ -14,21 +14,21 @@ import { TrasferToFlow } from "./SMA_Mapping_Actions/transfer-flow";
 import { TransferTOThirdParty } from "./SMA_Mapping_Actions/transfer-to-thirdparty";
 import { UpdateContactAttrbts } from "./SMA_Mapping_Actions/update-contact-attributes";
 import { Wait } from "./SMA_Mapping_Actions/wait";
-import { AmazonConnectActions } from "./utility/amazon-connect-actionTypes";
+import { AmazonConnectActions } from "./const/amazon-connect-actionTypes";
 import { getLegACallDetails } from "./utility/call-details";
 import { processFlowConditionValidation } from "./utility/condition-validation";
-import { Attributes, ContextAttributes, ContextStore } from "./utility/constant-values";
-import { ErrorTypes } from "./utility/error-types";
-import { EventTypes } from "./utility/event-types";
+import { Attributes, ContextAttributes, ContextStore } from "./const/constant-values";
+import { ErrorTypes } from "./const/error-types";
+import { EventTypes } from "./const/event-types";
 import { findActionByID } from "./utility/find-action-id";
 import { getNextActionForError } from "./utility/next-action-error";
 import { terminatingFlowAction } from "./utility/termination-action";
-import { METRIC_PARAMS } from "./utility/constant-values"
+import { METRIC_PARAMS } from "./const/constant-values"
 import { updateMetric } from "./utility/metric-updation"
 const connectContextStore: string = "ConnectContextStore";
 
 /**
-  * This function gets the  contact flow data from contact flow loader function and sends the contact flow data to the respective functions.
+  * This function gets the  contact flow data from contact flow loader function and sends the contact flow data to the respective SMA Mapping functions.
   * @param smaEvent 
   * @param amazonConnectInstanceID
   * @param amazonConnectFlowID
@@ -64,8 +64,40 @@ export async function processFlow(smaEvent: any, amazonConnectInstanceID: string
         callId = legA.CallId;
         if (!callId)
             callId = smaEvent.ActionData.Parameters.CallId;
-
+        var flowLodingStartTime = new Date().getTime();
         const contactFlow = await loadContactFlow(amazonConnectInstanceID, amazonConnectFlowID, bucketName, smaEvent, type);
+        var flowLoadingTime = new Date().getTime() - flowLodingStartTime;
+        let params = METRIC_PARAMS
+        const flowLoadingParams = {
+            MetricData: [
+                {
+                    MetricName: "ContactFlowLoadingTime",
+                    Dimensions: [
+                        {
+                            Name: 'InstanceId',
+                            Value: amazonConnectInstanceID
+                        },
+                        {
+                            Name: '',
+                            Value: amazonConnectFlowID
+                        }
+                    ],
+                    Unit: 'Milliseconds',
+                    Value: flowLoadingTime,
+                    Timestamp:new Date()
+                },
+            ],
+            Namespace: 'FlowLoading_Time'
+        };
+        try {
+            flowLoadingParams.MetricData[0].Dimensions[1].Name = "Contact Flow ID"
+            if (type === "Invoke_Module") {
+                flowLoadingParams.MetricData[0].Dimensions[1].Name = 'Module Flow ID'
+            }
+        } catch (error) {
+            console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId + Attributes.METRIC_ERROR + error.message);
+        }
+        updateMetric(flowLoadingParams)
         console.log(Attributes.DEFAULT_LOGGER + callId + " ConnectInstanceId:" + amazonConnectInstanceID + " Loaded Contact Flow" + contactFlow);
         if (transactionAttributes && transactionAttributes.currentFlowBlock) {
             console.log(Attributes.DEFAULT_LOGGER + callId + " InvocationEventType:" + smaEvent.InvocationEventType);
@@ -133,7 +165,7 @@ export async function processFlow(smaEvent: any, amazonConnectInstanceID: string
   */
 async function storeSystemAttributs(smaEvent: any, amazonConnectFlowID: any, amazonConnectInstanceID: any) {
     const legA = getLegACallDetails(smaEvent);
-    
+
     let contextAttributes = {
         [ContextAttributes.CUSTOMER_ENDPOINT_ADDRESS]: legA.From,
         [ContextAttributes.SYSTEM_ENDPOINT_ADDRESS]: legA.To,

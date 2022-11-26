@@ -9,6 +9,6 @@
   },
   "include": [
     "src/**/*"
-, "src/.count.ts"  ]
+, "src/.count.ts", "src/const/amazon-connect-actionTypes.tss.tssrc/const/chime-action-types.tstypesrc/const/comparison-operators.tsopersrc/const/constant-values.tsnstasrc/const/context-store.tsnst/src/const/error-types.tssrc/const/error-types.ts", "const/event-types.ts"  ]
 }
 

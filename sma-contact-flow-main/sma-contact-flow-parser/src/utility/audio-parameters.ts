@@ -1,5 +1,5 @@
 import { getLegACallDetails } from "./call-details";
-import { Attributes } from "./constant-values";
+import { Attributes } from "../const/constant-values";
 import { terminatingFlowAction } from "./termination-action";
 
 /**
@@ -25,20 +25,20 @@ export async function getAudioParameters(smaEvent: any, action: any) {
             console.log(Attributes.DEFAULT_LOGGER + callId + " Audio Parameters SourceType Exists");
             uri = action.Parameters.Media.Uri;
             uriObj = uri.split("/");
-            bucketName = uriObj[2];
+            bucketName = uriObj[2]; 
             key = uriObj[3];
             type = action.Parameters.Media.SourceType;
         }
         rv = {
-            Type: type,
-            BucketName: bucketName,
-            Key: key
+            Type: type, //Mandatory
+            BucketName: bucketName, //Mandatory
+            Key: key //Mandatory
         }
 
         console.log(Attributes.DEFAULT_LOGGER + callId + " Audio Parameters : " + rv);
         return rv;
     } catch (error) {
-        console.log(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of Get Audio Parameters " + error.message);
+        console.log(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution of Get Audio Parameters " + error.message);
         return await terminatingFlowAction(smaEvent, "error")
     }
 }
@@ -75,9 +75,9 @@ export async function failureAudioParameters(smaEvent: any, action: any) {
             type = action.Parameters.Media.SourceType;
         }
         rv = {
-            Type: type,
-            BucketName: bucketName,
-            Key: key
+            Type: type, //Mandatory
+            BucketName: bucketName, //Mandatory
+            Key: key //Mandatory
         }
 
         console.log(Attributes.DEFAULT_LOGGER + callId + " Failure Audio Parameters : " + rv);

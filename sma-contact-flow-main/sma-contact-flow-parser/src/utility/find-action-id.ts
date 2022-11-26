@@ -1,5 +1,5 @@
 /**
-  * This function returns contact flow action object from the list of action, based on the action identifier 
+  * This function returns contact flow action object from the list of actions, based on the action identifier 
   * @param actions
   * @param identifier
   * @returns Amazon Connect Action ID

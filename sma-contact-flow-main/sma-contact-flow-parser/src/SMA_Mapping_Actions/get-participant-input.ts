@@ -1,11 +1,11 @@
 import { getLegACallDetails } from "../utility/call-details";
-import { ChimeActions } from "../utility/chime-action-types";
+import { ChimeActions } from "../const/chime-action-types";
 import { terminatingFlowAction } from "../utility/termination-action";
 import { getSpeechParameters, FailureSpeechParameters } from "../utility/speech-parameter";
 import { PlayAudioAndGetDigits } from "./play-audio-getdigits";
-import { Attributes, ContextStore } from "../utility/constant-values";
-import { IContextStore } from "../utility/context-store";
-import { METRIC_PARAMS } from "../utility/constant-values"
+import { Attributes, ContextStore } from "../const/constant-values";
+import { IContextStore } from "../const/context-store";
+import { METRIC_PARAMS } from "../const/constant-values"
 import { updateMetric } from "../utility/metric-updation"
 /**
   * Making a SMA action to perform delivering an audio message to obtain customer input.

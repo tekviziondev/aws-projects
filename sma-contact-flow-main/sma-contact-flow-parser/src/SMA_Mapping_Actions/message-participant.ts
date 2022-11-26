@@ -1,12 +1,12 @@
 import { getLegACallDetails } from "../utility/call-details";
-import { Attributes, ContextStore, SpeechParameters } from "../utility/constant-values"
+import { Attributes, ContextStore, SpeechParameters } from "../const/constant-values"
 import { count } from "../utility/count";
-import { ChimeActions } from "../utility/chime-action-types";
+import { ChimeActions } from "../const/chime-action-types";
 import { terminatingFlowAction } from "../utility/termination-action";
 import { PlayAudio } from "./play-audio";
 import { getSpeechParameters } from "../utility/speech-parameter";
-import { IContextStore } from "../utility/context-store";
-import { METRIC_PARAMS } from "../utility/constant-values"
+import { IContextStore } from "../const/context-store";
+import { METRIC_PARAMS } from "../const/constant-values"
 import { updateMetric } from "../utility/metric-updation"
 /**
   * Making a SMA action to perform Delivers an audio or chat message.

@@ -1,9 +1,9 @@
 import { getLegACallDetails } from "../utility/call-details";
-import { ChimeActions } from "../utility/chime-action-types";
-import { Attributes, ContextStore } from "../utility/constant-values";
-import { IContextStore } from "../utility/context-store";
+import { ChimeActions } from "../const/chime-action-types";
+import { Attributes, ContextStore } from "../const/constant-values";
+import { IContextStore } from "../const/context-store";
 import { terminatingFlowAction } from "../utility/termination-action";
-import { METRIC_PARAMS } from "../utility/constant-values"
+import { METRIC_PARAMS } from "../const/constant-values"
 import { updateMetric } from "../utility/metric-updation"
 
 /**

@@ -1,7 +1,7 @@
 import { getLegACallDetails } from "./call-details";
 import { findActionByID } from "./find-action-id";
 import { terminatingFlowAction } from "./termination-action";
-import { Attributes } from "../utility/constant-values";
+import { Attributes } from "../const/constant-values";
 /**
   * Based on the Error condition, the Next action will be performed
   * @param smaEvent 

@@ -2,8 +2,8 @@ import { getLegACallDetails } from "../utility/call-details";
 import { processFlowAction } from "../contact-flow-processor";
 import { findActionByID } from "../utility/find-action-id";
 import { terminatingFlowAction } from "../utility/termination-action";
-import { Attributes, ContextStore } from "../utility/constant-values";
-import { IContextStore } from "../utility/context-store";
+import { Attributes, ContextStore } from "../const/constant-values";
+import { IContextStore } from "../const/context-store";
 
 /**
   * Making a SMA action to perform Repeats the looping branch for the specified number of times. After which, the complete branch is followed.

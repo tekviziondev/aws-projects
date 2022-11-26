@@ -1,9 +1,7 @@
-import { ChimeActions } from "./chime-action-types";
+import { ChimeActions } from "../const/chime-action-types";
 import { getLegACallDetails } from "./call-details";
-import { Attributes, ContextStore, SpeechParameters } from "./constant-values";
-import { METRIC_PARAMS } from "../utility/constant-values"
-import { CloudWatch } from 'aws-sdk';
-var cw = new CloudWatch({ apiVersion: '2010-08-01' });
+import { Attributes, ContextStore, SpeechParameters } from "../const/constant-values";
+import { METRIC_PARAMS } from "../const/constant-values"
 import { updateMetric } from "../utility/metric-updation"
 /**
   * This Terminates the existing call if there are any error occured in the Flow execution

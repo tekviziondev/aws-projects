@@ -2,9 +2,9 @@ import { getLegACallDetails } from "../utility/call-details";
 import { terminatingFlowAction } from "../utility/termination-action";
 import { loadContactFlow } from "../contact-flow-loader"
 import { processRootFlowBlock } from "../contact-flow-processor"
-import { Attributes, ContextStore } from "../utility/constant-values";
-import { IContextStore } from "../utility/context-store";
-import { METRIC_PARAMS } from "../utility/constant-values"
+import { Attributes, ContextStore } from "../const/constant-values";
+import { IContextStore } from "../const/context-store";
+import { METRIC_PARAMS } from "../const/constant-values"
 import { updateMetric } from "../utility/metric-updation"
 /**
   * Transfer to another Contact Flow to Execute.

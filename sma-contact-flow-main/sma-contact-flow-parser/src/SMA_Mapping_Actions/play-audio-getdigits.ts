@@ -1,10 +1,10 @@
 import { getLegACallDetails } from "../utility/call-details";
-import { ChimeActions } from "../utility/chime-action-types";
+import { ChimeActions } from "../const/chime-action-types";
 import { getAudioParameters, failureAudioParameters } from "../utility/audio-parameters";
 import { terminatingFlowAction } from "../utility/termination-action";
-import { Attributes, ContextStore } from "../utility/constant-values";
-import { IContextStore } from "../utility/context-store";
-import { METRIC_PARAMS } from "../utility/constant-values"
+import { Attributes, ContextStore } from "../const/constant-values";
+import { IContextStore } from "../const/context-store";
+import { METRIC_PARAMS } from "../const/constant-values"
 import { updateMetric } from "../utility/metric-updation";
 /**
   * Making play audio and get digits json object for sma action.
@@ -46,11 +46,11 @@ export class PlayAudioAndGetDigits {
             let smaAction = {
                 Type: ChimeActions.PLAY_AUDIO_AND_GET_DIGITS,
                 Parameters: {
-                    "CallId": callId,
-                    "AudioSource": audio_parameters,
-                    "FailureAudioSource": failure_audio,
-                    "MinNumberOfDigits": 5,
-                    "Repeat": 3
+                    "CallId": callId, //Optional
+                    "AudioSource": audio_parameters, //Mandatory
+                    "FailureAudioSource": failure_audio, //Mandatory
+                    "MinNumberOfDigits": 5, //Optional
+                    "Repeat": 3 //Optional
                 }
             };
             if (action.Parameters?.InputValidation) {

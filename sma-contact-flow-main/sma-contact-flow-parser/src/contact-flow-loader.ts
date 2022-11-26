@@ -1,9 +1,9 @@
 import { Connect } from 'aws-sdk';
 import { S3 } from 'aws-sdk';
 import { getLegACallDetails } from './utility/call-details'
-import { METRIC_PARAMS } from "./utility/constant-values"
+import { METRIC_PARAMS } from "./const/constant-values"
 import { updateMetric } from "./utility/metric-updation"
-import { Attributes } from "./utility/constant-values";
+import { Attributes } from "./const/constant-values";
 
 let s3Bucket: string;
 const cacheTimeInMilliseconds: number = 5000;

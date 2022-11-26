@@ -1,11 +1,11 @@
 import { processFlowAction } from "../contact-flow-processor";
 import { getLegACallDetails } from "../utility/call-details";
-import { ChimeActions } from "../utility/chime-action-types";
-import { ContextStore, Supported_Actions } from "../utility/constant-values";
+import { ChimeActions } from "../const/chime-action-types";
+import { ContextStore, Supported_Actions } from "../const/constant-values";
 import { findActionByID } from "../utility/find-action-id";
 import { terminatingFlowAction } from "../utility/termination-action";
-import { Attributes } from "../utility/constant-values";
-import { IContextStore } from "../utility/context-store";
+import { Attributes } from "../const/constant-values";
+import { IContextStore } from "../const/context-store";
 /**
   * Making a SMA action to perform Wait for a specified period of time.
   * @param smaEvent 
@@ -29,7 +29,7 @@ export class Wait {
             let smaAction = {
                 Type: ChimeActions.PAUSE,
                 Parameters: {
-                    "DurationInMilliseconds": timeLimit
+                    "DurationInMilliseconds": timeLimit //Mandatory
                 }
             };
             const nextAction = findActionByID(actions, action.Transitions.Conditions[0].NextAction);
@@ -38,7 +38,7 @@ export class Wait {
             contextStore[ContextStore.PAUSE_ACTION] = smaAction;
             return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName, contextStore)
         } catch (error) {
-            console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution of TransferToThirdParty " + error.message);
+            console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution of Wait action " + error.message);
             return await terminatingFlowAction(smaEvent, "error")
         }
 

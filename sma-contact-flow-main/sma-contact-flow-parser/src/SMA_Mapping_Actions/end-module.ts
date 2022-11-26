@@ -3,9 +3,9 @@ import { terminatingFlowAction } from "../utility/termination-action";
 import { findActionByID } from "../utility/find-action-id";
 import { processFlowAction } from "../contact-flow-processor"
 import { loadContactFlow } from "../contact-flow-loader"
-import { Attributes, ContextStore } from "../utility/constant-values";
-import { IContextStore } from "../utility/context-store";
-import { METRIC_PARAMS } from "../utility/constant-values"
+import { Attributes, ContextStore } from "../const/constant-values";
+import { IContextStore } from "../const/context-store";
+import { METRIC_PARAMS } from "../const/constant-values"
 import { updateMetric } from "../utility/metric-updation"
 /**
   * End the execution of the current Module and returns Back to Orginal Contact flow.
