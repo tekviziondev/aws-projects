@@ -1,7 +1,7 @@
 import { getLegACallDetails } from "./call-details";
 import { findActionByID } from "./find-action-id";
 import { terminatingFlowAction } from "./termination-action";
-import { Attributes } from "../utility/constant-values";
+import { Attributes } from "../const/constant-values";
 /**
   * Based on the Error condition, the Next action will be performed
   * @param smaEvent 
@@ -33,7 +33,7 @@ export async function getNextActionForError(currentAction: any, contactFlow: any
         }
         return nextAction;
     } catch (error) {
-        console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of getting the Next action for Error case " + error.message);
+        console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution of getting the Next action for Error case " + error.message);
         return await terminatingFlowAction(smaEvent, "error")
     }
 }

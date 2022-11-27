@@ -2,13 +2,13 @@ import { getLegACallDetails } from "./call-details";
 import { findActionByID } from "./find-action-id";
 import { terminatingFlowAction } from "./termination-action"
 import { processFlowAction } from "../contact-flow-processor";
-import { AmazonConnectActions } from "./amazon-connect-actionTypes"
+import { AmazonConnectActions } from "../const/amazon-connect-actionTypes"
 import { getNextActionForError } from "./next-action-error"
-import { ErrorTypes } from "./error-types"
-import { Attributes } from "../utility/constant-values";
-import { IContextStore } from "./context-store";
+import { ErrorTypes } from "../const/error-types"
+import { Attributes } from "../const/constant-values";
+import { IContextStore } from "../const/context-store";
 /**
-  * This function will validate the Recieved digits based on the condition defined in the Block
+  * This function will validate the Recieved digits from the SMA Event and perform the next action based on the condition defined in the Contact Flow
   * @param smaEvent 
   * @param actionObj
   * @param contactFlow
@@ -58,7 +58,7 @@ export async function processFlowConditionValidation(smaEvent: any, actionObj: a
             return await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName, contextStore);
         }
     } catch (error) {
-        console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of validating the Recieved Digits " + error.message);
+        console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution of validating the Recieved Digits " + error.message);
         return await terminatingFlowAction(smaEvent, "error")
     }
 }

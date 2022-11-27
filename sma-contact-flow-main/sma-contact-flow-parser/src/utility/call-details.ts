@@ -1,5 +1,5 @@
 /**
-  * This function process SMA Event and returns the Call Details like Call ID, From Phone number and To Phone Number
+  * This function process SMA Event and returns the Call Details from Phone number and To Phone Number
   * @param event 
   */
 export function getLegACallDetails(event: any) {
@@ -15,6 +15,6 @@ export function getLegACallDetails(event: any) {
         }
         return rv;
     } catch (error) {
-        console.error(" There is an Error in execution of getting the call Details" + error.message);
+        console.error(" There is an error in execution of getting the call Details" + error.message);
     }
 }

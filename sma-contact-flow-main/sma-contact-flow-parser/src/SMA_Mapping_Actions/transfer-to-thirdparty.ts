@@ -1,9 +1,9 @@
 import { getLegACallDetails } from "../utility/call-details";
-import { Attributes, ContextStore } from "../utility/constant-values"
-import { ChimeActions } from "../utility/chime-action-types";
+import { Attributes, ContextStore } from "../const/constant-values"
+import { ChimeActions } from "../const/chime-action-types";
 import { terminatingFlowAction } from "../utility/termination-action";
-import { IContextStore } from "../utility/context-store";
-import { METRIC_PARAMS } from "../utility/constant-values"
+import { IContextStore } from "../const/context-store";
+import { METRIC_PARAMS } from "../const/constant-values"
 import { updateMetric } from "../utility/metric-updation"
 
 
@@ -50,12 +50,12 @@ export class TransferTOThirdParty {
             let smaAction = {
                 Type: ChimeActions.CALL_AND_BRIDGE,
                 Parameters: {
-                    "CallTimeoutSeconds": action.Parameters.ThirdPartyConnectionTimeLimitSeconds,
-                    "CallerIdNumber": fromNumber,
+                    "CallTimeoutSeconds": action.Parameters.ThirdPartyConnectionTimeLimitSeconds, //Optional
+                    "CallerIdNumber": fromNumber, //Mandatory
                     "Endpoints": [
                         {
-                            "BridgeEndpointType": Attributes.BRDIGE_ENDPOINT_TYPE,
-                            "Uri": action.Parameters.ThirdPartyPhoneNumber
+                            "BridgeEndpointType": Attributes.BRDIGE_ENDPOINT_TYPE, //Mandatory
+                            "Uri": action.Parameters.ThirdPartyPhoneNumber //Mandatory
                         }
                     ]
                 }
@@ -92,7 +92,7 @@ export class TransferTOThirdParty {
         } catch (error) {
             params.MetricData[0].MetricName = "TransferToThirdPartyFailure"
             updateMetric(params);
-            console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution of TransferToThirdParty " + error.message);
+            console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution of TransferToThirdParty " + error.message);
             return await terminatingFlowAction(smaEvent, "error")
         }
 

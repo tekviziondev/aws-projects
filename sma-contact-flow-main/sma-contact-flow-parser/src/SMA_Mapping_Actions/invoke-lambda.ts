@@ -1,13 +1,13 @@
 import { getLegACallDetails } from "../utility/call-details";
-import { Attributes, ContextAttributes, ContextStore, LambdaFunctionParameters } from "../utility/constant-values"
+import { Attributes, ContextAttributes, ContextStore, LambdaFunctionParameters } from "../const/constant-values"
 import { terminatingFlowAction } from "../utility/termination-action";
 import { findActionByID } from "../utility/find-action-id";
-import { ErrorTypes } from "../utility/error-types";
+import { ErrorTypes } from "../const/error-types";
 import { processFlowAction } from "../contact-flow-processor"
 import { getNextActionForError } from "../utility/next-action-error"
 import { Lambda } from "aws-sdk"
-import { IContextStore } from "../utility/context-store";
-import { METRIC_PARAMS } from "../utility/constant-values"
+import { IContextStore } from "../const/context-store";
+import { METRIC_PARAMS } from "../const/constant-values"
 import { updateMetric } from "../utility/metric-updation"
 
 /**
@@ -42,7 +42,7 @@ export class InvokeLambda {
                 params1.MetricData[0].Dimensions[1].Value = contextStore['ActualFlowARN']
             }
         } catch (error) {
-            console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId+ Attributes.METRIC_ERROR + error.message);
+            console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId + Attributes.METRIC_ERROR + error.message);
         }
         try {
             const legA = getLegACallDetails(smaEvent);
@@ -53,9 +53,9 @@ export class InvokeLambda {
             let inputForInvoking = await inputForInvokingLambda(action, contextStore);
             console.log(Attributes.DEFAULT_LOGGER + callId + " Input for invoking lambda Function" + JSON.stringify(inputForInvoking));
             const params = {
-                FunctionName: LambdaARN,
-                InvocationType: 'RequestResponse',
-                Payload: JSON.stringify(inputForInvoking)
+                FunctionName: LambdaARN, //Mandatory
+                InvocationType: 'RequestResponse', //Mandatory
+                Payload: JSON.stringify(inputForInvoking) //Mandatory
             };
             let result = await lambda.invoke(params).promise()
             console.log(Attributes.DEFAULT_LOGGER + callId + " Invoke Lombda Action Result is " + result);
@@ -81,7 +81,7 @@ export class InvokeLambda {
         } catch (error) {
             params1.MetricData[0].MetricName = "InvokeLambdaFailure"
             updateMetric(params1);
-            console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution InvokeLambda" + error.message);
+            console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution InvokeLambda" + error.message);
             return await terminatingFlowAction(smaEvent, "error")
         }
     }

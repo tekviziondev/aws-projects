@@ -1,12 +1,12 @@
 import { getLegACallDetails } from "../utility/call-details";
 import { findActionByID } from "../utility/find-action-id";
-import { ErrorTypes } from "../utility/error-types";
+import { ErrorTypes } from "../const/error-types";
 import { processFlowAction } from "../contact-flow-processor";
-import { Operators } from "../utility/comparison-operators";
+import { Operators } from "../const/comparison-operators";
 import { getNextActionForError } from "../utility/next-action-error";
-import { Attributes } from "../utility/constant-values";
-import { IContextStore } from "../utility/context-store";
-import { METRIC_PARAMS } from "../utility/constant-values"
+import { Attributes } from "../const/constant-values";
+import { IContextStore } from "../const/context-store";
+import { METRIC_PARAMS } from "../const/constant-values"
 import { updateMetric } from "../utility/metric-updation"
 /**
   * Comparing Contact Attributes and based on the result navigate to the Next Action

@@ -1,11 +1,11 @@
 import { getLegACallDetails } from "../utility/call-details";
 import { findActionByID } from "../utility/find-action-id";
-import { ErrorTypes } from "../utility/error-types";
+import { ErrorTypes } from "../const/error-types";
 import { processFlowAction } from "../contact-flow-processor"
 import { getNextActionForError } from "../utility/next-action-error"
-import { Attributes, ContextStore } from "../utility/constant-values";
-import { IContextStore } from "../utility/context-store";
-import { METRIC_PARAMS } from "../utility/constant-values"
+import { Attributes, ContextStore } from "../const/constant-values";
+import { IContextStore } from "../const/context-store";
+import { METRIC_PARAMS } from "../const/constant-values"
 import { updateMetric } from "../utility/metric-updation"
 /**
   * Updating the Contact Attribute Details

@@ -1,13 +1,13 @@
 import { getLegACallDetails } from "../utility/call-details";
-import { ChimeActions } from "../utility/chime-action-types";
-import { Attributes, ContextStore } from "../utility/constant-values";
-import { IContextStore } from "../utility/context-store";
+import { ChimeActions } from "../const/chime-action-types";
+import { Attributes, ContextStore } from "../const/constant-values";
+import { IContextStore } from "../const/context-store";
 import { terminatingFlowAction } from "../utility/termination-action";
-import { METRIC_PARAMS } from "../utility/constant-values"
+import { METRIC_PARAMS } from "../const/constant-values"
 import { updateMetric } from "../utility/metric-updation"
 
 /**
-  * Making a SMA action to perform Call Recording and Start storing it in the S3 Bucket Location
+  * Making a SMA action to perform Call Recording and Start storing it in the S3 Bucket Location or Stop Call Recording
   * @param smaEvent 
   * @param action
   * @param contextStore
@@ -57,14 +57,15 @@ export class CallRecording {
                     destinationLocation = Attributes.destinationLocation;
                 else
                     destinationLocation = "flow-cache1"
+                console.log("Destination location "+ destinationLocation)
                 smaAction = {
                     Type: ChimeActions.START_CALL_RECORDING,
                     Parameters: {
-                        "CallId": legA.CallId,
-                        "Track": Attributes.TRACK,
+                        "CallId": legA.CallId, //Mandatory
+                        "Track": Attributes.TRACK, //Mandatory
                         Destination: {
-                            "Type": Attributes.DESTINATION_TYPE,
-                            "Location": destinationLocation
+                            "Type": Attributes.DESTINATION_TYPE, //Mandatory
+                            "Location": destinationLocation 
                         }
                     }
                 };
@@ -97,7 +98,7 @@ export class CallRecording {
                 }
             }
         } catch (error) {
-            console.error(Attributes.DEFAULT_LOGGER + callId + " There is an Error in execution UpdateContactRecordingBehavior |" + error.message);
+            console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution UpdateContactRecordingBehavior |" + error.message);
             return await terminatingFlowAction(smaEvent, "error")
         }
     }

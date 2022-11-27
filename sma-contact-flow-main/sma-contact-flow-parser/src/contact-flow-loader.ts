@@ -1,16 +1,16 @@
 import { Connect } from 'aws-sdk';
 import { S3 } from 'aws-sdk';
 import { getLegACallDetails } from './utility/call-details'
-import { METRIC_PARAMS } from "./utility/constant-values"
+import { METRIC_PARAMS } from "./const/constant-values"
 import { updateMetric } from "./utility/metric-updation"
-import { Attributes } from "./utility/constant-values";
+import { Attributes } from "./const/constant-values";
 
 let s3Bucket: string;
 const cacheTimeInMilliseconds: number = 5000;
 const defaultLogger = "SMA-Contact-Flow-Parser | Call ID - "
 
 /**
-  * Get the Amazon contact flow details from the Amazon connect.
+  * Get the contact flow details from the Amazon connect.
   * @param smaEvent 
   * @param action
   * @param amazonConnectInstanceID
@@ -78,7 +78,7 @@ export async function loadContactFlow(amazonConnectInstanceID: string, amazonCon
 
 
 /**
-  * Writing the Contact Flow Json Response from Amazon Connect into S3 Bucket
+  * Writing the Contact Flow Json Response into S3 Bucket
   * @param smaEvent 
   * @param action
   * @param amazonConnectInstanceID
