@@ -2,40 +2,25 @@ import { ChimeActions } from "../const/chime-action-types";
 import { CallDetailsUtil } from "../utility/call-details";
 import { Attributes, ContextStore } from "../const/constant-values";
 import { IContextStore } from "../const/context-store";
-import { METRIC_PARAMS } from "../const/constant-values"
-import { UpdateMetricUtil } from "../utility/metric-updation"
+import { CloudWatchMetric } from "../utility/metric-updation"
 
 /**
-  * Making a SMA action to perform Ends the interaction.
+  * Making a SMA action to perform Hang up the Active Call.
   * @param smaEvent 
   * @param contextStore
-  * @returns SMA Action
+  * @returns SMA action
   */
 export class DisconnectParticipant {
     async processFlowActionDisconnectParticipant(smaEvent: any, contextStore: IContextStore) {
         let callId: string;
         let smaAction1: any;
-        let params = METRIC_PARAMS
+        // creating cloud watch metric parameter and updating the metric details in cloud watch
+        let metric = new CloudWatchMetric();
+        let params = metric.createParams(contextStore, smaEvent);
         try {
-            params.MetricData[0].Dimensions[0].Value = contextStore.ContextAttributes['$.InstanceARN']
-            if (contextStore['InvokeModuleARN']) {
-                params.MetricData[0].Dimensions[1].Name = 'Module Flow ID'
-                params.MetricData[0].Dimensions[1].Value = contextStore['InvokeModuleARN']
-            }
-            else if (contextStore['TransferFlowARN']) {
-                params.MetricData[0].Dimensions[1].Name = 'Contact Flow ID'
-                params.MetricData[0].Dimensions[1].Value = contextStore['TransferFlowARN']
-            }
-            else {
-                params.MetricData[0].Dimensions[1].Name = 'Contact Flow ID'
-                params.MetricData[0].Dimensions[1].Value = contextStore['ActualFlowARN']
-            }
-        } catch (error) {
-            console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId+ Attributes.METRIC_ERROR + error.message);
-        }
-        try {
+            // getting the CallID of the Active call from the SMA Event
             let callDetails = new CallDetailsUtil();
-            const legA = callDetails.getLegACallDetails(smaEvent)as any;
+            const legA = callDetails.getLegACallDetails(smaEvent) as any;
             callId = legA.CallId;
             if (!callId)
                 callId = smaEvent.ActionData.Parameters.CallId;
@@ -48,9 +33,10 @@ export class DisconnectParticipant {
                 }
             };
             params.MetricData[0].MetricName = "NO_OF_DISCONNECTED_CALLS"
-            let updateMetric=new UpdateMetricUtil();
-            updateMetric.updateMetric(params);
+            metric.updateMetric(params);
             let pauseAction = contextStore[ContextStore.PAUSE_ACTION]
+
+            // checking if the pause action is there to perform before the actual action
             if (pauseAction) {
                 smaAction1 = pauseAction;
                 contextStore[ContextStore.PAUSE_ACTION] = null

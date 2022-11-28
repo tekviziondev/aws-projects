@@ -2,44 +2,28 @@ import { CallDetailsUtil } from "../utility/call-details";
 import { ChimeActions } from "../const/chime-action-types";
 import { Attributes, ContextStore } from "../const/constant-values";
 import { IContextStore } from "../const/context-store";
-import { TerminatingFlowUtil } from "../utility/termination-action";
-import { METRIC_PARAMS } from "../const/constant-values"
-import { UpdateMetricUtil } from "../utility/metric-updation"
+import { TerminatingFlowUtil } from "../utility/default-termination-action";
+import { CloudWatchMetric } from "../utility/metric-updation"
 
 /**
-  * Making a SMA action to perform Call Recording and Start storing it in the S3 Bucket Location or Stop Call Recording
+  * Making a SMA action to perform Start Call Recording/Stop Call Recording and storing the recorded file in S3 Bucket location
   * @param smaEvent 
   * @param action
   * @param contextStore
-  * @returns SMA Action
+  * @returns SMA action
   */
-
 export class CallRecording {
     async processFlowActionUpdateContactRecordingBehavior(smaEvent: any, action: any, contextStore: IContextStore) {
         let callId: string;
         let pauseAction = contextStore[ContextStore.PAUSE_ACTION]
-        let params = METRIC_PARAMS
-        try {
-            params.MetricData[0].Dimensions[0].Value = contextStore.ContextAttributes['$.InstanceARN']
-            if (contextStore['InvokeModuleARN']) {
-                params.MetricData[0].Dimensions[1].Name = 'Module Flow ID'
-                params.MetricData[0].Dimensions[1].Value = contextStore['InvokeModuleARN']
-            }
-            else if (contextStore['TransferFlowARN']) {
-                params.MetricData[0].Dimensions[1].Name = 'Contact Flow ID'
-                params.MetricData[0].Dimensions[1].Value = contextStore['TransferFlowARN']
-            }
-            else {
-                params.MetricData[0].Dimensions[1].Name = 'Contact Flow ID'
-                params.MetricData[0].Dimensions[1].Value = contextStore['ActualFlowARN']
-            }
-        } catch (error) {
-            console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId+ Attributes.METRIC_ERROR + error.message);
-        }
+        // creating cloud watch metric parameter and updating the metric in cloud watch
+        let metric = new CloudWatchMetric();
+        let params = metric.createParams(contextStore, smaEvent);
         try {
             let smaAction1: any;
+            // getting the CallID of the Active call from the SMA Event
             let callDetails = new CallDetailsUtil();
-            const legA = callDetails.getLegACallDetails(smaEvent)as any;
+            const legA = callDetails.getLegACallDetails(smaEvent) as any;
             callId = legA.CallId;
             let smaAction: any;
             if (!callId)
@@ -58,7 +42,7 @@ export class CallRecording {
                     destinationLocation = Attributes.destinationLocation;
                 else
                     destinationLocation = "flow-cache1"
-                console.log("Destination location "+ destinationLocation)
+                console.log("Destination location " + destinationLocation)
                 smaAction = {
                     Type: ChimeActions.START_CALL_RECORDING,
                     Parameters: {
@@ -66,14 +50,14 @@ export class CallRecording {
                         "Track": Attributes.TRACK, //Mandatory
                         Destination: {
                             "Type": Attributes.DESTINATION_TYPE, //Mandatory
-                            "Location": destinationLocation 
+                            "Location": destinationLocation
                         }
                     }
                 };
             }
             params.MetricData[0].MetricName = smaAction.Type + "Success"
-            let updateMetric=new UpdateMetricUtil();
-            updateMetric.updateMetric(params);
+            metric.updateMetric(params);
+            // checking if the pause action is there to perform before the actual action
             if (pauseAction) {
                 smaAction1 = pauseAction;
                 contextStore[ContextStore.PAUSE_ACTION] = null

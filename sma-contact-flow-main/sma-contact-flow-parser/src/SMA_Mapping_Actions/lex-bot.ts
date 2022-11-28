@@ -2,48 +2,33 @@ import { CallDetailsUtil } from "../utility/call-details";
 import { ChimeActions } from "../const/chime-action-types";
 import { Attributes, ContextStore } from "../const/constant-values";
 import { IContextStore } from "../const/context-store";
-import { TerminatingFlowUtil } from "../utility/termination-action";
-import { METRIC_PARAMS } from "../const/constant-values"
-import { UpdateMetricUtil } from "../utility/metric-updation"
+import { TerminatingFlowUtil } from "../utility/default-termination-action";
+import { CloudWatchMetric } from "../utility/metric-updation"
 
 /**
-  * Making a SMA action to perform delvier a Chat message and obtain customer input.
+  * Making a SMA action to perform delvier a Chat/Voice message and obtain customer input.
   * @param smaEvent 
   * @param action
   * @param contextStore
-  * @returns SMA Action
+  * @returns SMA action
   */
 export class LexBot {
   async processFlowActionConnectParticipantWithLexBot(smaEvent: any, action: any, contextStore: IContextStore) {
     let smaAction;
     let smaAction1: any;
     let callId: string;
-    let params = METRIC_PARAMS
+    // creating cloud watch metric parameter and updating the metric details in cloud watch
+    let metric = new CloudWatchMetric();
+    let params = metric.createParams(contextStore, smaEvent);
     try {
-      params.MetricData[0].Dimensions[0].Value = contextStore.ContextAttributes['$.InstanceARN']
-      if (contextStore['InvokeModuleARN']) {
-        params.MetricData[0].Dimensions[1].Name = 'Module Flow ID'
-        params.MetricData[0].Dimensions[1].Value = contextStore['InvokeModuleARN']
-      }
-      else if (contextStore['TransferFlowARN']) {
-        params.MetricData[0].Dimensions[1].Name = 'Contact Flow ID'
-        params.MetricData[0].Dimensions[1].Value = contextStore['TransferFlowARN']
-      }
-      else {
-        params.MetricData[0].Dimensions[1].Name = 'Contact Flow ID'
-        params.MetricData[0].Dimensions[1].Value = contextStore['ActualFlowARN']
-      }
-    } catch (error) {
-      console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId+ Attributes.METRIC_ERROR + error.message);
-    }
-    let updateMetric=new UpdateMetricUtil();
-    try {
+      // getting the CallID of the Active call from the SMA Event
       let callDetails = new CallDetailsUtil();
-      const legA = callDetails.getLegACallDetails(smaEvent)as any;
+      const legA = callDetails.getLegACallDetails(smaEvent) as any;
       callId = legA.CallId;
       if (!callId)
         callId = smaEvent.ActionData.Parameters.CallId;
       console.log(Attributes.DEFAULT_LOGGER + callId + " Start Bot Conversation");
+      // checking user specified any lex session attributes in the Contact Flow
       if (action.Parameters.hasOwnProperty("LexSessionAttributes")) {
         smaAction = {
           Type: ChimeActions.START_BOT_CONVERSATION,
@@ -91,7 +76,8 @@ export class LexBot {
       }
       let pauseAction = contextStore[ContextStore.PAUSE_ACTION]
       params.MetricData[0].MetricName = "LexBotSuccess"
-      updateMetric.updateMetric(params);
+      metric.updateMetric(params);
+      // checking if the pause action is there to perform before the actual action
       if (pauseAction) {
         smaAction1 = pauseAction;
         contextStore[ContextStore.PAUSE_ACTION] = null
@@ -120,7 +106,7 @@ export class LexBot {
       }
     } catch (error) {
       params.MetricData[0].MetricName = "LexBotFailure"
-      updateMetric.updateMetric(params);
+      metric.updateMetric(params);
       console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution of ConnectParticipantWithLexBot " + error.message);
       return await new TerminatingFlowUtil().terminatingFlowAction(smaEvent, "error")
     }

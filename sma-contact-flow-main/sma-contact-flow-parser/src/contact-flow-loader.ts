@@ -2,7 +2,7 @@ import { Connect } from 'aws-sdk';
 import { S3 } from 'aws-sdk';
 import { CallDetailsUtil } from './utility/call-details'
 import { METRIC_PARAMS } from "./const/constant-values"
-import { UpdateMetricUtil } from "./utility/metric-updation"
+import { CloudWatchMetric } from "./utility/metric-updation"
 import { Attributes } from "./const/constant-values";
 
 let s3Bucket: string;
@@ -10,12 +10,9 @@ const cacheTimeInMilliseconds: number = 5000;
 const defaultLogger = "SMA-Contact-Flow-Parser | Call ID - "
 
 /**
-  * Get the contact flow details from the Amazon connect.
+  * Get the Contact Flow details from Amazon connect.
   * @param smaEvent 
-  * @param action
   * @param amazonConnectInstanceID
-  * @param bucketName
-  * @returns Process Flow Action
   */
 export async function loadContactFlow(amazonConnectInstanceID: string, amazonConnectContactFlowID: string, bucket: string, smaEvent: any, type: string) {
   let callId: string;
@@ -31,13 +28,14 @@ export async function loadContactFlow(amazonConnectInstanceID: string, amazonCon
       params.MetricData[0].Dimensions[1].Name = 'Module Flow ID'
     }
   } catch (error) {
-    console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId+ Attributes.METRIC_ERROR + error.message);
+    console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId + Attributes.METRIC_ERROR + error.message);
   }
- 
-  let updateMetric=new UpdateMetricUtil();
+  // creating cloud watch metric parameter and updating the metric details in cloud watch
+  let updateMetric = new CloudWatchMetric();
   try {
+    // getting the CallID of the Active call from the SMA Event
     let callDetails = new CallDetailsUtil();
-    const legA = callDetails.getLegACallDetails(smaEvent)as any;
+    const legA = callDetails.getLegACallDetails(smaEvent) as any;
     callId = legA.CallId;
     if (!callId)
       callId = smaEvent.ActionData.Parameters.CallId;
@@ -50,16 +48,19 @@ export async function loadContactFlow(amazonConnectInstanceID: string, amazonCon
       InstanceId: amazonConnectInstanceID,
       ContactFlowModuleId: amazonConnectContactFlowID
     };
+    // gets the Contact Flow Details from S3 bucket, if the file updated time difference is less than cache time defined by the user.
     let rv = await checkFlowCache(amazonConnectInstanceID, amazonConnectContactFlowID, smaEvent);
     if (rv == null) {
       console.log(defaultLogger + callId + " Loading Contact Flow Details from Connect ");
       const connect = new Connect();
       if (type === "Invoke_Module") {
+        // using the connect api to get the Module details
         const contactModuleResponse = await connect.describeContactFlowModule(describeContactFlowModuleParams).promise();
         rv = JSON.parse(contactModuleResponse.ContactFlowModule.Content) as any;
         await writeFlowCache(rv, amazonConnectInstanceID, amazonConnectContactFlowID, smaEvent);
       }
       else {
+        // using the connect api to get the Contact Flow details
         const contactFlowResponse = await connect.describeContactFlow(describeContactFlowParams).promise();
         rv = JSON.parse(contactFlowResponse.ContactFlow.Content) as any;
         await writeFlowCache(rv, amazonConnectInstanceID, amazonConnectContactFlowID, smaEvent);
@@ -81,16 +82,14 @@ export async function loadContactFlow(amazonConnectInstanceID: string, amazonCon
 /**
   * Writing the Contact Flow Json Response into S3 Bucket
   * @param smaEvent 
-  * @param action
   * @param amazonConnectInstanceID
-  * @param bucketName
-  * @returns Process Flow Action
   */
 async function writeFlowCache(flow: any, amazonConnectInstanceID: string, amazonConnectContactFlowID: string, smaEvent: any) {
   let callId: string;
   try {
+    // getting the CallID of the Active call from the SMA Event
     let callDetails = new CallDetailsUtil();
-    const legA = callDetails.getLegACallDetails(smaEvent)as any;
+    const legA = callDetails.getLegACallDetails(smaEvent) as any;
     callId = legA.CallId;
     if (!callId)
       callId = smaEvent.ActionData.Parameters.CallId;
@@ -101,6 +100,7 @@ async function writeFlowCache(flow: any, amazonConnectInstanceID: string, amazon
       Key: amazonConnectContactFlowID,
       Body: flowBinary
     }
+    // using S3 bucket api for storing the Contact Flow/Module Data
     const s3 = new S3();
     await s3.putObject(s3Params).promise();
   } catch (error) {
@@ -112,10 +112,7 @@ async function writeFlowCache(flow: any, amazonConnectInstanceID: string, amazon
 /**
   * Checking the updated time of Contact Flow Json Response in S3 Bucket, if the Delta time is less than 5 seconds the function will use the stored JSON response in S3 Bucket else it will return null value.
   * @param smaEvent 
-  * @param action
   * @param amazonConnectInstanceID
-  * @param bucketName
-  * @returns Process Flow Action
   */
 async function checkFlowCache(amazonConnectInstanceID: string, amazonConnectContactFlowID: string, smaEvent: any) {
   let rv: any = null;
@@ -123,8 +120,9 @@ async function checkFlowCache(amazonConnectInstanceID: string, amazonConnectCont
     Bucket: s3Bucket,
     Key: amazonConnectContactFlowID
   }
+  // getting the CallID of the Active call from the SMA Event
   let callDetails = new CallDetailsUtil();
-  const legA = callDetails.getLegACallDetails(smaEvent)as any;
+  const legA = callDetails.getLegACallDetails(smaEvent) as any;
   let callId: string;
   callId = legA.CallId;
   if (!callId)
@@ -132,6 +130,7 @@ async function checkFlowCache(amazonConnectInstanceID: string, amazonConnectCont
   const s3 = new S3();
   try {
     let s3Head = await s3.headObject(s3Params).promise();
+    // checking the time difference of the last file updated 
     var deltaTimeInMs = new Date().getTime() - s3Head.LastModified.getTime();
     console.log(defaultLogger + callId + " Delta Time of Last updated Flow Cache: " + deltaTimeInMs);
     if (deltaTimeInMs < cacheTimeInMilliseconds) {

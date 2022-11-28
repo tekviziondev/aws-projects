@@ -20,19 +20,18 @@ import { ConditionValidationUtil } from "./utility/condition-validation";
 import { Attributes, ContextAttributes, ContextStore } from "./const/constant-values";
 import { ErrorTypes } from "./const/error-types";
 import { EventTypes } from "./const/event-types";
-import { NextActionValidationUtil } from "./utility/next-action-error";
-import { TerminatingFlowUtil } from "./utility/termination-action";
+import { NextActionValidationUtil } from "./utility/next-action-error-handler";
+import { TerminatingFlowUtil } from "./utility/default-termination-action";
 import { METRIC_PARAMS } from "./const/constant-values"
-import { UpdateMetricUtil } from "./utility/metric-updation"
+import { CloudWatchMetric } from "./utility/metric-updation"
 const connectContextStore: string = "ConnectContextStore";
 
 /**
-  * This function gets the  contact flow data from contact flow loader function and sends the contact flow data to the respective SMA Mapping functions.
+  * This function gets the Contact Flow data from Contact Flow loader and executes the Contact Flow data by the respective SMA Mapping Actions.
   * @param smaEvent 
   * @param amazonConnectInstanceID
   * @param amazonConnectFlowID
   * @param bucketName
-  * @returns SMA Action
   */
 export async function processFlow(smaEvent: any, amazonConnectInstanceID: string, amazonConnectFlowID: string, bucketName: string) {
     let callId: string;
@@ -58,14 +57,20 @@ export async function processFlow(smaEvent: any, amazonConnectInstanceID: string
                 amazonConnectFlowID = transactionAttributes[Attributes.CONNECT_CONTEXT_STORE][ContextStore.INVOKE_MODULE_ARN];
             }
         }
-        let updateMetric=new UpdateMetricUtil();
+        // creating cloud watch metric parameter and updating the metric details in cloud watch
+        let updateMetric = new CloudWatchMetric();
+        // getting the CallID of the Active call from the SMA Event
         let callDetails = new CallDetailsUtil();
-        const legA = callDetails.getLegACallDetails(smaEvent)as any;
+        const legA = callDetails.getLegACallDetails(smaEvent) as any;
+        console.log(" After getting Call Details" + legA)
         callId = legA.CallId;
+        console.log(" The call ID is " + callId)
         if (!callId)
             callId = smaEvent.ActionData.Parameters.CallId;
         var flowLodingStartTime = new Date().getTime();
+        // Loading the Contact Flow/Module when SMA Event recieved
         const contactFlow = await loadContactFlow(amazonConnectInstanceID, amazonConnectFlowID, bucketName, smaEvent, type);
+        // calculating the latency of loading the Contact Flow/Module
         var flowLoadingTime = new Date().getTime() - flowLodingStartTime;
         let params = METRIC_PARAMS
         const flowLoadingParams = {
@@ -84,7 +89,7 @@ export async function processFlow(smaEvent: any, amazonConnectInstanceID: string
                     ],
                     Unit: 'Milliseconds',
                     Value: flowLoadingTime,
-                    Timestamp:new Date()
+                    Timestamp: new Date()
                 },
             ],
             Namespace: 'FlowLoading_Time'
@@ -128,7 +133,7 @@ export async function processFlow(smaEvent: any, amazonConnectInstanceID: string
                     console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId + Attributes.METRIC_ERROR + error.message);
                 }
 
-                let contextAttributes = await storeSystemAttributs(smaEvent, amazonConnectFlowID, amazonConnectInstanceID)
+                let contextAttributes = await storeSystemAttributes(smaEvent, amazonConnectFlowID, amazonConnectInstanceID)
                 contextStore = {
                     [ContextStore.LOOP_COUNT]: "0",
                     [ContextStore.TRANSFER_FLOW_ARN]: "",
@@ -139,15 +144,13 @@ export async function processFlow(smaEvent: any, amazonConnectInstanceID: string
                     [ContextStore.CONTEXT_ATTRIBUTES]: contextAttributes,
                     [ContextStore.TMP_MAP]: {},
                     [ContextStore.PAUSE_ACTION]: null
-
                 }
                 const keys = Object.keys(contextAttributes);
+                // storing the system attributes in contextstore
                 keys.forEach((key, index) => {
                     contextStore[ContextStore.CONTEXT_ATTRIBUTES][key] = contextAttributes[key];
                 });
-
             }
-            // We're at the root start from there
             return await processRootFlowBlock(smaEvent, contactFlow, amazonConnectInstanceID, bucketName, contextStore);
         }
     } catch (error) {
@@ -157,16 +160,15 @@ export async function processFlow(smaEvent: any, amazonConnectInstanceID: string
 }
 
 /**
-  * This function stores the System attributes in the Map, when new NEW_INBOUND_CALL is recieved
+  * This function stores the system attributes in contextAttribute object.
   * @param smaEvent 
   * @param amazonConnectFlowID
   * @param amazonConnectInstanceID
-  * @returns SMA Action
+  * @returns contextAttributes
   */
-async function storeSystemAttributs(smaEvent: any, amazonConnectFlowID: any, amazonConnectInstanceID: any) {
+async function storeSystemAttributes(smaEvent: any, amazonConnectFlowID: any, amazonConnectInstanceID: any) {
     let callDetails = new CallDetailsUtil();
-        const legA = callDetails.getLegACallDetails(smaEvent)as any;
-
+    const legA = callDetails.getLegACallDetails(smaEvent) as any;
     let contextAttributes = {
         [ContextAttributes.CUSTOMER_ENDPOINT_ADDRESS]: legA.From,
         [ContextAttributes.SYSTEM_ENDPOINT_ADDRESS]: legA.To,
@@ -177,12 +179,11 @@ async function storeSystemAttributs(smaEvent: any, amazonConnectFlowID: any, ama
         [ContextAttributes.CUSTOMER_ENDPOINT_TYPE]: Attributes.CUSTOMER_ENDPOINT_TYPE,
         [ContextAttributes.SYSTEM_ENDPOINT_TYPE]: Attributes.SYSTEM_ENDPOINT_TYPE
     }
-
     return contextAttributes;
 }
 
 /**
-  * This function is starting of the flow exection and gets the current action from the flow block and send to process flow action
+  * This function is starting of the flow exection and gets the current action from the Contact Flow.
   * @param smaEvent 
   * @param contactFlow
   * @param TransactionAttributes
@@ -191,11 +192,11 @@ async function storeSystemAttributs(smaEvent: any, amazonConnectFlowID: any, ama
   * @returns SMA Action
   */
 export async function processRootFlowBlock(smaEvent: any, contactFlow: any, amazonConnectInstanceID: string, bucketName: string, contextStore: any) {
-    // OK, time to figure out the root of the flow
     let callId: string;
     try {
         let callDetails = new CallDetailsUtil();
-        const legA = callDetails.getLegACallDetails(smaEvent)as any;
+        // getting the CallID of the Active call from the SMA Event
+        const legA = callDetails.getLegACallDetails(smaEvent) as any;
         callId = legA.CallId;
         if (!callId)
             callId = smaEvent.ActionData.Parameters.CallId;
@@ -203,7 +204,7 @@ export async function processRootFlowBlock(smaEvent: any, contactFlow: any, amaz
             const actions: any[] = contactFlow.Actions;
             console.log(Attributes.DEFAULT_LOGGER + callId + " ConnectInstanceId:" + amazonConnectInstanceID + " Root Flow Block The actions are" + actions)
             if (actions && actions.length > 0) {
-                const currentAction = callDetails.findActionByID(actions, contactFlow.StartAction) as any;
+                const currentAction = callDetails.findActionObjectByID(actions, contactFlow.StartAction) as any;
                 let actionType = currentAction.Type;
                 if (!Object.values(AmazonConnectActions).includes(actionType)) {
                     return await new TerminatingFlowUtil().terminatingFlowAction(smaEvent, actionType)
@@ -222,14 +223,14 @@ export async function processRootFlowBlock(smaEvent: any, contactFlow: any, amaz
 }
 
 /**
-  * This function process the flow actions and call the respective SMA Mapping Class based on the action type.
+  * This function process the flow actions and call the respective SMA Mapping Class based on the Contact Flow action type.
   * @param smaEvent 
   * @param action
   * @param actions
   * @param amazonConnectInstanceID
   * @param bucketName
   * @param contextStore
-  * @returns SMA Action
+  * @returns SMA action
   */
 export async function processFlowAction(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, contextStore: any) {
 
@@ -284,7 +285,7 @@ export async function processFlowAction(smaEvent: any, action: any, actions: any
     }
 }
 /**
-  * Processing the contact flow after recieving the successfull SMA event
+  * Processing the Contact Flow after recieving the successfull SMA event
   * @param smaEvent 
   * @param action
   * @param amazonConnectInstanceID
@@ -296,8 +297,9 @@ export async function processFlowAction(smaEvent: any, action: any, actions: any
 async function processFlowActionSuccess(smaEvent: any, action: any, contactFlow: any, amazonConnectInstanceID: string, bucketName: string, contextStore: any) {
     let callId: string;
     try {
+        // getting the CallID of the Active call from the SMA Event
         let callDetails = new CallDetailsUtil();
-        const legA = callDetails.getLegACallDetails(smaEvent)as any;
+        const legA = callDetails.getLegACallDetails(smaEvent) as any;
         callId = legA.CallId;
         if (!callId)
             callId = smaEvent.ActionData.Parameters.CallId;
@@ -309,8 +311,9 @@ async function processFlowActionSuccess(smaEvent: any, action: any, contactFlow:
             let intentName = smaEvent.ActionData.IntentResult.SessionState.Intent.Name;
             return await new ConditionValidationUtil().processFlowConditionValidation(smaEvent, transactionAttributes.currentFlowBlock, contactFlow, intentName, amazonConnectInstanceID, bucketName, contextStore);
         }
-        const nextAction = callDetails.findActionByID(contactFlow.Actions, action.Transitions.NextAction) as any;
+        const nextAction = callDetails.findActionObjectByID(contactFlow.Actions, action.Transitions.NextAction) as any;
         let actionType = nextAction.Type;
+        //checking if the action object is unsupported by the tekVizion's Library
         if (!Object.values(AmazonConnectActions).includes(actionType)) {
             return await new TerminatingFlowUtil().terminatingFlowAction(smaEvent, actionType)
         }
@@ -344,8 +347,9 @@ function updateConnectContextStore(transactionAttributes: any, key: string, valu
 async function processFlowActionFailed(smaEvent: any, actionObj: any, contactFlow: any, amazonConnectInstanceID: string, bucketName: string, contextStore: any) {
     let callId: string;
     try {
+        // getting the CallID of the Active call from the SMA Event
         let callDetails = new CallDetailsUtil();
-        const legA = callDetails.getLegACallDetails(smaEvent)as any;
+        const legA = callDetails.getLegACallDetails(smaEvent) as any;
         callId = legA.CallId;
         if (!callId)
             callId = smaEvent.ActionData.Parameters.CallId;
@@ -372,11 +376,12 @@ async function processFlowActionFailed(smaEvent: any, actionObj: any, contactFlo
                     break;
                 }
             }
-            nextAction = callDetails.findActionByID(contactFlow.Actions, currentAction.Transitions.Errors[count].NextAction);
+            nextAction = callDetails.findActionObjectByID(contactFlow.Actions, currentAction.Transitions.Errors[count].NextAction);
             console.log(Attributes.DEFAULT_LOGGER + callId + "Next Action identifier:" + nextAction);
         }
 
         let actionType = nextAction.Type;
+        //checking if the action object is unsupported by the tekVizion's Library
         if (!Object.values(AmazonConnectActions).includes(actionType)) {
             return await new TerminatingFlowUtil().terminatingFlowAction(smaEvent, actionType)
         }

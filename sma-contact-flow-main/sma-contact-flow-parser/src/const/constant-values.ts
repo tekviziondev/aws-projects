@@ -27,7 +27,7 @@ type Data = {
   CONNECT_CONTEXT_STORE: string,
   DEFAULT_LOGGER: string,
   CURRENT_FLOW_BLOCK: string,
-  METRIC_ERROR:string
+  METRIC_ERROR: string
 };
 
 export class ContextStore {
@@ -126,7 +126,7 @@ export const Attributes: Data = {
   CONNECT_CONTEXT_STORE: "ConnectContextStore",
   DEFAULT_LOGGER: "SMA-Contact-Flow-Builder | Call ID - ",
   CURRENT_FLOW_BLOCK: "currentFlowBlock",
-  METRIC_ERROR : " There is an Error in creating the Metric Params " 
+  METRIC_ERROR: " There is an Error in creating the Metric Params "
 }
 
 export const Supported_Actions = ["Wait", "Loop", "TransferToFlow", "UpdateContactTextToSpeechVoice", "InvokeLambdaFunction", "UpdateContactAttributes", "Compare", "InvokeFlowModule", "EndFlowModuleExecution"];

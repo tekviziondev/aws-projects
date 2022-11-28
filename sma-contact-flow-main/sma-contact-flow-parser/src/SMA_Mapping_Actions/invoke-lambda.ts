@@ -1,56 +1,44 @@
 import { CallDetailsUtil } from "../utility/call-details";
 import { Attributes, ContextAttributes, ContextStore, LambdaFunctionParameters } from "../const/constant-values"
-import { TerminatingFlowUtil } from "../utility/termination-action";
+import { TerminatingFlowUtil } from "../utility/default-termination-action";
 import { ErrorTypes } from "../const/error-types";
 import { processFlowAction } from "../contact-flow-processor"
-import { NextActionValidationUtil } from "../utility/next-action-error"
+import { NextActionValidationUtil } from "../utility/next-action-error-handler"
 import { Lambda } from "aws-sdk"
 import { IContextStore } from "../const/context-store";
-import { METRIC_PARAMS } from "../const/constant-values"
-import { UpdateMetricUtil } from "../utility/metric-updation"
+import { CloudWatchMetric } from "../utility/metric-updation"
 
 /**
-  * Invokes the External Lambda Function and stores the result of the Lambda function in Key Value Pair
+  * Invokes the External Lambda Function and stores the result in the ContextStore
   * @param smaEvent 
   * @param action
   * @param actions
   * @param amazonConnectInstanceID
   * @param bucketName
   * @param contextStore
-  * @returns The Next SMA Action to perform
+  * @returns The Next SMA action to perform
   */
 export class InvokeLambda {
     async processFlowActionInvokeLambdaFunction(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, contextStore: IContextStore) {
         let callId: string;
         let regionVal = Attributes.region;
+        if (!regionVal)
+            regionVal = "us-east-1"
+        //creating the lambda API to invoke from the specific region
         const lambda = new Lambda({ region: regionVal });
+        // creating cloud watch metric parameter and updating the metric details in cloud watch
+        let metric = new CloudWatchMetric();
+        let params1 = metric.createParams(contextStore, smaEvent);
         console.log(Attributes.DEFAULT_LOGGER + callId + " Invoke Lombda Action:");
-        let params1 = METRIC_PARAMS
         try {
-            params1.MetricData[0].Dimensions[0].Value = contextStore.ContextAttributes['$.InstanceARN']
-            if (contextStore['InvokeModuleARN']) {
-                params1.MetricData[0].Dimensions[1].Name = 'Module Flow ID'
-                params1.MetricData[0].Dimensions[1].Value = contextStore['InvokeModuleARN']
-            }
-            else if (contextStore['TransferFlowARN']) {
-                params1.MetricData[0].Dimensions[1].Name = 'Contact Flow ID'
-                params1.MetricData[0].Dimensions[1].Value = contextStore['TransferFlowARN']
-            }
-            else {
-                params1.MetricData[0].Dimensions[1].Name = 'Contact Flow ID'
-                params1.MetricData[0].Dimensions[1].Value = contextStore['ActualFlowARN']
-            }
-        } catch (error) {
-            console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId + Attributes.METRIC_ERROR + error.message);
-        }
-        let updateMetric=new UpdateMetricUtil();
-        try {
+            // getting the CallID of the Active call from the SMA Event
             let callDetails = new CallDetailsUtil();
-            const legA = callDetails.getLegACallDetails(smaEvent)as any;
+            const legA = callDetails.getLegACallDetails(smaEvent) as any;
             callId = legA.CallId;
             if (!callId)
                 callId = smaEvent.ActionData.Parameters.CallId;
             let LambdaARN = action.Parameters.LambdaFunctionARN
+            // getting the input parameter form the Contact flow for invoking the external Lambda function
             let inputForInvoking = await inputForInvokingLambda(action, contextStore);
             console.log(Attributes.DEFAULT_LOGGER + callId + " Input for invoking lambda Function" + JSON.stringify(inputForInvoking));
             const params = {
@@ -58,29 +46,33 @@ export class InvokeLambda {
                 InvocationType: 'RequestResponse', //Mandatory
                 Payload: JSON.stringify(inputForInvoking) //Mandatory
             };
+            // invoking the external lambda function with the parameters and getting the result
             let result = await lambda.invoke(params).promise()
             console.log(Attributes.DEFAULT_LOGGER + callId + " Invoke Lombda Action Result is " + result);
             if (!result) {
                 params1.MetricData[0].MetricName = "InvokeLambdaNoResponse"
-                updateMetric.updateMetric(params1);
+                metric.updateMetric(params1);
                 let nextAction = await new NextActionValidationUtil().getNextActionForError(action, actions, ErrorTypes.NO_MATCHING_ERROR, smaEvent)
                 return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName, contextStore);
             }
             params1.MetricData[0].MetricName = "InvokeLambdaSuccess"
-            updateMetric.updateMetric(params1);
+            metric.updateMetric(params1);
+            // parsing and storing the response after invoking the Lambda function 
             let x = JSON.parse(result.Payload.toString())
             console.log(Attributes.DEFAULT_LOGGER + callId + " The Result After Invoking Lambda is" + JSON.stringify(x))
+            // iterate the lambda response and store it in the contextStore
             const keys = Object.keys(x);
             keys.forEach((key, index) => {
                 contextStore[ContextStore.CONTEXT_ATTRIBUTES]["$.External." + key] = x[key];
                 contextStore[ContextStore.TMP_MAP][key] = x[key];
             });
-            let nextAction = callDetails.findActionByID(actions, action.Transitions.NextAction);
+            // getting the next action object to execute
+            let nextAction = callDetails.findActionObjectByID(actions, action.Transitions.NextAction);
             console.log(Attributes.DEFAULT_LOGGER + callId + " Next Action identifier:" + action.Transitions.NextAction);
             return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName, contextStore);
         } catch (error) {
             params1.MetricData[0].MetricName = "InvokeLambdaFailure"
-            updateMetric.updateMetric(params1);
+            metric.updateMetric(params1);
             console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution InvokeLambda" + error.message);
             return await new TerminatingFlowUtil().terminatingFlowAction(smaEvent, "error")
         }
@@ -90,11 +82,9 @@ export class InvokeLambda {
 }
 
 /**
-  * Gets the input for invoking the Lambda from the Amazon connect action Block
-  * @param smaEvent 
+  * Get the inputs for invoking the Lambda from the Contact Flow action object
   * @param action
-  * @param amazonConnectInstanceID
-  * @param bucketName
+  * @param contextStore
   * @returns Process Flow Action
   */
 async function inputForInvokingLambda(action: any, contextStore: any) {
