@@ -1,9 +1,9 @@
 import { ChimeActions } from "../const/chime-action-types";
-import { getLegACallDetails } from "../utility/call-details";
+import { CallDetailsUtil } from "../utility/call-details";
 import { Attributes, ContextStore } from "../const/constant-values";
 import { IContextStore } from "../const/context-store";
 import { METRIC_PARAMS } from "../const/constant-values"
-import { updateMetric } from "../utility/metric-updation"
+import { UpdateMetricUtil } from "../utility/metric-updation"
 
 /**
   * Making a SMA action to perform Ends the interaction.
@@ -34,11 +34,11 @@ export class DisconnectParticipant {
             console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId+ Attributes.METRIC_ERROR + error.message);
         }
         try {
-            const legA = getLegACallDetails(smaEvent);
+            let callDetails = new CallDetailsUtil();
+            const legA = callDetails.getLegACallDetails(smaEvent)as any;
             callId = legA.CallId;
             if (!callId)
                 callId = smaEvent.ActionData.Parameters.CallId;
-
             console.log(Attributes.DEFAULT_LOGGER + callId + "| is going to Hang up");
             let smaAction = {
                 Type: ChimeActions.HANGUP,
@@ -48,7 +48,8 @@ export class DisconnectParticipant {
                 }
             };
             params.MetricData[0].MetricName = "NO_OF_DISCONNECTED_CALLS"
-            updateMetric(params);
+            let updateMetric=new UpdateMetricUtil();
+            updateMetric.updateMetric(params);
             let pauseAction = contextStore[ContextStore.PAUSE_ACTION]
             if (pauseAction) {
                 smaAction1 = pauseAction;

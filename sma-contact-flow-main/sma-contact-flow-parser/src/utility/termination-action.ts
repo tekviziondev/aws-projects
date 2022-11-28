@@ -1,15 +1,18 @@
 import { ChimeActions } from "../const/chime-action-types";
-import { getLegACallDetails } from "./call-details";
+import { CallDetailsUtil } from "./call-details";
 import { Attributes, ContextStore, SpeechParameters } from "../const/constant-values";
 import { METRIC_PARAMS } from "../const/constant-values"
-import { updateMetric } from "../utility/metric-updation"
+import { UpdateMetricUtil } from "../utility/metric-updation"
+
+export class TerminatingFlowUtil{
+
 /**
   * This Terminates the existing call if there are any error occured in the Flow execution
   * @param smaEvent 
   * @param actionType
   * @returns SMA Error Speak Action and Hang UP action
   */
-export async function terminatingFlowAction(smaEvent: any, actionType: string) {
+async terminatingFlowAction(smaEvent: any, actionType: string) {
     let text: string;
     let type: string;
     let x: Number;
@@ -49,11 +52,12 @@ export async function terminatingFlowAction(smaEvent: any, actionType: string) {
         if (speechAttributes && speechAttributes.hasOwnProperty(SpeechParameters.LANGUAGE_CODE)) {
             languageCode = speechAttributes[SpeechParameters.LANGUAGE_CODE]
         }
-        const legA = getLegACallDetails(smaEvent);
+        let callDetails = new CallDetailsUtil();
+        const legA = callDetails.getLegACallDetails(smaEvent)as any;
         callId = legA.CallId;
         if (!callId)
             callId = smaEvent.ActionData.Parameters.CallId;
-
+        let updateMetric=new UpdateMetricUtil();
         if (actionType == "Invalid_Text") {
             console.log(Attributes.DEFAULT_LOGGER + callId + "The Text to Speak has Invalid Attributes. The Flow is going to Terminate, Please Check the Flow");
             text = "There is an Invalid Attribute Present, your call is going to disconnect"
@@ -63,7 +67,7 @@ export async function terminatingFlowAction(smaEvent: any, actionType: string) {
         }
         else {
             params.MetricData[0].MetricName = "UnSupportedAction"
-            updateMetric(params)
+            updateMetric.updateMetric(params)
             console.log(Attributes.DEFAULT_LOGGER + callId + "The Action " + actionType + " is not supported , The Flow is going to Terminate, Please use only the Supported Action");
             text = "The action " + actionType + " is unsupported Action defined in the Contact flow, your call is going to disconnect"
         }
@@ -87,7 +91,7 @@ export async function terminatingFlowAction(smaEvent: any, actionType: string) {
             }
         };
         params.MetricData[0].MetricName = "NO_OF_DISCONNECTED_CALLS"
-        updateMetric(params);
+        updateMetric.updateMetric(params);
         return {
             "SchemaVersion": Attributes.SCHEMA_VERSION,
             "Actions": [smaAction, smaAction1]
@@ -96,4 +100,5 @@ export async function terminatingFlowAction(smaEvent: any, actionType: string) {
         console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution of Terminating Events" + error.message);
         return null;
     }
+}
 }

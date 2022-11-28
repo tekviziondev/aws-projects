@@ -1,13 +1,12 @@
-import { getLegACallDetails } from "../utility/call-details";
-import { findActionByID } from "../utility/find-action-id";
+import { CallDetailsUtil } from "../utility/call-details";
 import { ErrorTypes } from "../const/error-types";
 import { processFlowAction } from "../contact-flow-processor";
 import { Operators } from "../const/comparison-operators";
-import { getNextActionForError } from "../utility/next-action-error";
+import { NextActionValidationUtil } from "../utility/next-action-error";
 import { Attributes } from "../const/constant-values";
 import { IContextStore } from "../const/context-store";
 import { METRIC_PARAMS } from "../const/constant-values"
-import { updateMetric } from "../utility/metric-updation"
+import { UpdateMetricUtil } from "../utility/metric-updation"
 /**
   * Comparing Contact Attributes and based on the result navigate to the Next Action
   * @param smaEvent 
@@ -41,9 +40,11 @@ export class CompareAttribute {
         } catch (error) {
             console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId+ Attributes.METRIC_ERROR + error.message);
         }
+        let updateMetric=new UpdateMetricUtil();
         try {
             let callId: string;
-            const legA = getLegACallDetails(smaEvent);
+            let callDetails = new CallDetailsUtil();
+            const legA = callDetails.getLegACallDetails(smaEvent)as any;
             callId = legA.CallId;
             if (!callId)
                 callId = smaEvent.ActionData.Parameters.CallId;
@@ -58,7 +59,8 @@ export class CompareAttribute {
                         if (condition[index].Condition.Operands[0] === ComparisonValue) {
                             let nextAction_id = condition[index].NextAction;
                             console.log(Attributes.DEFAULT_LOGGER + callId + "| Next Action identifier|" + nextAction_id)
-                            nextAction = findActionByID(actions, nextAction_id)
+                            let callDetails = new CallDetailsUtil();
+                            nextAction = callDetails.findActionByID(actions, nextAction_id)
                         }
                         break;
 
@@ -66,64 +68,71 @@ export class CompareAttribute {
                         if (ComparisonValue < condition[index].Condition.Operands[0]) {
                             let nextAction_id = condition[index].NextAction;
                             console.log(Attributes.DEFAULT_LOGGER + callId + "| Next Action identifier |" + nextAction_id)
-                            nextAction = findActionByID(actions, nextAction_id)
+                            let callDetails = new CallDetailsUtil();
+                            nextAction = callDetails.findActionByID(actions, nextAction_id)
                         }
                         break;
                     case Operators.NUMBER_LESS_OR_EQUAL_TO:
                         if (ComparisonValue <= condition[index].Condition.Operands[0]) {
                             let nextAction_id = condition[index].NextAction;
                             console.log(Attributes.DEFAULT_LOGGER + callId + "| Next Action identifier |" + nextAction_id)
-                            nextAction = findActionByID(actions, nextAction_id)
+                            let callDetails = new CallDetailsUtil();
+                            nextAction = callDetails.findActionByID(actions, nextAction_id)
                         }
                         break;
                     case Operators.NUMBER_GREATER_THAN:
                         if (ComparisonValue > condition[index].Condition.Operands[0]) {
                             let nextAction_id = condition[index].NextAction;
                             console.log(Attributes.DEFAULT_LOGGER + callId + "| Next Action identifier |" + nextAction_id)
-                            nextAction = findActionByID(actions, nextAction_id)
+                            let callDetails = new CallDetailsUtil();
+                            nextAction = callDetails.findActionByID(actions, nextAction_id)
                         }
                         break;
                     case Operators.NUMBER_LESS_OR_EQUAL_TO:
                         if (ComparisonValue >= condition[index].Condition.Operands[0]) {
                             let nextAction_id = condition[index].NextAction;
                             console.log(Attributes.DEFAULT_LOGGER + callId + "| Next Action identifier |" + nextAction_id)
-                            nextAction = findActionByID(actions, nextAction_id)
+                            let callDetails = new CallDetailsUtil();
+                            nextAction = callDetails.findActionByID(actions, nextAction_id)
                         }
                         break;
                     case Operators.TEXT_STARTS_WITH:
                         if (ComparisonValue.startsWith(condition[index].Condition.Operands[0])) {
                             let nextAction_id = condition[index].NextAction;
                             console.log(Attributes.DEFAULT_LOGGER + callId + "| Next Action identifier |" + nextAction_id)
-                            nextAction = findActionByID(actions, nextAction_id)
+                            let callDetails = new CallDetailsUtil();
+                            nextAction = callDetails.findActionByID(actions, nextAction_id)
                         }
                         break;
                     case Operators.TEXT_ENDS_WITH:
                         if (ComparisonValue.endsWith(condition[index].Condition.Operands[0])) {
                             let nextAction_id = condition[index].NextAction;
                             console.log(Attributes.DEFAULT_LOGGER + callId + "| Next Action identifier |" + nextAction_id)
-                            nextAction = findActionByID(actions, nextAction_id)
+                            let callDetails = new CallDetailsUtil();
+                            nextAction = callDetails.findActionByID(actions, nextAction_id)
                         }
                         break;
                     case Operators.TEXT_CONTAINS:
                         if (ComparisonValue.includes(condition[index].Condition.Operands[0])) {
                             let nextAction_id = condition[index].NextAction;
                             console.log(Attributes.DEFAULT_LOGGER + callId + "| Next Action identifier |" + nextAction_id)
-                            nextAction = findActionByID(actions, nextAction_id)
+                            let callDetails = new CallDetailsUtil();
+                            nextAction = callDetails.findActionByID(actions, nextAction_id)
                         }
                         break;
                 }
             }
             if (!nextAction) {
                 console.log(Attributes.DEFAULT_LOGGER + callId + "| Next Action is inValid");
-                let nextAction = await getNextActionForError(action, actions, ErrorTypes.NO_MATCHING_CONDITION, smaEvent);
+                let nextAction = await new NextActionValidationUtil().getNextActionForError(action, actions, ErrorTypes.NO_MATCHING_CONDITION, smaEvent);
                 return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName, contextStore);
             }
             params.MetricData[0].MetricName = "CompareAttributeSuccess"
-            updateMetric(params);
+            updateMetric.updateMetric(params);
         } catch (e) {
             params.MetricData[0].MetricName = "CompareAttributeFailure"
-            updateMetric(params);
-            let nextAction = await getNextActionForError(action, actions, ErrorTypes.NO_MATCHING_CONDITION, smaEvent);
+            updateMetric.updateMetric(params);
+            let nextAction = await new NextActionValidationUtil().getNextActionForError(action, actions, ErrorTypes.NO_MATCHING_CONDITION, smaEvent);
             return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName, contextStore);
         }
         return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName, contextStore);

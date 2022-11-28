@@ -1,8 +1,8 @@
 import { Connect } from 'aws-sdk';
 import { S3 } from 'aws-sdk';
-import { getLegACallDetails } from './utility/call-details'
+import { CallDetailsUtil } from './utility/call-details'
 import { METRIC_PARAMS } from "./const/constant-values"
-import { updateMetric } from "./utility/metric-updation"
+import { UpdateMetricUtil } from "./utility/metric-updation"
 import { Attributes } from "./const/constant-values";
 
 let s3Bucket: string;
@@ -34,9 +34,10 @@ export async function loadContactFlow(amazonConnectInstanceID: string, amazonCon
     console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId+ Attributes.METRIC_ERROR + error.message);
   }
  
-
+  let updateMetric=new UpdateMetricUtil();
   try {
-    const legA = getLegACallDetails(smaEvent);
+    let callDetails = new CallDetailsUtil();
+    const legA = callDetails.getLegACallDetails(smaEvent)as any;
     callId = legA.CallId;
     if (!callId)
       callId = smaEvent.ActionData.Parameters.CallId;
@@ -66,11 +67,11 @@ export async function loadContactFlow(amazonConnectInstanceID: string, amazonCon
 
     }
     params.MetricData[0].MetricName = metric_type + "Success"
-    updateMetric(params);
+    updateMetric.updateMetric(params);
     return rv;
   } catch (error) {
     params.MetricData[0].MetricName = metric_type + "Failure"
-    updateMetric(params);
+    updateMetric.updateMetric(params);
     console.error(defaultLogger + callId + " There is an Error in execution of Loading the Contact Flow " + error.message);
     return null;
   }
@@ -88,7 +89,8 @@ export async function loadContactFlow(amazonConnectInstanceID: string, amazonCon
 async function writeFlowCache(flow: any, amazonConnectInstanceID: string, amazonConnectContactFlowID: string, smaEvent: any) {
   let callId: string;
   try {
-    const legA = getLegACallDetails(smaEvent);
+    let callDetails = new CallDetailsUtil();
+    const legA = callDetails.getLegACallDetails(smaEvent)as any;
     callId = legA.CallId;
     if (!callId)
       callId = smaEvent.ActionData.Parameters.CallId;
@@ -121,7 +123,8 @@ async function checkFlowCache(amazonConnectInstanceID: string, amazonConnectCont
     Bucket: s3Bucket,
     Key: amazonConnectContactFlowID
   }
-  const legA = getLegACallDetails(smaEvent);
+  let callDetails = new CallDetailsUtil();
+  const legA = callDetails.getLegACallDetails(smaEvent)as any;
   let callId: string;
   callId = legA.CallId;
   if (!callId)

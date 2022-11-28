@@ -1,10 +1,10 @@
-import { getLegACallDetails } from "../utility/call-details";
+import { CallDetailsUtil } from "../utility/call-details";
 import { ChimeActions } from "../const/chime-action-types";
 import { Attributes, ContextStore } from "../const/constant-values";
 import { IContextStore } from "../const/context-store";
-import { terminatingFlowAction } from "../utility/termination-action";
+import { TerminatingFlowUtil } from "../utility/termination-action";
 import { METRIC_PARAMS } from "../const/constant-values"
-import { updateMetric } from "../utility/metric-updation"
+import { UpdateMetricUtil } from "../utility/metric-updation"
 
 /**
   * Making a SMA action to perform Call Recording and Start storing it in the S3 Bucket Location or Stop Call Recording
@@ -38,7 +38,8 @@ export class CallRecording {
         }
         try {
             let smaAction1: any;
-            const legA = getLegACallDetails(smaEvent);
+            let callDetails = new CallDetailsUtil();
+            const legA = callDetails.getLegACallDetails(smaEvent)as any;
             callId = legA.CallId;
             let smaAction: any;
             if (!callId)
@@ -71,7 +72,8 @@ export class CallRecording {
                 };
             }
             params.MetricData[0].MetricName = smaAction.Type + "Success"
-            updateMetric(params);
+            let updateMetric=new UpdateMetricUtil();
+            updateMetric.updateMetric(params);
             if (pauseAction) {
                 smaAction1 = pauseAction;
                 contextStore[ContextStore.PAUSE_ACTION] = null
@@ -99,7 +101,7 @@ export class CallRecording {
             }
         } catch (error) {
             console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution UpdateContactRecordingBehavior |" + error.message);
-            return await terminatingFlowAction(smaEvent, "error")
+            return await new TerminatingFlowUtil().terminatingFlowAction(smaEvent, "error")
         }
     }
 }

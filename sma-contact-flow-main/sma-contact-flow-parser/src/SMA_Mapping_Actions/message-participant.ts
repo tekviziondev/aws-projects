@@ -1,13 +1,12 @@
-import { getLegACallDetails } from "../utility/call-details";
-import { Attributes, ContextStore, SpeechParameters } from "../const/constant-values"
-import { count } from "../utility/count";
+import { CallDetailsUtil } from "../utility/call-details";
+import { Attributes, ContextStore, SpeechParameters } from "../const/constant-values";
 import { ChimeActions } from "../const/chime-action-types";
-import { terminatingFlowAction } from "../utility/termination-action";
+import { TerminatingFlowUtil } from "../utility/termination-action";
 import { PlayAudio } from "./play-audio";
-import { getSpeechParameters } from "../utility/speech-parameter";
+import { SpeechParameter } from "./speech-parameter";
 import { IContextStore } from "../const/context-store";
 import { METRIC_PARAMS } from "../const/constant-values"
-import { updateMetric } from "../utility/metric-updation"
+import { UpdateMetricUtil } from "../utility/metric-updation"
 /**
   * Making a SMA action to perform Delivers an audio or chat message.
   * @param smaEvent 
@@ -15,10 +14,11 @@ import { updateMetric } from "../utility/metric-updation"
   * @param contextStore
   * @returns SMA Action
   */
-export class MessageParticipant {
-    async processFlowActionMessageParticipant(smaEvent: any, action: any, contextStore: IContextStore) {
+export class MessageParticipant  extends SpeechParameter{
+    async execute(smaEvent: any, action: any, contextStore: IContextStore) {
         let callId: string;
-        const legA = getLegACallDetails(smaEvent);
+        let callDetails = new CallDetailsUtil();
+        const legA = callDetails.getLegACallDetails(smaEvent)as any;
         let params = METRIC_PARAMS
         try {
             params.MetricData[0].Dimensions[0].Value = contextStore.ContextAttributes['$.InstanceARN']
@@ -37,6 +37,7 @@ export class MessageParticipant {
         } catch (error) {
             console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId+ Attributes.METRIC_ERROR + error.message);
         }
+        let updateMetric=new UpdateMetricUtil();
         try {
             callId = legA.CallId;
             if (!callId)
@@ -44,14 +45,14 @@ export class MessageParticipant {
             if (action.Parameters.Media != null) {
                 console.log(Attributes.DEFAULT_LOGGER + callId + "Play Audio Action");
                 let playAudio = new PlayAudio();
-                return await playAudio.processPlayAudio(smaEvent, action, contextStore);
+                return await playAudio.execute(smaEvent, action, contextStore);
             }
             let smaAction1: any;
             let engine = Attributes.ENGINE
             let pauseAction = contextStore[ContextStore.PAUSE_ACTION];
-            let speech_parameter = await getSpeechParameters(smaEvent, action, contextStore)
+            let speech_parameter = await this.getSpeechParameters(smaEvent, action, contextStore,"SpeechParameters")
             if (speech_parameter['Text'].includes("$.")) {
-                return await terminatingFlowAction(smaEvent, "Invalid_Text")
+                return await new TerminatingFlowUtil().terminatingFlowAction(smaEvent, "Invalid_Text")
             }
             let smaAction = {
                 Type: ChimeActions.SPEAK,
@@ -66,7 +67,7 @@ export class MessageParticipant {
                 }
             };
             params.MetricData[0].MetricName = "SpeakSuccess"
-            updateMetric(params);
+            updateMetric.updateMetric(params);
             if (pauseAction) {
                 smaAction1 = pauseAction;
                 contextStore[ContextStore.PAUSE_ACTION] = null
@@ -95,9 +96,9 @@ export class MessageParticipant {
 
         } catch (error) {
             params.MetricData[0].MetricName = "SpeakFailure"
-            updateMetric(params);
+            updateMetric.updateMetric(params);
             console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution of MessageParticipant " + error.message);
-            return await terminatingFlowAction(smaEvent, "error")
+            return await new TerminatingFlowUtil().terminatingFlowAction(smaEvent, "error")
         }
 
     }

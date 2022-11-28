@@ -1,12 +1,11 @@
-import { getLegACallDetails } from "../utility/call-details";
-import { terminatingFlowAction } from "../utility/termination-action";
-import { findActionByID } from "../utility/find-action-id";
+import { CallDetailsUtil } from "../utility/call-details";
+import { TerminatingFlowUtil } from "../utility/termination-action";
 import { processFlowAction } from "../contact-flow-processor"
 import { loadContactFlow } from "../contact-flow-loader"
 import { Attributes, ContextStore } from "../const/constant-values";
 import { IContextStore } from "../const/context-store";
 import { METRIC_PARAMS } from "../const/constant-values"
-import { updateMetric } from "../utility/metric-updation"
+import { UpdateMetricUtil } from "../utility/metric-updation"
 /**
   * End the execution of the current Module and returns Back to Orginal Contact flow.
   * @param smaEvent 
@@ -37,8 +36,10 @@ export class EndModule {
         } catch (error) {
           console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId+ Attributes.METRIC_ERROR + error.message);
         }
+        let updateMetric=new UpdateMetricUtil();
     try {
-      const legA = getLegACallDetails(smaEvent);
+      let callDetails = new CallDetailsUtil();
+      const legA = callDetails.getLegACallDetails(smaEvent)as any;
       callId = legA.CallId;
       if (!callId)
         callId = smaEvent.ActionData.Parameters.CallId;
@@ -47,15 +48,15 @@ export class EndModule {
       contextStore[ContextStore.INVOKATION_MODULE_NEXT_ACTION] = "";
       contextStore[ContextStore.INVOKE_MODULE_ARN] = "";
       const contactFlow = await loadContactFlow(amazonConnectInstanceID, contactFlow_id, bucketName, smaEvent, "Contact_Flow");
-      let nextAction = findActionByID(contactFlow.Actions, nextaction_id);
+      let nextAction = callDetails.findActionByID(contactFlow.Actions, nextaction_id)
       params.MetricData[0].MetricName = "FlowModuleExecutionSuccess"
-      updateMetric(params);
+      updateMetric.updateMetric(params);
       return await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName, contextStore);
     } catch (error) {
       params.MetricData[0].MetricName = "FlowModuleExecutionFailure"
-      updateMetric(params);
+      updateMetric.updateMetric(params);
       console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution EndFlowModule" + error.message);
-      return await terminatingFlowAction(smaEvent, "error")
+      return await new TerminatingFlowUtil().terminatingFlowAction(smaEvent, "error")
     }
 
   }

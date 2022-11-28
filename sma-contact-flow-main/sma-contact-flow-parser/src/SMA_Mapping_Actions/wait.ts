@@ -1,9 +1,8 @@
 import { processFlowAction } from "../contact-flow-processor";
-import { getLegACallDetails } from "../utility/call-details";
+import { CallDetailsUtil } from "../utility/call-details";
 import { ChimeActions } from "../const/chime-action-types";
-import { ContextStore, Supported_Actions } from "../const/constant-values";
-import { findActionByID } from "../utility/find-action-id";
-import { terminatingFlowAction } from "../utility/termination-action";
+import { ContextStore } from "../const/constant-values";
+import { TerminatingFlowUtil } from "../utility/termination-action";
 import { Attributes } from "../const/constant-values";
 import { IContextStore } from "../const/context-store";
 /**
@@ -20,7 +19,8 @@ export class Wait {
     async processFlowActionWait(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, contextStore: IContextStore) {
         let callId: string;
         try {
-            const legA = getLegACallDetails(smaEvent);
+            let callDetails = new CallDetailsUtil();
+            const legA = callDetails.getLegACallDetails(smaEvent)as any;
             callId = legA.CallId;
             if (!callId)
                 callId = smaEvent.ActionData.Parameters.CallId;
@@ -32,14 +32,14 @@ export class Wait {
                     "DurationInMilliseconds": timeLimit //Mandatory
                 }
             };
-            const nextAction = findActionByID(actions, action.Transitions.Conditions[0].NextAction);
-            console.log(Attributes.DEFAULT_LOGGER + callId + " Next Action identifier:" + action.Transitions.Conditions[0].NextAction);
+            const nextAction = callDetails.findActionByID(actions, action.Transitions.Conditions[0].NextAction);
+            console.log(Attributes.DEFAULT_LOGGER + callId + " Next Action identifier:" + nextAction);
             console.log(Attributes.DEFAULT_LOGGER + callId + " Pause action is Performed for " + timeLimit + " Milliseconds");
             contextStore[ContextStore.PAUSE_ACTION] = smaAction;
             return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName, contextStore)
         } catch (error) {
             console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution of Wait action " + error.message);
-            return await terminatingFlowAction(smaEvent, "error")
+            return await new TerminatingFlowUtil().terminatingFlowAction(smaEvent, "error")
         }
 
     }

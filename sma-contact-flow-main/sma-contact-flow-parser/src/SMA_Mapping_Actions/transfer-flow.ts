@@ -1,11 +1,11 @@
-import { getLegACallDetails } from "../utility/call-details";
-import { terminatingFlowAction } from "../utility/termination-action";
+import { CallDetailsUtil } from "../utility/call-details";
+import { TerminatingFlowUtil } from "../utility/termination-action";
 import { loadContactFlow } from "../contact-flow-loader"
 import { processRootFlowBlock } from "../contact-flow-processor"
 import { Attributes, ContextStore } from "../const/constant-values";
 import { IContextStore } from "../const/context-store";
 import { METRIC_PARAMS } from "../const/constant-values"
-import { updateMetric } from "../utility/metric-updation"
+import { UpdateMetricUtil } from "../utility/metric-updation"
 /**
   * Transfer to another Contact Flow to Execute.
   * @param smaEvent 
@@ -37,9 +37,11 @@ export class TrasferToFlow {
         } catch (error) {
             console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId+ Attributes.METRIC_ERROR + error.message);
         }
+        let updateMetric=new UpdateMetricUtil();
         try {
             let TransferFlowARN = action.Parameters.ContactFlowId;
-            const legA = getLegACallDetails(smaEvent);
+            let callDetails = new CallDetailsUtil();
+            const legA = callDetails.getLegACallDetails(smaEvent)as any;
             callId = legA.CallId;
             if (!callId)
                 callId = smaEvent.ActionData.Parameters.CallId;
@@ -47,13 +49,13 @@ export class TrasferToFlow {
             const contactFlow = await loadContactFlow(amazonConnectInstanceID, TransferFlowARN, bucketName, smaEvent, "Contact_Flow");
             console.log(Attributes.DEFAULT_LOGGER + callId + " Transfering to Another contact FLow function")
             params.MetricData[0].MetricName = "TransferToFlowSuccess"
-            updateMetric(params);
+            updateMetric.updateMetric(params);
             return await processRootFlowBlock(smaEvent, contactFlow, amazonConnectInstanceID, bucketName, contextStore);
         } catch (error) {
             params.MetricData[0].MetricName = "TransferToFlowFailure"
-            updateMetric(params);
+            updateMetric.updateMetric(params);
             console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution of TransferToFlow " + error.message);
-            return await terminatingFlowAction(smaEvent, "error")
+            return await new TerminatingFlowUtil().terminatingFlowAction(smaEvent, "error")
         }
 
     }

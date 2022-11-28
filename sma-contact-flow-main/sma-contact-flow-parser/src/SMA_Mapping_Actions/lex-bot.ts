@@ -1,10 +1,10 @@
-import { getLegACallDetails } from "../utility/call-details";
+import { CallDetailsUtil } from "../utility/call-details";
 import { ChimeActions } from "../const/chime-action-types";
 import { Attributes, ContextStore } from "../const/constant-values";
 import { IContextStore } from "../const/context-store";
-import { terminatingFlowAction } from "../utility/termination-action";
+import { TerminatingFlowUtil } from "../utility/termination-action";
 import { METRIC_PARAMS } from "../const/constant-values"
-import { updateMetric } from "../utility/metric-updation"
+import { UpdateMetricUtil } from "../utility/metric-updation"
 
 /**
   * Making a SMA action to perform delvier a Chat message and obtain customer input.
@@ -36,8 +36,10 @@ export class LexBot {
     } catch (error) {
       console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId+ Attributes.METRIC_ERROR + error.message);
     }
+    let updateMetric=new UpdateMetricUtil();
     try {
-      const legA = getLegACallDetails(smaEvent);
+      let callDetails = new CallDetailsUtil();
+      const legA = callDetails.getLegACallDetails(smaEvent)as any;
       callId = legA.CallId;
       if (!callId)
         callId = smaEvent.ActionData.Parameters.CallId;
@@ -89,7 +91,7 @@ export class LexBot {
       }
       let pauseAction = contextStore[ContextStore.PAUSE_ACTION]
       params.MetricData[0].MetricName = "LexBotSuccess"
-      updateMetric(params);
+      updateMetric.updateMetric(params);
       if (pauseAction) {
         smaAction1 = pauseAction;
         contextStore[ContextStore.PAUSE_ACTION] = null
@@ -118,9 +120,9 @@ export class LexBot {
       }
     } catch (error) {
       params.MetricData[0].MetricName = "LexBotFailure"
-      updateMetric(params);
+      updateMetric.updateMetric(params);
       console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution of ConnectParticipantWithLexBot " + error.message);
-      return await terminatingFlowAction(smaEvent, "error")
+      return await new TerminatingFlowUtil().terminatingFlowAction(smaEvent, "error")
     }
 
   }

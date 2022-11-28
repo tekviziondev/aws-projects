@@ -1,11 +1,10 @@
-import { getLegACallDetails } from "../utility/call-details";
-import { terminatingFlowAction } from "../utility/termination-action";
-import { findActionByID } from "../utility/find-action-id";
+import { CallDetailsUtil } from "../utility/call-details";
+import { TerminatingFlowUtil } from "../utility/termination-action";
 import { processFlowAction } from "../contact-flow-processor";
 import { Attributes, ContextStore } from "../const/constant-values";
 import { IContextStore } from "../const/context-store";
 import { METRIC_PARAMS } from "../const/constant-values"
-import { updateMetric } from "../utility/metric-updation"
+import { UpdateMetricUtil } from "../utility/metric-updation"
 /**
   * Sets the voice parameters to interact with the customer
   * @param smaEvent 
@@ -37,8 +36,10 @@ export class SetVoice {
         } catch (error) {
             console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId+ Attributes.METRIC_ERROR + error.message);
         }
+        let updateMetric=new UpdateMetricUtil();
         try {
-            const legA = getLegACallDetails(smaEvent);
+            let callDetails = new CallDetailsUtil();
+            const legA = callDetails.getLegACallDetails(smaEvent)as any;
             callId = legA.CallId;
             let speechAttributes = contextStore[ContextStore.SPEECH_ATTRIBUTES]
             if (!callId)
@@ -48,7 +49,7 @@ export class SetVoice {
             keys.forEach((key, index) => {
                 speechAttributes[key] = SpeechParameters[key];
             });
-            let nextAction = findActionByID(actions, action.Transitions.NextAction);
+            let nextAction = callDetails.findActionByID(actions, action.Transitions.NextAction) as any;
             console.log(Attributes.DEFAULT_LOGGER + callId + " Next Action identifier:" + action.Transitions.NextAction);
             if (nextAction.Type == "UpdateContactData") {
                 console.log(Attributes.DEFAULT_LOGGER + callId + " Next Action Type:" + nextAction.Type);
@@ -57,17 +58,17 @@ export class SetVoice {
                 keys.forEach((key, index) => {
                     speechAttributes[key] = SpeechParameters[key];
                 });
-                nextAction = findActionByID(actions, nextAction.Transitions.NextAction);
+                nextAction = callDetails.findActionByID(actions, nextAction.Transitions.NextAction);
                 console.log(Attributes.DEFAULT_LOGGER + callId + " Next Action identifier:" + action.Transitions.NextAction);
             }
             params.MetricData[0].MetricName = "UpdateContactTextToSpeechVoiceSuccess"
-            updateMetric(params);
+            updateMetric.updateMetric(params);
             return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName, contextStore);
         } catch (error) {
             params.MetricData[0].MetricName = "UpdateContactTextToSpeechVoiceFailure"
-            updateMetric(params);
+            updateMetric.updateMetric(params);
             console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution of UpdateContactTextToSpeechVoice " + error.message);
-            return await terminatingFlowAction(smaEvent, "error")
+            return await new TerminatingFlowUtil().terminatingFlowAction(smaEvent, "error")
         }
     }
 }

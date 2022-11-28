@@ -1,10 +1,10 @@
-import { getLegACallDetails } from "../utility/call-details";
+import { CallDetailsUtil } from "../utility/call-details";
 import { Attributes, ContextStore } from "../const/constant-values"
 import { ChimeActions } from "../const/chime-action-types";
-import { terminatingFlowAction } from "../utility/termination-action";
+import { TerminatingFlowUtil } from "../utility/termination-action";
 import { IContextStore } from "../const/context-store";
 import { METRIC_PARAMS } from "../const/constant-values"
-import { updateMetric } from "../utility/metric-updation"
+import { UpdateMetricUtil } from "../utility/metric-updation"
 
 
 /**
@@ -37,8 +37,10 @@ export class TransferTOThirdParty {
         } catch (error) {
             console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId+ Attributes.METRIC_ERROR + error.message);
         }
+        let updateMetric=new UpdateMetricUtil();
         try {
-            const legA = getLegACallDetails(smaEvent);
+            let callDetails = new CallDetailsUtil();
+            const legA = callDetails.getLegACallDetails(smaEvent)as any;
             callId = legA.CallId;
             if (!callId)
                 callId = smaEvent.ActionData.Parameters.CallId;
@@ -62,7 +64,7 @@ export class TransferTOThirdParty {
 
             };
             params.MetricData[0].MetricName = "TransferToThirdPartySuccess"
-            updateMetric(params);
+            updateMetric.updateMetric(params);
             let pauseAction = contextStore[ContextStore.PAUSE_ACTION]
             if (pauseAction) {
                 smaAction1 = pauseAction;
@@ -91,9 +93,9 @@ export class TransferTOThirdParty {
             }
         } catch (error) {
             params.MetricData[0].MetricName = "TransferToThirdPartyFailure"
-            updateMetric(params);
+            updateMetric.updateMetric(params);
             console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution of TransferToThirdParty " + error.message);
-            return await terminatingFlowAction(smaEvent, "error")
+            return await new TerminatingFlowUtil().terminatingFlowAction(smaEvent, "error")
         }
 
     }

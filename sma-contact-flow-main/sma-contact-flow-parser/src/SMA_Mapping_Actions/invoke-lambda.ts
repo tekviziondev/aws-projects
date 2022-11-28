@@ -1,14 +1,13 @@
-import { getLegACallDetails } from "../utility/call-details";
+import { CallDetailsUtil } from "../utility/call-details";
 import { Attributes, ContextAttributes, ContextStore, LambdaFunctionParameters } from "../const/constant-values"
-import { terminatingFlowAction } from "../utility/termination-action";
-import { findActionByID } from "../utility/find-action-id";
+import { TerminatingFlowUtil } from "../utility/termination-action";
 import { ErrorTypes } from "../const/error-types";
 import { processFlowAction } from "../contact-flow-processor"
-import { getNextActionForError } from "../utility/next-action-error"
+import { NextActionValidationUtil } from "../utility/next-action-error"
 import { Lambda } from "aws-sdk"
 import { IContextStore } from "../const/context-store";
 import { METRIC_PARAMS } from "../const/constant-values"
-import { updateMetric } from "../utility/metric-updation"
+import { UpdateMetricUtil } from "../utility/metric-updation"
 
 /**
   * Invokes the External Lambda Function and stores the result of the Lambda function in Key Value Pair
@@ -44,8 +43,10 @@ export class InvokeLambda {
         } catch (error) {
             console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId + Attributes.METRIC_ERROR + error.message);
         }
+        let updateMetric=new UpdateMetricUtil();
         try {
-            const legA = getLegACallDetails(smaEvent);
+            let callDetails = new CallDetailsUtil();
+            const legA = callDetails.getLegACallDetails(smaEvent)as any;
             callId = legA.CallId;
             if (!callId)
                 callId = smaEvent.ActionData.Parameters.CallId;
@@ -61,12 +62,12 @@ export class InvokeLambda {
             console.log(Attributes.DEFAULT_LOGGER + callId + " Invoke Lombda Action Result is " + result);
             if (!result) {
                 params1.MetricData[0].MetricName = "InvokeLambdaNoResponse"
-                updateMetric(params1);
-                let nextAction = await getNextActionForError(action, actions, ErrorTypes.NO_MATCHING_ERROR, smaEvent)
+                updateMetric.updateMetric(params1);
+                let nextAction = await new NextActionValidationUtil().getNextActionForError(action, actions, ErrorTypes.NO_MATCHING_ERROR, smaEvent)
                 return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName, contextStore);
             }
             params1.MetricData[0].MetricName = "InvokeLambdaSuccess"
-            updateMetric(params1);
+            updateMetric.updateMetric(params1);
             let x = JSON.parse(result.Payload.toString())
             console.log(Attributes.DEFAULT_LOGGER + callId + " The Result After Invoking Lambda is" + JSON.stringify(x))
             const keys = Object.keys(x);
@@ -74,15 +75,14 @@ export class InvokeLambda {
                 contextStore[ContextStore.CONTEXT_ATTRIBUTES]["$.External." + key] = x[key];
                 contextStore[ContextStore.TMP_MAP][key] = x[key];
             });
-
-            let nextAction = findActionByID(actions, action.Transitions.NextAction);
+            let nextAction = callDetails.findActionByID(actions, action.Transitions.NextAction);
             console.log(Attributes.DEFAULT_LOGGER + callId + " Next Action identifier:" + action.Transitions.NextAction);
             return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName, contextStore);
         } catch (error) {
             params1.MetricData[0].MetricName = "InvokeLambdaFailure"
-            updateMetric(params1);
+            updateMetric.updateMetric(params1);
             console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution InvokeLambda" + error.message);
-            return await terminatingFlowAction(smaEvent, "error")
+            return await new TerminatingFlowUtil().terminatingFlowAction(smaEvent, "error")
         }
     }
 

@@ -1,12 +1,12 @@
 
-import { getLegACallDetails } from "../utility/call-details";
-import { terminatingFlowAction } from "../utility/termination-action";
+import { CallDetailsUtil } from "../utility/call-details";
+import { TerminatingFlowUtil } from "../utility/termination-action";
 import { loadContactFlow } from "../contact-flow-loader"
 import { processRootFlowBlock } from "../contact-flow-processor"
 import { Attributes, ContextStore } from "../const/constant-values";
 import { IContextStore } from "../const/context-store";
 import { METRIC_PARAMS } from "../const/constant-values"
-import { updateMetric } from "../utility/metric-updation"
+import { UpdateMetricUtil } from "../utility/metric-updation"
 /**
   * Invoke a Module from the existing contact flow, to perform a particular task
   * @param smaEvent 
@@ -42,21 +42,23 @@ export class InvokeModule {
         let endModuleNextAction = action.Transitions.NextAction;
         contextStore[ContextStore.INVOKATION_MODULE_NEXT_ACTION] = endModuleNextAction;
         let callId: string;
+        let updateMetric=new UpdateMetricUtil();
         try {
-            const legA = getLegACallDetails(smaEvent);
+            let callDetails = new CallDetailsUtil();
+            const legA = callDetails.getLegACallDetails(smaEvent)as any;
             callId = legA.CallId;
             if (!callId)
                 callId = smaEvent.ActionData.Parameters.CallId;
             const contactFlow = await loadContactFlow(amazonConnectInstanceID, ModuleARN, bucketName, smaEvent, "Invoke_Module");
             console.log(Attributes.DEFAULT_LOGGER + callId + " Transfering to Another contact FLow function")
             params.MetricData[0].MetricName = "InvokeModuleSuccess"
-            updateMetric(params);
+            updateMetric.updateMetric(params);
             return await processRootFlowBlock(smaEvent, contactFlow, amazonConnectInstanceID, bucketName, contextStore);
         } catch (error) {
             params.MetricData[0].MetricName = "InvokeModuleFailure"
-            updateMetric(params);
+            updateMetric.updateMetric(params);
             console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution of InvokeModule" + error.message);
-            return await terminatingFlowAction(smaEvent, "error")
+            return await new TerminatingFlowUtil().terminatingFlowAction(smaEvent, "error")
         }
 
     }

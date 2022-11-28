@@ -1,11 +1,11 @@
-import { getLegACallDetails } from "../utility/call-details";
+import { CallDetailsUtil } from "../utility/call-details";
 import { ChimeActions } from "../const/chime-action-types";
-import { getAudioParameters } from "../utility/audio-parameters";
-import { terminatingFlowAction } from "../utility/termination-action";
+import { AudioParameter } from "./audio-parameters";
+import { TerminatingFlowUtil } from "../utility/termination-action";
 import { Attributes, ContextStore } from "../const/constant-values";
 import { IContextStore } from "../const/context-store";
 import { METRIC_PARAMS } from "../const/constant-values"
-import { updateMetric } from "../utility/metric-updation"
+import { UpdateMetricUtil } from "../utility/metric-updation"
 /**
   * Making a SMA action to play the Audio File from S3 bucket location
   * @param smaEvent 
@@ -14,8 +14,8 @@ import { updateMetric } from "../utility/metric-updation"
   * @returns SMA Action
   */
 
-export class PlayAudio {
-    async processPlayAudio(smaEvent: any, action: any, contextStore: IContextStore) {
+export class PlayAudio extends AudioParameter{
+    async execute(smaEvent: any, action: any, contextStore: IContextStore) {
         let callId: string;
         let smaAction1: any;
         let params = METRIC_PARAMS
@@ -36,14 +36,16 @@ export class PlayAudio {
         } catch (error) {
             console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId+ Attributes.METRIC_ERROR + error.message);
         }
+        let updateMetric=new UpdateMetricUtil();
         try {
-            const legA = getLegACallDetails(smaEvent);
+            let callDetails = new CallDetailsUtil();
+            const legA = callDetails.getLegACallDetails(smaEvent)as any;
             callId = legA.CallId;
             let pauseAction = contextStore[ContextStore.PAUSE_ACTION];
             if (!callId)
                 callId = smaEvent.ActionData.Parameters.CallId;
             console.log(Attributes.DEFAULT_LOGGER + callId + "Play Audio Action");
-            let audio_parameters = await getAudioParameters(smaEvent, action);
+            let audio_parameters = await this.getAudioParameters(smaEvent, action,"PlayAudio");
             let smaAction = {
                 Type: ChimeActions.PLAY_AUDIO,
                 Parameters: {
@@ -52,7 +54,7 @@ export class PlayAudio {
                 }
             };
             params.MetricData[0].MetricName = "PlayAudioSuccess"
-            updateMetric(params);
+            updateMetric.updateMetric(params);
             if (pauseAction) {
                 smaAction1 = pauseAction;
                 contextStore[ContextStore.PAUSE_ACTION] = null
@@ -80,9 +82,9 @@ export class PlayAudio {
             }
         } catch (error) {
             params.MetricData[0].MetricName = "PlayAudioFailure"
-            updateMetric(params);
+            updateMetric.updateMetric(params);
             console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution of PlayAudio " + error.message);
-            return await terminatingFlowAction(smaEvent, "error")
+            return await new TerminatingFlowUtil().terminatingFlowAction(smaEvent, "error")
         }
     }
 

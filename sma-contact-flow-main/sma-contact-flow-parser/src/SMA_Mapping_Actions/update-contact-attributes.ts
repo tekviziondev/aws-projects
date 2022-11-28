@@ -1,12 +1,11 @@
-import { getLegACallDetails } from "../utility/call-details";
-import { findActionByID } from "../utility/find-action-id";
+import { CallDetailsUtil } from "../utility/call-details";
 import { ErrorTypes } from "../const/error-types";
 import { processFlowAction } from "../contact-flow-processor"
-import { getNextActionForError } from "../utility/next-action-error"
+import { NextActionValidationUtil } from "../utility/next-action-error"
 import { Attributes, ContextStore } from "../const/constant-values";
 import { IContextStore } from "../const/context-store";
 import { METRIC_PARAMS } from "../const/constant-values"
-import { updateMetric } from "../utility/metric-updation"
+import { UpdateMetricUtil } from "../utility/metric-updation"
 /**
   * Updating the Contact Attribute Details
   * @param smaEvent 
@@ -40,9 +39,10 @@ export class UpdateContactAttrbts {
         } catch (error) {
             console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId+ Attributes.METRIC_ERROR + error.message);
         }
-
+        let callDetails = new CallDetailsUtil();
+        let updateMetric=new UpdateMetricUtil();
         try {
-            const legA = getLegACallDetails(smaEvent);
+            const legA = callDetails.getLegACallDetails(smaEvent)as any;
             callId = legA.CallId;
             if (!callId)
                 callId = smaEvent.ActionData.Parameters.CallId;
@@ -66,16 +66,16 @@ export class UpdateContactAttrbts {
                 }
             }
             params.MetricData[0].MetricName = "UpdateContactAttributeSuccess"
-            updateMetric(params);
+           updateMetric. updateMetric(params);
         } catch (e) {
             params.MetricData[0].MetricName = "UpdateContactAttributeFailure"
-            updateMetric(params);
-            let nextAction = await getNextActionForError(action, actions, ErrorTypes.NO_MATCHING_ERROR, smaEvent);
+            updateMetric.updateMetric(params);
+            let nextAction = await new NextActionValidationUtil().getNextActionForError(action, actions, ErrorTypes.NO_MATCHING_ERROR, smaEvent);
             return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName, contextStore);
         }
         contextStore[ContextStore.TMP_MAP] = null;
-        let nextAction = findActionByID(actions, action.Transitions.NextAction);
-        console.error(Attributes.DEFAULT_LOGGER + callId + " Next Action identifier:" + action.Transitions.NextAction);
+        let nextAction = callDetails.findActionByID(actions, action.Transitions.NextAction);
+        console.error(Attributes.DEFAULT_LOGGER + callId + " Next Action identifier:" + nextAction);
         return await processFlowAction(smaEvent, nextAction, actions, amazonConnectInstanceID, bucketName, contextStore);
     }
 }

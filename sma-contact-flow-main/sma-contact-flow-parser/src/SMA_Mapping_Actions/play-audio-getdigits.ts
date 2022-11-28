@@ -1,11 +1,11 @@
-import { getLegACallDetails } from "../utility/call-details";
+import { CallDetailsUtil } from "../utility/call-details";
 import { ChimeActions } from "../const/chime-action-types";
-import { getAudioParameters, failureAudioParameters } from "../utility/audio-parameters";
-import { terminatingFlowAction } from "../utility/termination-action";
+import { AudioParameter} from "./audio-parameters";
+import { TerminatingFlowUtil } from "../utility/termination-action";
 import { Attributes, ContextStore } from "../const/constant-values";
 import { IContextStore } from "../const/context-store";
 import { METRIC_PARAMS } from "../const/constant-values"
-import { updateMetric } from "../utility/metric-updation";
+import { UpdateMetricUtil } from "../utility/metric-updation";
 /**
   * Making play audio and get digits json object for sma action.
   * @param smaEvent 
@@ -13,8 +13,8 @@ import { updateMetric } from "../utility/metric-updation";
   * @param contextStore
   * @returns SMA Action
   */
-export class PlayAudioAndGetDigits {
-    async processPlayAudioAndGetDigits(smaEvent: any, action: any, contextStore: IContextStore) {
+export class PlayAudioAndGetDigits extends AudioParameter{
+    async execute(smaEvent: any, action: any, contextStore: IContextStore) {
         let callId: string;
         let smaAction1: any;
         let params = METRIC_PARAMS
@@ -35,14 +35,16 @@ export class PlayAudioAndGetDigits {
         } catch (error) {
             console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId+ Attributes.METRIC_ERROR + error.message);
         }
+        let updateMetric=new UpdateMetricUtil();
         try {
-            const legA = getLegACallDetails(smaEvent);
+            let callDetails = new CallDetailsUtil();
+            const legA = callDetails.getLegACallDetails(smaEvent)as any;
             callId = legA.CallId;
             if (!callId)
                 callId = smaEvent.ActionData.Parameters.CallId;
             console.log(Attributes.DEFAULT_LOGGER + callId + " Action| Play Audio Action and Get Digits");
-            let audio_parameters = await getAudioParameters(smaEvent, action)
-            let failure_audio = await failureAudioParameters(smaEvent, action)
+            let audio_parameters = await this.getAudioParameters(smaEvent, action,"PlayAudio")
+            let failure_audio = await this.getAudioParameters(smaEvent, action,"FailureAudioParameters")
             let smaAction = {
                 Type: ChimeActions.PLAY_AUDIO_AND_GET_DIGITS,
                 Parameters: {
@@ -69,7 +71,7 @@ export class PlayAudioAndGetDigits {
             }
             let pauseAction = contextStore[ContextStore.PAUSE_ACTION];
             params.MetricData[0].MetricName = "PlayAudioGetDigitsSuccess"
-            updateMetric(params);
+            updateMetric.updateMetric(params);
             if (pauseAction) {
                 smaAction1 = pauseAction;
                 contextStore[ContextStore.PAUSE_ACTION] = null
@@ -98,9 +100,9 @@ export class PlayAudioAndGetDigits {
 
         } catch (error) {
             params.MetricData[0].MetricName = "PlayAudioGetDigitsFailure"
-            updateMetric(params);
+            updateMetric.updateMetric(params);
             console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution of PlayAudioAndGetDigits " + error.message);
-            return await terminatingFlowAction(smaEvent, "error")
+            return await new TerminatingFlowUtil().terminatingFlowAction(smaEvent, "error")
         }
 
     }
