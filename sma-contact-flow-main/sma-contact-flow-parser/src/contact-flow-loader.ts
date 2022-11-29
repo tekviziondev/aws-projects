@@ -30,7 +30,7 @@ export async function loadContactFlow(amazonConnectInstanceID: string, amazonCon
   } catch (error) {
     console.error(Attributes.DEFAULT_LOGGER + smaEvent.ActionData.Parameters.CallId + Attributes.METRIC_ERROR + error.message);
   }
-  // creating cloud watch metric parameter and updating the metric details in cloud watch
+  // creating cloud watch metric parameters and updating the metric details in cloud watch
   let updateMetric = new CloudWatchMetric();
   try {
     // getting the CallID of the Active call from the SMA Event
@@ -48,19 +48,19 @@ export async function loadContactFlow(amazonConnectInstanceID: string, amazonCon
       InstanceId: amazonConnectInstanceID,
       ContactFlowModuleId: amazonConnectContactFlowID
     };
-    // gets the Contact Flow Details from S3 bucket, if the file updated time difference is less than cache time defined by the user.
+    // gets the Contact Flow Details from the S3 bucket, if the file updated time difference is less than the cache time defined by the user.
     let rv = await checkFlowCache(amazonConnectInstanceID, amazonConnectContactFlowID, smaEvent);
     if (rv == null) {
       console.log(defaultLogger + callId + " Loading Contact Flow Details from Connect ");
       const connect = new Connect();
       if (type === "Invoke_Module") {
-        // using the connect api to get the Module details
+        // using the connect API to get the Module details
         const contactModuleResponse = await connect.describeContactFlowModule(describeContactFlowModuleParams).promise();
         rv = JSON.parse(contactModuleResponse.ContactFlowModule.Content) as any;
         await writeFlowCache(rv, amazonConnectInstanceID, amazonConnectContactFlowID, smaEvent);
       }
       else {
-        // using the connect api to get the Contact Flow details
+        // using the connect API to get the Contact Flow details
         const contactFlowResponse = await connect.describeContactFlow(describeContactFlowParams).promise();
         rv = JSON.parse(contactFlowResponse.ContactFlow.Content) as any;
         await writeFlowCache(rv, amazonConnectInstanceID, amazonConnectContactFlowID, smaEvent);
@@ -110,7 +110,7 @@ async function writeFlowCache(flow: any, amazonConnectInstanceID: string, amazon
 }
 
 /**
-  * Checking the updated time of Contact Flow Json Response in S3 Bucket, if the Delta time is less than 5 seconds the function will use the stored JSON response in S3 Bucket else it will return null value.
+  * Checking the updated time of Contact Flow Json Response in S3 Bucket, if the Delta time is less than 5 seconds the function will use the stored JSON response in S3 Bucket else it will return a null value.
   * @param smaEvent 
   * @param amazonConnectInstanceID
   */
@@ -130,7 +130,7 @@ async function checkFlowCache(amazonConnectInstanceID: string, amazonConnectCont
   const s3 = new S3();
   try {
     let s3Head = await s3.headObject(s3Params).promise();
-    // checking the time difference of the last file updated 
+    // checking the time difference of the last file update 
     var deltaTimeInMs = new Date().getTime() - s3Head.LastModified.getTime();
     console.log(defaultLogger + callId + " Delta Time of Last updated Flow Cache: " + deltaTimeInMs);
     if (deltaTimeInMs < cacheTimeInMilliseconds) {

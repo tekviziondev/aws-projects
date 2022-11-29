@@ -27,7 +27,7 @@ import { CloudWatchMetric } from "./utility/metric-updation"
 const connectContextStore: string = "ConnectContextStore";
 
 /**
-  * This function gets the Contact Flow data from Contact Flow loader and executes the Contact Flow data by the respective SMA Mapping Actions.
+  * This function gets the Contact Flow data from the Contact Flow loader and executes the Contact Flow data by the respective SMA Mapping Actions.
   * @param smaEvent 
   * @param amazonConnectInstanceID
   * @param amazonConnectFlowID
@@ -57,7 +57,7 @@ export async function processFlow(smaEvent: any, amazonConnectInstanceID: string
                 amazonConnectFlowID = transactionAttributes[Attributes.CONNECT_CONTEXT_STORE][ContextStore.INVOKE_MODULE_ARN];
             }
         }
-        // creating cloud watch metric parameter and updating the metric details in cloud watch
+        // creating cloud watch metric parameters and updating the metric details in cloud watch
         let updateMetric = new CloudWatchMetric();
         // getting the CallID of the Active call from the SMA Event
         let callDetails = new CallDetailsUtil();
@@ -68,7 +68,7 @@ export async function processFlow(smaEvent: any, amazonConnectInstanceID: string
         if (!callId)
             callId = smaEvent.ActionData.Parameters.CallId;
         var flowLodingStartTime = new Date().getTime();
-        // Loading the Contact Flow/Module when SMA Event recieved
+        // Loading the Contact Flow/Module when SMA Event received
         const contactFlow = await loadContactFlow(amazonConnectInstanceID, amazonConnectFlowID, bucketName, smaEvent, type);
         // calculating the latency of loading the Contact Flow/Module
         var flowLoadingTime = new Date().getTime() - flowLodingStartTime;
@@ -160,7 +160,7 @@ export async function processFlow(smaEvent: any, amazonConnectInstanceID: string
 }
 
 /**
-  * This function stores the system attributes in contextAttribute object.
+  * This function stores the system attributes in the contextAttribute object.
   * @param smaEvent 
   * @param amazonConnectFlowID
   * @param amazonConnectInstanceID
@@ -183,7 +183,7 @@ async function storeSystemAttributes(smaEvent: any, amazonConnectFlowID: any, am
 }
 
 /**
-  * This function is starting of the flow exection and gets the current action from the Contact Flow.
+  * This function is starting of the flow execution and gets the current action from the Contact Flow.
   * @param smaEvent 
   * @param contactFlow
   * @param TransactionAttributes
@@ -285,7 +285,7 @@ export async function processFlowAction(smaEvent: any, action: any, actions: any
     }
 }
 /**
-  * Processing the Contact Flow after recieving the successfull SMA event
+  * Processing the Contact Flow after receiving the successful SMA event
   * @param smaEvent 
   * @param action
   * @param amazonConnectInstanceID
