@@ -1,3 +1,4 @@
+// Amazon connect ations supported by the tekVizion's Library
 export enum AmazonConnectActions {
   GET_PARTICIPANT_INPUT = "GetParticipantInput",
   MESSAGE_PARTICIPANT = "MessageParticipant",

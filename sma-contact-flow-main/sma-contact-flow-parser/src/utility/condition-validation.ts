@@ -56,7 +56,7 @@ export class ConditionValidationUtil {
                 }
                 console.log(Attributes.DEFAULT_LOGGER + callId + " Next Action identifier:" + nextAction_id);
                 let actionType = nextAction.Type;
-                //checking if the action object is unsupported by the tekVizion's Library
+                //checking for supported action if not supported invoke default call termination handler
                 if (!Object.values(AmazonConnectActions).includes(actionType)) {
                     return await new TerminatingFlowUtil().terminatingFlowAction(smaEvent, actionType)
                 }

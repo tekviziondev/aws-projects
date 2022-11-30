@@ -1,3 +1,4 @@
+// Error types that SMA will return if any of the action gets failed
 export enum ErrorTypes {
     INPUT_TIME_LIMIT_EXCEEDS = "InputTimeLimitExceeded",
     INVALID_DIGITS_RECEIVED = "InvalidDigitsReceived",

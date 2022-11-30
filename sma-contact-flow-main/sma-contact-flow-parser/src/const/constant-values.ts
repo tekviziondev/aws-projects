@@ -29,7 +29,7 @@ type Data = {
   CURRENT_FLOW_BLOCK: string,
   METRIC_ERROR: string
 };
-
+ 
 export class ContextStore {
 
   public static readonly PAUSE_ACTION = 'PauseAction';
@@ -72,6 +72,7 @@ export class ContextAttributes {
 
 }
 
+// parameters needed for invoking external lambda function
 export class LambdaFunctionParameters {
 
   public static readonly CHANNEL = 'Channel';
@@ -94,6 +95,7 @@ export class LambdaFunctionParameters {
 
 }
 
+// parameters needed for executing speak and speakandGetDigits actions
 export class SpeechParameters {
 
   public static readonly TEXT_TO_SPEECH_VOICE: string = 'TextToSpeechVoice';
@@ -129,8 +131,10 @@ export const Attributes: Data = {
   METRIC_ERROR: " There is an Error in creating the Metric Params "
 }
 
+// Amazon connect actions supported by the tekvizion library
 export const Supported_Actions = ["Wait", "Loop", "TransferToFlow", "UpdateContactTextToSpeechVoice", "InvokeLambdaFunction", "UpdateContactAttributes", "Compare", "InvokeFlowModule", "EndFlowModuleExecution"];
 
+// parameters for updating metric details in cloud watch
 export const METRIC_PARAMS = {
   MetricData: [
     {

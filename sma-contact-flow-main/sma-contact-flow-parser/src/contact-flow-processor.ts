@@ -1,19 +1,19 @@
 import { loadContactFlow } from "./contact-flow-loader";
-import { CallRecording } from "./SMA_Mapping_Actions/call-recording";
-import { CompareAttribute } from "./SMA_Mapping_Actions/compare-attribute";
-import { DisconnectParticipant } from "./SMA_Mapping_Actions/disconnect-participant";
-import { EndModule } from "./SMA_Mapping_Actions/end-module";
-import { GetParticipantInput } from "./SMA_Mapping_Actions/get-participant-input";
-import { InvokeLambda } from "./SMA_Mapping_Actions/invoke-lambda";
-import { InvokeModule } from "./SMA_Mapping_Actions/invoke-module";
-import { LexBot } from "./SMA_Mapping_Actions/lex-bot";
-import { Loop } from "./SMA_Mapping_Actions/loop";
-import { MessageParticipant } from "./SMA_Mapping_Actions/message-participant";
-import { SetVoice } from "./SMA_Mapping_Actions/set-voice";
-import { TrasferToFlow } from "./SMA_Mapping_Actions/transfer-flow";
-import { TransferTOThirdParty } from "./SMA_Mapping_Actions/transfer-to-thirdparty";
-import { UpdateContactAttrbts } from "./SMA_Mapping_Actions/update-contact-attributes";
-import { Wait } from "./SMA_Mapping_Actions/wait";
+import { CallRecording } from "./sma_mapping_actions/call-recording";
+import { CompareAttribute } from "./sma_mapping_actions/compare-attribute";
+import { DisconnectParticipant } from "./sma_mapping_actions/disconnect-participant";
+import { EndModule } from "./sma_mapping_actions/end-module";
+import { GetParticipantInput } from "./sma_mapping_actions/get-participant-input";
+import { InvokeLambda } from "./sma_mapping_actions/invoke-lambda";
+import { InvokeModule } from "./sma_mapping_actions/invoke-module";
+import { LexBot } from "./sma_mapping_actions/lex-bot";
+import { Loop } from "./sma_mapping_actions/loop";
+import { MessageParticipant } from "./sma_mapping_actions/message-participant";
+import { SetVoice } from "./sma_mapping_actions/set-voice";
+import { TrasferToFlow } from "./sma_mapping_actions/transfer-flow";
+import { TransferTOThirdParty } from "./sma_mapping_actions/transfer-to-thirdparty";
+import { UpdateContactAttrbts } from "./sma_mapping_actions/update-contact-attributes";
+import { Wait } from "./sma_mapping_actions/wait";
 import { AmazonConnectActions } from "./const/amazon-connect-actionTypes";
 import { CallDetailsUtil } from "./utility/call-details";
 import { ConditionValidationUtil } from "./utility/condition-validation";
@@ -313,7 +313,7 @@ async function processFlowActionSuccess(smaEvent: any, action: any, contactFlow:
         }
         const nextAction = callDetails.findActionObjectByID(contactFlow.Actions, action.Transitions.NextAction) as any;
         let actionType = nextAction.Type;
-        //checking if the action object is unsupported by the tekVizion's Library
+        //checking if the action object is supported by the tekVizion's Library
         if (!Object.values(AmazonConnectActions).includes(actionType)) {
             return await new TerminatingFlowUtil().terminatingFlowAction(smaEvent, actionType)
         }
@@ -381,7 +381,7 @@ async function processFlowActionFailed(smaEvent: any, actionObj: any, contactFlo
         }
 
         let actionType = nextAction.Type;
-        //checking if the action object is unsupported by the tekVizion's Library
+        //checking if the action object is supported by the tekVizion's Library
         if (!Object.values(AmazonConnectActions).includes(actionType)) {
             return await new TerminatingFlowUtil().terminatingFlowAction(smaEvent, actionType)
         }

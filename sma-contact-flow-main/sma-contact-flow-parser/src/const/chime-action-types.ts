@@ -1,3 +1,4 @@
+// Amazon Chime SMA ations supported by the tekVizion's Library
 export enum ChimeActions {
   SPEAK_AND_GET_DIGITS = "SpeakAndGetDigits",
   PLAY_AUDIO_AND_GET_DIGITS = "PlayAudioAndGetDigits",

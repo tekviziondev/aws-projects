@@ -1,3 +1,4 @@
+// Types of Invocation Event recieved from SMA
 export enum EventTypes {
     NEW_INBOUND_CALL = "NEW_INBOUND_CALL",
     ACTION_SUCCESSFUL = "ACTION_SUCCESSFUL",
