@@ -3,10 +3,12 @@
 # Setup and Environment for using tekVizion's Contact Flow parser Library
 
 - **Amazon Connect Instance creation**
-<br>1. Create an instance in the Amazon Connect and define a Contact Flow. You may refer to https://docs.aws.amazon.com/connect/latest/adminguide/amazon-connect-  instances.htmlfor more information on creating an instance in the Amazon Connect.         
+<br>1. Create an instance in the Amazon Connect and define a Contact Flow. You may refer to https://docs.aws.amazon.com/connect/latest/adminguide/amazon-connect-  instances.html for more information on creating an instance in the Amazon Connect.         
 ![image](https://user-images.githubusercontent.com/88785130/205262411-044949de-39d7-4fe8-b9ab-7a3b3e35eba5.png)
+
 <br>2. Create a DID number in the Amazon Connect.
 ![image](https://user-images.githubusercontent.com/88785130/205262539-82bda98a-689b-4ad8-9e3f-e2cb10e93f22.png)
+
 <br>3. Use a “Web client” application for Dialing out to the Contact Centre Phone Number (DID). 
 ![image](https://user-images.githubusercontent.com/88785130/205262606-0682cee6-864b-40e3-ae21-458ba2c310a4.png)
 
