@@ -21,7 +21,7 @@
   ![image](https://user-images.githubusercontent.com/88785130/205117815-63ea13a3-c6d0-43fd-ac50-e1f6c7cd6734.png)
 
 - **Downloading of tekVizion's Contact Flow parser Library**
-<br>1.	Download the TekVizion Library from GitHub and add that library into the Lambda function layers.
+<br>1.	Download the tekVizion Library from GitHub and add that library into the Lambda function layers.
 <br>2.	Download nodejs.zip (where our sma-contact-flow-parser Library is present) folder from GitHub.
 <br>3.	Upload the nodejs.zip file in AWS S3 Bucket. 
 <br>4.	In AWS Lambda, choose Layers service. 
@@ -39,11 +39,24 @@
 <br>4.	Click the Pending tab to provision the phone numbers.
 <br>5.	Click the Provision phone numbers tab.The Provision phone numbers screen appears.
 <br>6.	Select the SIP Media Application Dial-In option and click Next.
-<br>7.	Select the relevant country from the Country drop-down, select the Toll-free option from the dropdown, select the toll-free area code from the drop-down,and    click the Search icon.The list of available toll-free numbers appears.
+<br>7.	Select the relevant country from the Country drop-down, select the Toll-free option from the dropdown, select the toll-free area code from the drop-down,and click the Search icon.The list of available toll-free numbers appears.
 <br>8.	Select any one of the numbers and click the Provision button.The DID number gets provisioned successfully.
 <br>9.	Click Create to create a SIP media application.The Create a SIP media application dialog appears.
 <br>10.	Enter Name, select the relevant AWS region from the drop-down.
 <br>11.	Copy the ARN of the Lambda Function and enter in Lambda Function ARN.
 <br>12.	Click Create to create the SIP media application. The created SIP media application appears under the SIP media applications.
 <br>13.	Click the created SIP media application.
+
+![image](https://user-images.githubusercontent.com/88785130/205266463-a806306d-275b-4531-9284-a0e0f49a6ec1.png)
+
+
+- **SIP Rule assigning for SIP Media Application (SMA)**
+<br>1. Click the Rules tab to create a rule for the SMA and to assign the DID number (Contact Centre Number) to invoke the SMA.
+ ![image](https://user-images.githubusercontent.com/88785130/205267206-6b77380c-486a-408a-9b1e-95b0096eec3b.png)
+        
+<br>2. Click Create to create a rule. The Create a SIP rule dialog appears.
+<br>3. Enter name of the rule, choose the To phone number from the Trigger type drop-down, select the provisioned phone number from the Phone number drop-down, and click Next. The Create a SIP rule dialog appears.
+<br>4. Click Create. The rule gets created and appears under the created SIP media Application.
+
+
 
