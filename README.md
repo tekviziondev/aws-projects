@@ -67,6 +67,24 @@
 <br>6. Under Aws Lambda section, select the Lambda Function that you created in your account and click Add Lambda Function button to use the Lambda Function in the contact flow. 
 <br>7. After that you can able to use the created Lex Bot or External Lambda Function in the Contact Flow blocks of "Invoke AWS Lambda function" and "Amazon Lex" in "Getparticipant Input"
 
+- **Give Permissions for the UpdateContactRecordingBehavior Action**
+<br>For the “UpdateContactRecordingBehavior” action, need to give permission for the S3 bucket, where you want to store our SAM Call Recordings.
+
+<br>To give the permission in S3 bucket, perform as follows:
+<br>1. Open the S3 bucket service in AWS.
+![image](https://user-images.githubusercontent.com/88785130/205296372-607e1a35-c7aa-4a4f-8e33-9439d8c4be3f.png)
+
+<br>2. Open the S3 Bucket where we want to store the SMA call Recordings and click “Permissions”.
+![image](https://user-images.githubusercontent.com/88785130/205296699-c49d6fac-c90e-4d3c-820c-fa5826ec19ca.png)
+
+<br>3. Under “Bucket policy”, click the “Edit” option.
+![image](https://user-images.githubusercontent.com/88785130/205296827-4341a93a-e319-4044-9984-30ae0a5431cf.png)
+
+<br>4. Click “Add new statement”.
+![image](https://user-images.githubusercontent.com/88785130/205297737-808d0e6b-13c2-4263-bc53-068694210183.png)
+
+<br
+
 
 
 
