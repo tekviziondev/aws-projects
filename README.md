@@ -58,5 +58,15 @@
 <br>3. Enter name of the rule, choose the To phone number from the Trigger type drop-down, select the provisioned phone number from the Phone number drop-down, and click Next. The Create a SIP rule dialog appears.
 <br>4. Click Create. The rule gets created and appears under the created SIP media Application.
 
+- **Defining Amazon Lex Bot service and External Lambda function in Contact Flow** 
+<br>1. Use an Amazon lex bot and the external Lambda Function in Amazon Connect Contact flow.
+<br>2. Access the Amazon Connect Service. The Amazon Connect virtual contact center instances screen appears.
+<br>3. Click the Amazon instance that you created. The Account overview screen appears.
+<br>4. Click the Contact flows under Overview on the left side. The Contact flows screen appears.
+<br>5. Under Amazon Lex section, select the region of your Amazon Lex bot from Region drop-down, select the bot that you created from the Bot drop-down, select the alias name from the drop-down, and click Add Amazon Lex Bot to use the Lex Bot in the contact flow.
+<br>6. Under Aws Lambda section, select the Lambda Function that you created in your account and click Add Lambda Function button to use the Lambda Function in the contact flow. 
+
+
+
 
 
