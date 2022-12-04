@@ -107,7 +107,8 @@
 
 
 - **Supported Actions by tekvizion's Library**
-<img width="361" alt="image" src="https://user-images.githubusercontent.com/88785130/205488811-5c9464cf-418d-480b-a553-7f14a1c49af2.png">
+<img width="332" alt="image" src="https://user-images.githubusercontent.com/88785130/205489151-0cd43bc2-60a5-47d2-ba94-947226b0e3fc.png">
+
 
 
 
