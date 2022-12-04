@@ -106,6 +106,11 @@
 ![image](https://user-images.githubusercontent.com/88785130/205488173-d46f498f-318e-43e2-8975-24486de8d63e.png)
 
 
+- **Supported Actions by tekvizion's Library**
+<img width="361" alt="image" src="https://user-images.githubusercontent.com/88785130/205488811-5c9464cf-418d-480b-a553-7f14a1c49af2.png">
+
+
+
 
 
 
