@@ -83,7 +83,28 @@
 <br>4. Click “Add new statement”.
 ![image](https://user-images.githubusercontent.com/88785130/205297737-808d0e6b-13c2-4263-bc53-068694210183.png)
 
-<br
+<br>5. Add the policy that follows in the Existing policy
+{
+			"Sid": "SIP media applicationRead",
+			"Effect": "Allow",
+			"Principal": {
+				"Service": "voiceconnector.chime.amazonaws.com"
+			},
+			"Action": [
+				"s3:PutObject",
+				"s3:PutObjectAcl"
+			],
+			"Resource": "arn:aws:s3:::Your_BucketName /*",
+			"Condition": {
+				"StringEquals": {
+					"s3:x-amz-acl": "bucket-owner-full-control"
+				}
+			}
+		}
+
+<br>6. Click “Save changes”.
+![image](https://user-images.githubusercontent.com/88785130/205488173-d46f498f-318e-43e2-8975-24486de8d63e.png)
+
 
 
 
