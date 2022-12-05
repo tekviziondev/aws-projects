@@ -1,7 +1,7 @@
 import { CallDetailsUtil } from "./call-details";
 import { TerminatingFlowUtil } from "./default-termination-action"
 import { processFlowAction } from "../contact-flow-processor";
-import { AmazonConnectActions } from "../const/amazon-connect-actionTypes"
+import { AmazonConnectActions } from "../const/amazon-connect-action-types"
 import { NextActionValidationUtil } from "./next-action-error-handler"
 import { ErrorTypes } from "../const/error-types"
 import { Attributes } from "../const/constant-values";
