@@ -1,5 +1,11 @@
 # Contact Flow Parsing Library
 
+# About
+<br>Tekvizion has built an opensource Chime SMA Translator Library to give customer the best of both worlds (Amazon Connect and Chime SDK) and help customers to build new and modify existing IVR workflows in faster time and help them migrate to cloud-based unified contact center solution. In this solution, the customer shall use the Amazon connect GUI flow builder to create Lex Powered IVR workflow and run the flow using Amazon Chime SDK.  Eventually, the customer shall have the ability to reuse the IVR workflow created using Amazon connect GUI flow builder when they migrate to Amazon connect.
+ 
+<br>Tekvizion Chime SMA Translator Library is easy to use with low code and the ability to build Lex-powered IVR workflow and integrate to existing contact center solutions. The library is primarily focused on IVR primitives and not routing to Agent.
+
+
 # Setup and Environment for using tekVizion's Contact Flow parser Library
 
 - **Amazon Connect Instance creation**
