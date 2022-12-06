@@ -256,7 +256,7 @@
 
 <h2>SMA Lambda Function code</h2>
 ```js
-"use strict";
+"use strict"; ```
 Object.defineProperty(exports, "__esModule", { value: true });
 
 const sma_contact_flow_parser_1 = require("sma-contact-flow-parser");
