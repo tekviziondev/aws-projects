@@ -112,7 +112,7 @@
 ![image](https://user-images.githubusercontent.com/88785130/205488173-d46f498f-318e-43e2-8975-24486de8d63e.png)
 
 <br> </br>
-<h2>Supported Actions by tekvizion's Library<h2>
+<h2>Supported Actions by tekvizion's Library</h2>
 - <table>
   <tr>
     <th>S.No.</th>
