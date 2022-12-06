@@ -257,7 +257,7 @@
 
 
 <h2>SMA Lambda Function code</h2>
-```javascript
+```typescript
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 //tekVizion SMA-Contact-Flow-Parser Library
