@@ -118,7 +118,44 @@
 
 
 - **Input parameters user need to give for using tekvizion's Library**
-- ![image](https://user-images.githubusercontent.com/88785130/205560357-b16ddb39-2d1b-460f-8c90-dbb5b6b7445c.png)
+<table>
+  <tr>
+    <th>Parameter </th>
+    <th>Example</th>
+  </tr>
+  <tr>
+    <td>Amazon Connect Instance ID</td>
+    <td>arn:aws:connect:us-east-1:664887287655:instance/a2ad01f9-0df4-4e52-b49f-cc4eb9b72704</td>
+  </tr>
+  <tr>
+    <td>Contact Flow ID</td>
+    <td>arn:aws:connect:us-east-1:664887287655:instance/a2ad01f9-0df4-4e52-b49f-cc4eb9b72704/contact-flow/a016330b-5c33-4113-8fd1-95119068aa0c</td>
+  </tr>
+  <tr>
+    <td>S3 Bucket to Store the Contact Flow Cache Details</td>
+    <td>flow-cache1</td>
+  </tr>
+  <tr>
+    <td>Cache Time Out in Milliseconds</td>
+    <td>5000</td>
+  </tr>
+  <tr>
+    <td>REGION</td>
+    <td>us east</td>
+  </tr>
+  <tr>
+    <td>FAILURE_SPEECH_SSML</td>
+    <td>"<speak>  We're sorry.  We didn't get that. Please try again. <break time=\"200ms\"/></speak>"</td>
+  </tr>
+  <tr>
+    <td>FAILURE_AUDIO_FILE_LOCATION</td>
+    <td>mention you failure audio file's  URI</td>
+  </tr>
+  <tr>
+    <td>DESTINATION_LOCATION</td>
+    <td>(mention your Bucket name, where you need to store and retrieve Contact flow Details and store call Recording)</td>
+  </tr>
+</table>
 
 
 - **Sequence flow of tekvizion's Contact Flow parser library execution**
