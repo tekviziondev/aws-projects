@@ -255,18 +255,10 @@
   </tr>
 </table>
 
-```typescript
-function newCall(event: any) {
-  const callId = event.CallDetails.Participants[0].CallId;
-  speakCollectDigitsAction.Parameters.CallId = callId;
-  speakCollectDigitsAction.Parameters.InputDigitsRegex = "^[1][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]";
-  speakCollectDigitsAction.Parameters.SpeechParameters.Text = "<speak>Hello!  Please enter the number you would like to call, starting with a one followed by ten digits</speak>";
 
-  return [pauseAction, speakCollectDigitsAction];
-}
-```
 <h2>SMA Lambda Function code</h2>
-```js
+```html
+<script>
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 //tekVizion SMA-Contact-Flow-Parser Library
@@ -333,4 +325,5 @@ exports.handler = async (event, context, callback) => {
     }
     callback(null, response);
 };
+</script>
 ```
