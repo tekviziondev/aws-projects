@@ -256,7 +256,7 @@
 
 <h2>SMA Lambda Function code</h2>
 <code>
-"use strict"; </code>
+"use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
 
@@ -266,7 +266,7 @@ const amazonConnectInstanceID = "";
 
 const amazonConnectFlowID = "";
 
-const s3BucketName = "";
+const s3BucketName = "";  </code>
 ```
 exports.handler = async (event, context, callback) => {
     let call_Id = event.CallDetails.Participants[0].CallId;
