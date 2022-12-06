@@ -257,8 +257,8 @@
 
 
 <h2>SMA Lambda Function code</h2>
-<code>
-"use strict";
+<script>
+	"use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 //tekVizion SMA-Contact-Flow-Parser Library
 const sma_contact_flow_parser_1 = require("sma-contact-flow-parser");
@@ -323,5 +323,5 @@ exports.handler = async (event, context, callback) => {
             break;
     }
     callback(null, response);
-}; </code>
-
+};
+	</script>
