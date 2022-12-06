@@ -101,7 +101,7 @@ exports.handler = async (event, context, callback) => {
     callback(null, response);
 };
 
-
+```
 
 - **Step-4 Creation of SIP Media Application (SMA)**
 <br>1.	Create a SIP media application (SMA) and assign the created Lambda Function to it.
