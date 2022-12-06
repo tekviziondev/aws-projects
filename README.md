@@ -213,6 +213,9 @@
 
 </table>
 
+
+
+
 - **Input parameters user need to give for using tekvizion's Library**
 <table>
   <tr>
@@ -254,10 +257,6 @@
   </tr>
 </table>
 
-
-- **Sequence flow of tekvizion's Contact Flow parser library execution**
-
-![image](https://user-images.githubusercontent.com/88785130/205561835-441e5c7c-45b5-4c98-88ce-1485840e246a.png)
 
 
 
