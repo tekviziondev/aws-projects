@@ -257,16 +257,16 @@
 
 
 <h2>SMA Lambda Function code</h2>
-/*
+
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-//tekVizion SMA-Contact-Flow-Parser Library
+
 const sma_contact_flow_parser_1 = require("sma-contact-flow-parser");
-//Amazon Connect Instance ID
+
 const amazonConnectInstanceID = "";
-//Amazon Connect Contact Flow ID
+
 const amazonConnectFlowID = "";
-// Bucket Name to Store the Contact flow Response cache
+
 const s3BucketName = "";
 
 exports.handler = async (event, context, callback) => {
@@ -324,4 +324,4 @@ exports.handler = async (event, context, callback) => {
     }
     callback(null, response);
 };
-*/
+
