@@ -30,6 +30,78 @@
 <br>3. Click the link under Role name.The Identity and Access Management (IAM) screen along with the role name appears. 
 <br>4. Click the Add permissions button, select Attach policies, and then select the policies as shown in the image and assign them to the role.
    ![image](https://user-images.githubusercontent.com/88785130/205117815-63ea13a3-c6d0-43fd-ac50-e1f6c7cd6734.png)
+   
+<h2>SMA Lambda Function code</h2>
+<code>
+"use strict";</code>
+
+<code>Object.defineProperty(exports, "__esModule", { value: true });</code>  /
+
+<code>const sma_contact_flow_parser_1 = require("sma-contact-flow-parser");</code> /tekVizion SMA-Contact-Flow-Parser Library
+
+<code>const amazonConnectInstanceID = "";</code> //Amazon Connect Instance ID
+
+<code>const amazonConnectFlowID = "";</code> //Amazon Connect Contact Flow ID
+
+<code>const s3BucketName = "";  </code> // Bucket Name to Store the Contact flow Response cache
+```
+exports.handler = async (event, context, callback) => {
+    let call_Id = event.CallDetails.Participants[0].CallId;
+    console.log("CallID :" + call_Id + '| Event recieved from SMA : ' + JSON.stringify(event));
+    switch (event.InvocationEventType) {
+        case "NEW_INBOUND_CALL":
+            try {
+                /*
+                 * New incoming call event received from Amazon PSTN audio service and tekVizion SMA-Contact-Flow-Parser Library invoked to get the first corresponding SMA action object from the amazon connect contact flow to execute.
+                 */
+                const actionObj = await sma_contact_flow_parser_1.processFlow(event, amazonConnectInstanceID, amazonConnectFlowID, s3BucketName);
+                console.log("CallID :" + call_Id + "| Action Object : " + JSON.stringify(actionObj) + " is going to execute");
+                return actionObj;
+            }
+            catch (e) {
+                console.log(e);
+            }
+            break;
+        case "ACTION_SUCCESSFUL":
+            try {
+                console.log("CallID :" + call_Id + +" |" + event.ActionData.Type + " Action is executed successfully");
+                /*
+                 *  Action Successfull event received from Amazon PSTN audio service and tekVizion SMA-Contact-Flow-Parser Library invoked to get the corresponding SMA action object from the amazon connect contact flow to execute.
+                 */
+                const actionObj = await sma_contact_flow_parser_1.processFlow(event, amazonConnectInstanceID, amazonConnectFlowID, s3BucketName);
+                console.log("CallID :" + call_Id + "| Action Object : " + JSON.stringify(actionObj) + " is going to execute");
+                return actionObj;
+            } catch (e) {
+                console.log(e);
+            }
+
+            break;
+        case "ACTION_FAILED":
+            try {
+                console.log("CallID :" + call_Id + +" |" + event.ActionData.Type + " Action is failed to execute");
+                /*
+                 *   Action Failed event received from Amazon PSTN audio service and tekVizion SMA-Contact-Flow-Parser Library invoked to get the corresponding SMA action object from the amazon connect contact flow to execute.
+                 */
+                const actionObj = await sma_contact_flow_parser_1.processFlow(event, amazonConnectInstanceID, amazonConnectFlowID, s3BucketName);
+                console.log("CallID :" + call_Id + "| Action Object : " + JSON.stringify(actionObj) + " is going to execute");
+                return actionObj;
+            } catch (e) {
+                console.log(e);
+            }
+            break;
+
+        case 'HANGUP':
+            
+            console.log("CallID :" + call_Id + +" | The call is Hanged Up");
+            break;
+        default:
+            return null;
+            break;
+    }
+    callback(null, response);
+};
+
+
 
 - **Step-4 Creation of SIP Media Application (SMA)**
 <br>1.	Create a SIP media application (SMA) and assign the created Lambda Function to it.
@@ -253,74 +325,4 @@
   </tr>
 </table>
 
-
-<h2>SMA Lambda Function code</h2>
-<code>
-"use strict";</code>
-
-<code>Object.defineProperty(exports, "__esModule", { value: true });</code>
-
-<code>const sma_contact_flow_parser_1 = require("sma-contact-flow-parser");</code>
-
-<code>const amazonConnectInstanceID = "";</code>
-
-<code>const amazonConnectFlowID = "";</code>
-
-<code>const s3BucketName = "";  </code>
-```
-exports.handler = async (event, context, callback) => {
-    let call_Id = event.CallDetails.Participants[0].CallId;
-    console.log("CallID :" + call_Id + '| Event recieved from SMA : ' + JSON.stringify(event));
-    switch (event.InvocationEventType) {
-        case "NEW_INBOUND_CALL":
-            try {
-                /*
-                 * New incoming call event received from Amazon PSTN audio service and tekVizion SMA-Contact-Flow-Parser Library invoked to get the first corresponding SMA action object from the amazon connect contact flow to execute.
-                 */
-                const actionObj = await sma_contact_flow_parser_1.processFlow(event, amazonConnectInstanceID, amazonConnectFlowID, s3BucketName);
-                console.log("CallID :" + call_Id + "| Action Object : " + JSON.stringify(actionObj) + " is going to execute");
-                return actionObj;
-            }
-            catch (e) {
-                console.log(e);
-            }
-            break;
-        case "ACTION_SUCCESSFUL":
-            try {
-                console.log("CallID :" + call_Id + +" |" + event.ActionData.Type + " Action is executed successfully");
-                /*
-                 *  Action Successfull event received from Amazon PSTN audio service and tekVizion SMA-Contact-Flow-Parser Library invoked to get the corresponding SMA action object from the amazon connect contact flow to execute.
-                 */
-                const actionObj = await sma_contact_flow_parser_1.processFlow(event, amazonConnectInstanceID, amazonConnectFlowID, s3BucketName);
-                console.log("CallID :" + call_Id + "| Action Object : " + JSON.stringify(actionObj) + " is going to execute");
-                return actionObj;
-            } catch (e) {
-                console.log(e);
-            }
-
-            break;
-        case "ACTION_FAILED":
-            try {
-                console.log("CallID :" + call_Id + +" |" + event.ActionData.Type + " Action is failed to execute");
-                /*
-                 *   Action Failed event received from Amazon PSTN audio service and tekVizion SMA-Contact-Flow-Parser Library invoked to get the corresponding SMA action object from the amazon connect contact flow to execute.
-                 */
-                const actionObj = await sma_contact_flow_parser_1.processFlow(event, amazonConnectInstanceID, amazonConnectFlowID, s3BucketName);
-                console.log("CallID :" + call_Id + "| Action Object : " + JSON.stringify(actionObj) + " is going to execute");
-                return actionObj;
-            } catch (e) {
-                console.log(e);
-            }
-            break;
-
-        case 'HANGUP':
-            
-            console.log("CallID :" + call_Id + +" | The call is Hanged Up");
-            break;
-        default:
-            return null;
-            break;
-    }
-    callback(null, response);
-};
 
