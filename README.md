@@ -145,7 +145,8 @@
   </tr>
   <tr>
     <td>FAILURE_SPEECH_SSML</td>
-    <td><ssml><speak>We're sorry.  We didn't get that. Please try again. <break time=\"200ms\"/></speak></ssml></td>
+    <td><img width="258" alt="image" src="https://user-images.githubusercontent.com/88785130/205820258-7930eb5c-5ca3-4f3c-b4c1-01fac62e2359.png">
+</td>
   </tr>
   <tr>
     <td>FAILURE_AUDIO_FILE_LOCATION</td>
