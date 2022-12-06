@@ -13,9 +13,9 @@
    ![image](https://user-images.githubusercontent.com/88785130/205262411-044949de-39d7-4fe8-b9ab-7a3b3e35eba5.png)
    
 - **Step-2 Downloading of tekVizion's Contact Flow parser Library**
-<br>1.	Download the tekVizion Library from GitHub and add that library into the Lambda function layers.
-<br>2.	Download nodejs.zip (where our sma-contact-flow-parser Library is present) folder from GitHub.
-<br>3.	Upload the nodejs.zip file in AWS S3 Bucket. 
+<br>1.	Create "nodejs" folder with having "node_modules" into it and download the tekVizion Library from GitHub.
+<br>2.	Copy the tekvizion's library into the node_modules and zip the "nodejs" folder.
+<br>3.	Upload the nodejs.zip folder into AWS S3 Bucket. 
 <br>4.	In AWS Lambda, choose Layers service. 
 <br>5.	After choosing Layers, create a new layer and name it. Copy the URL of the nodejs.zip location from S3 bucket and paste it in the Amazon S3 link URLs.
 <br>6.	Choose the compatible architectures as x86_64 and compatible runtimes as Node.js 12.x, Node.js 14.x, Noe.js 16.x. 
