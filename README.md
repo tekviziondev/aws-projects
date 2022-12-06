@@ -10,13 +10,13 @@
 
 - **Amazon Connect Instance creation**
 <br>1. Create an instance in the Amazon Connect and define a Contact Flow. You may refer to https://docs.aws.amazon.com/connect/latest/adminguide/amazon-connect-  instances.html for more information on creating an instance in the Amazon Connect.         
-![image](https://user-images.githubusercontent.com/88785130/205262411-044949de-39d7-4fe8-b9ab-7a3b3e35eba5.png)
+   ![image](https://user-images.githubusercontent.com/88785130/205262411-044949de-39d7-4fe8-b9ab-7a3b3e35eba5.png)
 
 <br>2. Create a DID number in the Amazon Connect.
-![image](https://user-images.githubusercontent.com/88785130/205262539-82bda98a-689b-4ad8-9e3f-e2cb10e93f22.png)
+   ![image](https://user-images.githubusercontent.com/88785130/205262539-82bda98a-689b-4ad8-9e3f-e2cb10e93f22.png)
 
 <br>3. Use a “Web client” application for Dialing out to the Contact Centre Phone Number (DID). 
-![image](https://user-images.githubusercontent.com/88785130/205262606-0682cee6-864b-40e3-ae21-458ba2c310a4.png)
+   ![image](https://user-images.githubusercontent.com/88785130/205262606-0682cee6-864b-40e3-ae21-458ba2c310a4.png)
 
 
 - **Lambda function creation**
@@ -24,7 +24,7 @@
 <br>2. In the Lambda Function > on the Configuration tab > click Permissions. The Execution role screen appears.
 <br>3. Click the link under Role name.The Identity and Access Management (IAM) screen along with the role name appears. 
 <br>4. Click the Add permissions button, select Attach policies, and then select the policies as shown in the image and assign them to the role.
-  ![image](https://user-images.githubusercontent.com/88785130/205117815-63ea13a3-c6d0-43fd-ac50-e1f6c7cd6734.png)
+   ![image](https://user-images.githubusercontent.com/88785130/205117815-63ea13a3-c6d0-43fd-ac50-e1f6c7cd6734.png)
 
 - **Downloading of tekVizion's Contact Flow parser Library**
 <br>1.	Download the tekVizion Library from GitHub and add that library into the Lambda function layers.
@@ -53,12 +53,12 @@
 <br>12.	Click Create to create the SIP media application. The created SIP media application appears under the SIP media applications.
 <br>13.	Click the created SIP media application.
 
-![image](https://user-images.githubusercontent.com/88785130/205266463-a806306d-275b-4531-9284-a0e0f49a6ec1.png)
+  ![image](https://user-images.githubusercontent.com/88785130/205266463-a806306d-275b-4531-9284-a0e0f49a6ec1.png)
 
 
 - **SIP Rule assigning for SIP Media Application (SMA)**
 <br>1. Click the Rules tab to create a rule for the SMA and to assign the DID number (Contact Centre Number) to invoke the SMA.
- ![image](https://user-images.githubusercontent.com/88785130/205267206-6b77380c-486a-408a-9b1e-95b0096eec3b.png)
+  ![image](https://user-images.githubusercontent.com/88785130/205267206-6b77380c-486a-408a-9b1e-95b0096eec3b.png)
         
 <br>2. Click Create to create a rule. The Create a SIP rule dialog appears.
 <br>3. Enter name of the rule, choose the To phone number from the Trigger type drop-down, select the provisioned phone number from the Phone number drop-down, and click Next. The Create a SIP rule dialog appears.
@@ -78,16 +78,16 @@
 
 <br>To give the permission in S3 bucket, perform as follows:
 <br>1. Open the S3 bucket service in AWS.
-![image](https://user-images.githubusercontent.com/88785130/205296372-607e1a35-c7aa-4a4f-8e33-9439d8c4be3f.png)
+  ![image](https://user-images.githubusercontent.com/88785130/205296372-607e1a35-c7aa-4a4f-8e33-9439d8c4be3f.png)
 
 <br>2. Open the S3 Bucket where we want to store the SMA call Recordings and click “Permissions”.
-![image](https://user-images.githubusercontent.com/88785130/205296699-c49d6fac-c90e-4d3c-820c-fa5826ec19ca.png)
+  ![image](https://user-images.githubusercontent.com/88785130/205296699-c49d6fac-c90e-4d3c-820c-fa5826ec19ca.png)
 
 <br>3. Under “Bucket policy”, click the “Edit” option.
-![image](https://user-images.githubusercontent.com/88785130/205296827-4341a93a-e319-4044-9984-30ae0a5431cf.png)
+  ![image](https://user-images.githubusercontent.com/88785130/205296827-4341a93a-e319-4044-9984-30ae0a5431cf.png)
 
 <br>4. Click “Add new statement”.
-![image](https://user-images.githubusercontent.com/88785130/205297737-808d0e6b-13c2-4263-bc53-068694210183.png)
+  ![image](https://user-images.githubusercontent.com/88785130/205297737-808d0e6b-13c2-4263-bc53-068694210183.png)
 
 <br>5. Add the policy that follows in the Existing policy
 {
@@ -109,7 +109,7 @@
 		}
 
 <br>6. Click “Save changes”.
-![image](https://user-images.githubusercontent.com/88785130/205488173-d46f498f-318e-43e2-8975-24486de8d63e.png)
+  ![image](https://user-images.githubusercontent.com/88785130/205488173-d46f498f-318e-43e2-8975-24486de8d63e.png)
 
 <br> </br>
 <h2>Supported Actions by tekvizion's Library</h2>
@@ -257,7 +257,7 @@
 
 
 <h2>SMA Lambda Function code</h2>
-
+```js
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 
@@ -268,7 +268,7 @@ const amazonConnectInstanceID = "";
 const amazonConnectFlowID = "";
 
 const s3BucketName = "";
-
+```js
 exports.handler = async (event, context, callback) => {
     let call_Id = event.CallDetails.Participants[0].CallId;
     console.log("CallID :" + call_Id + '| Event recieved from SMA : ' + JSON.stringify(event));
