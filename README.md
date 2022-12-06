@@ -145,7 +145,7 @@
   </tr>
   <tr>
     <td>FAILURE_SPEECH_SSML</td>
-    <td><speak>  We're sorry.  We didn't get that. Please try again. <break time=\"200ms\"/></speak></td>
+    <td>"<speak>"  "We're sorry.  We didn't get that. Please try again. <break time=\"200ms\"/>""</speak>"</td>
   </tr>
   <tr>
     <td>FAILURE_AUDIO_FILE_LOCATION</td>
