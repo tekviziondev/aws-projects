@@ -256,17 +256,17 @@
 
 <h2>SMA Lambda Function code</h2>
 <code>
-"use strict";
+"use strict";</code>
 
-Object.defineProperty(exports, "__esModule", { value: true });
+<code>Object.defineProperty(exports, "__esModule", { value: true });</code>
 
-const sma_contact_flow_parser_1 = require("sma-contact-flow-parser");
+<code>const sma_contact_flow_parser_1 = require("sma-contact-flow-parser");</code>
 
-const amazonConnectInstanceID = "";
+<code>const amazonConnectInstanceID = "";</code>
 
-const amazonConnectFlowID = "";
+<code>const amazonConnectFlowID = "";</code>
 
-const s3BucketName = "";  </code>
+<code>const s3BucketName = "";  </code>
 ```
 exports.handler = async (event, context, callback) => {
     let call_Id = event.CallDetails.Participants[0].CallId;
