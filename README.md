@@ -35,15 +35,15 @@
 <code>
 "use strict";</code>
 
-<code>Object.defineProperty(exports, "__esModule", { value: true });</code>  /
+<code>Object.defineProperty(exports, "__esModule", { value: true });</code>
 
-<code>const sma_contact_flow_parser_1 = require("sma-contact-flow-parser");</code> /tekVizion SMA-Contact-Flow-Parser Library
+<code>const sma_contact_flow_parser_1 = require("sma-contact-flow-parser");</code>   //tekVizion SMA-Contact-Flow-Parser Library
 
-<code>const amazonConnectInstanceID = "";</code> //Amazon Connect Instance ID
+<code>const amazonConnectInstanceID = "";</code>  //Amazon Connect Instance ID
 
-<code>const amazonConnectFlowID = "";</code> //Amazon Connect Contact Flow ID
+<code>const amazonConnectFlowID = "";</code>  //Amazon Connect Contact Flow ID
 
-<code>const s3BucketName = "";  </code> // Bucket Name to Store the Contact flow Response cache
+<code>const s3BucketName = "";  </code>  //Bucket Name to Store the Contact flow Response cache
 ```
 exports.handler = async (event, context, callback) => {
     let call_Id = event.CallDetails.Participants[0].CallId;
