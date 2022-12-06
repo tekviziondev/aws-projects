@@ -268,7 +268,7 @@ const amazonConnectInstanceID = "";
 const amazonConnectFlowID = "";
 
 const s3BucketName = "";
-```js
+```
 exports.handler = async (event, context, callback) => {
     let call_Id = event.CallDetails.Participants[0].CallId;
     console.log("CallID :" + call_Id + '| Event recieved from SMA : ' + JSON.stringify(event));
