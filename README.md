@@ -52,9 +52,9 @@
 <br>1. Click the Rules tab to create a rule for the SMA and to assign the DID number (Contact Centre Number) to invoke the SMA.
   ![image](https://user-images.githubusercontent.com/88785130/205267206-6b77380c-486a-408a-9b1e-95b0096eec3b.png)
         
-<br>2. Click Create to create a rule. The Create a SIP rule dialog appears.
-<br>3. Enter name of the rule, choose the To phone number from the Trigger type drop-down, select the provisioned phone number from the Phone number drop-down, and click Next. The Create a SIP rule dialog appears.
-<br>4. Click Create. The rule gets created and appears under the created SIP media Application.
+  <br>2. Click Create to create a rule. The Create a SIP rule dialog appears.
+  <br>3. Enter name of the rule, choose the To phone number from the Trigger type drop-down, select the provisioned phone number from the Phone number drop-down, and click Next. The Create a SIP rule dialog appears.
+  <br>4. Click Create. The rule gets created and appears under the created SIP media Application.
 
 <br>Now your setup is ready for using the tekVizion's Library to invoking the SMA's IVR functions.
 <br> Use a “Web client” application for Dialing out to the SMA's DID number </br>
