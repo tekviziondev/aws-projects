@@ -112,7 +112,6 @@
 ![image](https://user-images.githubusercontent.com/88785130/205488173-d46f498f-318e-43e2-8975-24486de8d63e.png)
 
 <br> </br>
-<br> </br>
 - **Supported Actions by tekvizion's Library**
 - <table>
   <tr>
@@ -214,10 +213,8 @@
 
 </table>
 
-
-
-
-- **Input parameters user need to give for using tekvizion's Library**
+<br> </br>
+<h2>Input parameters user need to give for using tekvizion's Library </h2>
 <table>
   <tr>
     <th>Parameter </th>
