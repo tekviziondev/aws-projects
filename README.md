@@ -57,10 +57,11 @@
 <br>4. Click Create. The rule gets created and appears under the created SIP media Application.
 
 <br>Now your setup is ready for using the tekVizion's Library to invoking the SMA's IVR functions.
-<br> Use a “Web client” application for Dialing out to the SMA's DID number. 
-   ![image](https://user-images.githubusercontent.com/88785130/205262606-0682cee6-864b-40e3-ae21-458ba2c310a4.png)
+<br> Use a “Web client” application for Dialing out to the SMA's DID number </br>
+![image](https://user-images.githubusercontent.com/88785130/205262606-0682cee6-864b-40e3-ae21-458ba2c310a4.png)
 
-<h2>Addition info on </h2>
+<h2>Addition info on</h2>
+
 - **Defining Amazon Lex Bot service and External Lambda function in Contact Flow** 
 <br>1. Use an Amazon lex bot and the external Lambda Function in Amazon Connect Contact flow.
 <br>2. Access the Amazon Connect Service. The Amazon Connect virtual contact center instances screen appears.
