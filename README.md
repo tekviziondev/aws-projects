@@ -145,7 +145,8 @@
   </tr>
   <tr>
     <td>FAILURE_SPEECH_SSML</td>
-    <td><img width="258" alt="image" src="https://user-images.githubusercontent.com/88785130/205820258-7930eb5c-5ca3-4f3c-b4c1-01fac62e2359.png">
+    <td><img width="430" alt="image" src="https://user-images.githubusercontent.com/88785130/205820748-c39b9383-3625-4596-8c33-3f4f7924dc68.png">
+
 </td>
   </tr>
   <tr>
