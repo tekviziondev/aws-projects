@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "aws-sdk": "^2.1183.0",
+    "dotenv-json": "^1.0.0",
     "sma-contact-flow-parser": "^1.0.0"
   },
   "devDependencies": {

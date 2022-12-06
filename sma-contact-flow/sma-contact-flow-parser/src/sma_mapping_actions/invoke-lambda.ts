@@ -22,8 +22,7 @@ export class InvokeLambda {
     async processFlowActionInvokeLambdaFunction(smaEvent: any, action: any, actions: any, amazonConnectInstanceID: string, bucketName: string, contextStore: IContextStore) {
         let callId: string;
         let regionVal = Attributes.region;
-        if (!regionVal)
-            regionVal = "us-east-1"
+        console.log("the Region Value is "+regionVal)
         //creating the lambda API to invoke from the specific region
         const lambda = new Lambda({ region: regionVal });
         // creating cloud watch metric parameter and updating the metric details in cloud watch

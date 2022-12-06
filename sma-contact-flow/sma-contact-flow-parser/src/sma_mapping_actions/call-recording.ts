@@ -40,9 +40,7 @@ export class CallRecording {
                 let destinationLocation = "";
                 if (Attributes.destinationLocation)
                     destinationLocation = Attributes.destinationLocation;
-                else
-                    destinationLocation = "flow-cache1"
-                console.log("Destination location " + destinationLocation)
+                console.log("Destination location  for Call Recording is " + destinationLocation)
                 smaAction = {
                     Type: ChimeActions.START_CALL_RECORDING,
                     Parameters: {

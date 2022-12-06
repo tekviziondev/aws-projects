@@ -14,7 +14,7 @@ import { TrasferToFlow } from "./sma_mapping_actions/transfer-flow";
 import { TransferTOThirdParty } from "./sma_mapping_actions/transfer-to-thirdparty";
 import { UpdateContactAttrbts } from "./sma_mapping_actions/update-contact-attributes";
 import { Wait } from "./sma_mapping_actions/wait";
-import { AmazonConnectActions } from "./const/amazon-connect-actionTypes";
+import { AmazonConnectActions } from "./const/amazon-connect-action-types";
 import { CallDetailsUtil } from "./utility/call-details";
 import { ConditionValidationUtil } from "./utility/condition-validation";
 import { Attributes, ContextAttributes, ContextStore } from "./const/constant-values";
@@ -24,6 +24,8 @@ import { NextActionValidationUtil } from "./utility/next-action-error-handler";
 import { TerminatingFlowUtil } from "./utility/default-termination-action";
 import { METRIC_PARAMS } from "./const/constant-values"
 import { CloudWatchMetric } from "./utility/metric-updation"
+import { LoggingBehaviour } from "./sma_mapping_actions/logging-behaviour";
+import {  DistributeByPercentage} from "./sma_mapping_actions/distribute-by-percentage";
 const connectContextStore: string = "ConnectContextStore";
 
 /**
@@ -92,7 +94,7 @@ export async function processFlow(smaEvent: any, amazonConnectInstanceID: string
                     Timestamp: new Date()
                 },
             ],
-            Namespace: 'FlowLoading_Time'
+            Namespace: 'tekvizion'
         };
         try {
             flowLoadingParams.MetricData[0].Dimensions[1].Name = "Contact Flow ID"
@@ -278,8 +280,14 @@ export async function processFlowAction(smaEvent: any, action: any, actions: any
             let invoke = new InvokeModule();
             return await invoke.processFlowActionInvokeFlowModule(smaEvent, action, amazonConnectInstanceID, bucketName, contextStore)
         case AmazonConnectActions.END_FLOW_MODULE_EXECUTION:
-            let endModule = new EndModule()
+            let endModule = new EndModule();
             return await endModule.processFlowActionEndFlowModuleExecution(smaEvent, amazonConnectInstanceID, bucketName, contextStore)
+        case AmazonConnectActions.UPDATE_FLOW_LOGGING_BEHAVIOUR:
+            let loggingBehaviour = new LoggingBehaviour();
+            return await loggingBehaviour.execute(smaEvent, action, actions, amazonConnectInstanceID, bucketName, contextStore)
+        case AmazonConnectActions.DISTRIBUTE_BY_PERCENTAGE:
+            let distributeBypercentage=new DistributeByPercentage();
+            return await distributeBypercentage.execute(smaEvent, action, actions, amazonConnectInstanceID, bucketName, contextStore)
         default:
             return null;
     }

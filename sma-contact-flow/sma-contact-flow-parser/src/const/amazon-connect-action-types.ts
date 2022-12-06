@@ -14,5 +14,7 @@ export enum AmazonConnectActions {
   UPDATE_CONTACT_ATTRIBUTES = "UpdateContactAttributes",
   COMPARE = "Compare",
   INVOKE_FLOW_MODULE = "InvokeFlowModule",
-  END_FLOW_MODULE_EXECUTION = "EndFlowModuleExecution"
+  END_FLOW_MODULE_EXECUTION = "EndFlowModuleExecution",
+  DISTRIBUTE_BY_PERCENTAGE= "DistributeByPercentage",
+  UPDATE_FLOW_LOGGING_BEHAVIOUR="UpdateFlowLoggingBehavior"
 }
