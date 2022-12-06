@@ -113,9 +113,105 @@
 
 
 - **Supported Actions by tekvizion's Library**
-<img width="335" alt="image" src="https://user-images.githubusercontent.com/88785130/205489325-97b4aa0c-899b-408a-ad4c-548c0338f6bb.png">
+- <table>
+  <tr>
+    <th>S.No.</th>
+    <th>Action</th>
+    <th>Chime SDK Action</th>
+    <th>Function</th>  
+  </tr>
+  <tr>
+    <td>1</td>
+    <td>MessageParticipant</td>
+    <td>Play AudioSpeak Action</td>
+    <td>Messages the participant either by playing the audio or by speaking the text</td>	  
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>GetParticipantInput</td>
+    <td>Play Audio and get digits Speak and get digits</td>
+    <td>Gets the customer input by playing the audio or by speaking the text</td>
+  </tr>
+<tr>
+    <td>3</td>
+    <td>DisconnectParticipant</td>
+    <td>Hang Up</td>
+    <td>Hangs up the current call</td>	  
+  </tr>
+<tr>
+    <td>4</td>
+    <td>Wait</td>
+    <td>Pause</td>
+    <td>Performs pause action</td>	  
+  </tr>
+<tr>
+    <td>5</td>
+    <td>Loop</td>
+    <td></td>
+    <td>Performs the actions iteratively </td>	  
+  </tr>
+<tr>
+    <td>6</td>
+    <td>TransferToFlow</td>
+    <td></td>
+    <td>Transfers the current flow to another flow to perform</td>	  
+  </tr>
+<tr>
+    <td>7</td>
+    <td>TransferParticipantToThirdParty</td>
+    <td>CallBridge</td>
+    <td>Transfers the call to the third-party number</td>	  
+  </tr>
+<tr>
+    <td>8</td>
+    <td>ConnectParticipantWithLexBot</td>
+    <td>StartBotConversation</td>
+    <td>Performs lex bot operations</td>	  
+</tr>
+<tr>
+    <td>9</td>
+    <td>UpdateContactRecordingBehavior</td>
+    <td>StopCallRecording or StartCallRecording</td>
+    <td>Records the call based on the call Id</td>	  
+  </tr>
+<tr>
+    <td>10</td>
+    <td>InvokeLambdaFunction</td>
+    <td></td>
+    <td>Invokes the external Lambda function with inputs and fetch the response</td>	  
+  </tr>
+<tr>
+    <td>11</td>
+    <td>UpdateContactAttributes</td>
+    <td></td>
+    <td>Stores the contact details internally and uses them as an input for Invoking Lambda function and in text to speak </td>	  
+  </tr>
+<tr>
+    <td>12</td>
+    <td>Compare</td>
+    <td></td>
+    <td>Compares the contact attributes with comparison attributes</td>	  
+  </tr>
+<tr>
+    <td>13</td>
+    <td>Set Voice ID</td>
+    <td></td>
+    <td>Sets the voice ID, language, and Engine to speak</td>	  
+  </tr>
+<tr>
+    <td>14</td>
+    <td>InvokeFlowModule</td>
+    <td></td>
+    <td>Invokes the module from the Contact Flow to perform a particular task</td>	  
+  </tr>
+<tr>
+    <td>15</td>
+    <td>EndFlowModuleExecution</td>
+    <td></td>
+    <td>After completing the execution of the module, return backs to original Contact Flow</td>	  
+  </tr>
 
-
+</table>
 
 - **Input parameters user need to give for using tekvizion's Library**
 <table>
