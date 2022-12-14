@@ -301,7 +301,7 @@ exports.handler = async (event, context, callback) => {
   </tr>
   <tr>
     <td>FAILURE_AUDIO_FILE_LOCATION</td>
-    <td>mention you failure audio file's  URI</td>
+    <td>mention you failure audio file's URI from the S3 Bucket</td>
   </tr>
   <tr>
     <td>DESTINATION_LOCATION</td>
@@ -309,4 +309,7 @@ exports.handler = async (event, context, callback) => {
   </tr>
 </table>
 
+Configure the Parameters and their Values in Lambda function's configuration section.
+
+<img width="931" alt="image" src="https://user-images.githubusercontent.com/88785130/207535457-0f207e49-87e5-43e9-a6eb-4da8e0147fdf.png">
 
