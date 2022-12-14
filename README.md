@@ -305,7 +305,7 @@ exports.handler = async (event, context, callback) => {
   </tr>
   <tr>
     <td>DESTINATION_LOCATION</td>
-    <td>(mention your Bucket name, where you need to store and retrieve Contact flow Details and store call Recording)</td>
+    <td>(mention your Bucket name, where you need to store the call Recording)</td>
   </tr>
 </table>
 
