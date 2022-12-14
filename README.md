@@ -309,7 +309,7 @@ exports.handler = async (event, context, callback) => {
   </tr>
 </table>
 
-Configure the Parameters and their Values in Lambda function's configuration section.
+Configure the Parameters and their Values in Lambda function's configuration section as mentioned in the below image.
 
 <img width="931" alt="image" src="https://user-images.githubusercontent.com/88785130/207535457-0f207e49-87e5-43e9-a6eb-4da8e0147fdf.png">
 
