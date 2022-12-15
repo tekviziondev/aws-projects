@@ -11,21 +11,33 @@
 - **Step-1 Amazon Connect Instance creation**
 <br>1. Create an instance in the Amazon Connect and define a Contact Flow. For more information on creating an instance in the Amazon Connect you may refer to the https://docs.aws.amazon.com/connect/latest/adminguide/amazon-connect-instances.html .         
    
-- **Step-2 Downloading of tekVizion's Chime SMA Translator Library and adding it in Lambda layers**
+- **Step-2 Using tekVizion's Chime SMA Translator Library and adding it in Lambda layers**
+- **Option 1 - Downloading (Chime SMA Translator Library) from Git Hub Repositry**
 <br>1.	Download the "nodejs.zip" (Chime SMA Translator Library) file from the tekVizion's Git Hub repositry from the location(aws-projects/sma-contact-flow/sma-contact-flow-parser/nodejs.zip), the Library directory structure should be in the format of (nodejs -> node_modules -> sma-contact-flow-parser -> dist, package.json & package-lock.json) ,the library root directory has to be named as "nodejs", because the SMA Lambda function is built on JavaScript code.
-<br>2.	Upload the "nodejs.zip" folder into  your AWS S3 Bucket location. 
-<br>3.	In "Lambda" service, choose "Layers" section. 
-<br>4.	After choosing "Layers", create a new layer and name it as you want. Copy the URL of the "nodejs.zip"  (Chime SMA Translator Library) location from S3 bucket and paste it in the "Amazon S3 link URLs" section in "layers".
-<br>5.	Choose the compatible architectures as x86_64 and compatible runtimes as Node.js 12.x, Node.js 14.x, Noe.js 16.x. 
-<img width="439" alt="image" src="https://user-images.githubusercontent.com/88785130/207815848-60c1eb54-fcfd-43ee-986a-298efb164c4a.png">
-<br>6.	In the "Lambda" choose "function" section and click "Layers". The Layers section appears.
-<img width="880" alt="image" src="https://user-images.githubusercontent.com/88785130/207816542-3a22b0b9-fbb2-412e-a0d5-6206997a702e.png">
-<br>7.	Click the "Add a layer" button. The Add layer screen appears.
-<img width="876" alt="image" src="https://user-images.githubusercontent.com/88785130/207816798-c363b59b-0b94-4ee2-9e24-39e49561f421.png">
-<br>8.	Under "Choose a layer", choose the "Custom layers" option.
-<br>9.	From the Custom layers drop-down, select the layer that you created.
-<img width="557" alt="image" src="https://user-images.githubusercontent.com/88785130/207817313-820852d9-49aa-41c6-9bec-66daa8cab0e9.png">
 
+- **Option 2 - Building the (Chime SMA Translator Library) by cloning the Repositry**
+<br>1.  Clone this Git Hub reposirty to your local machine.
+<br>2.  Go to the folder (aws-projects\sma-contact-flow\sma-contact-flow-parser).
+<br>3.  Open the folder "sma-contact-flow-parser" in the terminal.
+<br>4.  Compile the files inside the folder using "tsc-w" command.
+<br>5.  "dist" folder will be created after compilation.
+<br>6.  Now create a seperate folder "nodejs" in the different location and inside "nodejs" create "node_modules" and inside create "sma-contact-flow-parser" folder.
+<br>7.  copy the "dist" folder, pacakge.json and package-lock.json files and paste it inside this newly created folder location (nodejs\node_modules\sma-contact-flow-parser)
+<br>8.  Zip the root folder "nodejs".
+
+-**Adding the library in Lambda Layers**
+<br>1.	Upload the "nodejs.zip" folder into  your AWS S3 Bucket location. 
+<br>2.	In "Lambda" service, choose "Layers" section. 
+<br>3.	After choosing "Layers", create a new layer and name it as you want. Copy the URL of the "nodejs.zip"  (Chime SMA Translator Library) location from S3 bucket and paste it in the "Amazon S3 link URLs" section in "layers".
+<br>4.	Choose the compatible architectures as x86_64 and compatible runtimes as Node.js 12.x, Node.js 14.x, Noe.js 16.x. 
+<img width="439" alt="image" src="https://user-images.githubusercontent.com/88785130/207815848-60c1eb54-fcfd-43ee-986a-298efb164c4a.png">
+<br>5.	In the "Lambda" choose "function" section and click "Layers". The Layers section appears.
+<img width="880" alt="image" src="https://user-images.githubusercontent.com/88785130/207816542-3a22b0b9-fbb2-412e-a0d5-6206997a702e.png">
+<br>6.	Click the "Add a layer" button. The Add layer screen appears.
+<img width="876" alt="image" src="https://user-images.githubusercontent.com/88785130/207816798-c363b59b-0b94-4ee2-9e24-39e49561f421.png">
+<br>7.	Under "Choose a layer", choose the "Custom layers" option.
+<br>8.	From the Custom layers drop-down, select the layer that you created.
+<img width="557" alt="image" src="https://user-images.githubusercontent.com/88785130/207817313-820852d9-49aa-41c6-9bec-66daa8cab0e9.png">
 
 
 - **Step-3 Lambda function creation**
