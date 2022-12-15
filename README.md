@@ -9,8 +9,7 @@
 # Setup and Environment for using tekVizion's Contact Flow parser Library
 
 - **Step-1 Amazon Connect Instance creation**
-<br>1. Create an instance in the Amazon Connect and define a Contact Flow. You may refer to the https://docs.aws.amazon.com/connect/latest/adminguide/amazon-connect-instances.html for more information on creating an instance in the Amazon Connect.         
-   ![image](https://user-images.githubusercontent.com/88785130/205262411-044949de-39d7-4fe8-b9ab-7a3b3e35eba5.png)
+<br>1. Create an instance in the Amazon Connect and define a Contact Flow. For more information on creating an instance in the Amazon Connect you may refer to the https://docs.aws.amazon.com/connect/latest/adminguide/amazon-connect-instances.html .         
    
 - **Step-2 Downloading of tekVizion's Contact Flow parser Library**
 <br>1.	Download the nodejs.zip file from the tekVizion's Git Hub repositry from the location(aws-projects/sma-contact-flow/sma-contact-flow-parser/nodejs.zip)
