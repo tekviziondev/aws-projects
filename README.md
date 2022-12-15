@@ -16,7 +16,7 @@
 <br>1.	Download the nodejs.zip file from the tekVizion's Git Hub repositry from the location(aws-projects/sma-contact-flow/sma-contact-flow-parser/nodejs.zip)
 <br>2.	Upload the nodejs.zip folder into  your AWS S3 Bucket. 
 <br>3.	In AWS Lambda, choose Layers service. 
-<br>4.	After choosing Layers, create a new layer and name it. Copy the URL of the nodejs.zip location from S3 bucket and paste it in the Amazon S3 link URLs in layers.
+<br>4.	After choosing Layers, create a new layer and name it as you want. Copy the URL of the nodejs.zip location from S3 bucket and paste it in the Amazon S3 link URLs in layers.
 <br>5.	Choose the compatible architectures as x86_64 and compatible runtimes as Node.js 12.x, Node.js 14.x, Noe.js 16.x. 
 <br>6.	In the Lambda function > click Layers. The Layers section appears.
 <br>7.	Click the Add a layer button. The Add layer screen appears.
