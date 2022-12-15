@@ -1,25 +1,26 @@
-# Contact Flow Parsing Library
+# Chime SMA Translator Library
 
 # About
-<br>Tekvizion has built an opensource Chime SMA Translator Library to give customer the best of both worlds (Amazon Connect and Chime SDK) and help customers to build new and modify existing IVR workflows in faster time and help them migrate to cloud-based unified contact center solution. In this solution, the customer shall use the Amazon connect GUI flow builder to create Lex Powered IVR workflow and run the flow using Amazon Chime SDK.  Eventually, the customer shall have the ability to reuse the IVR workflow created using Amazon connect GUI flow builder when they migrate to Amazon connect.
+<br>Tekvizion has built an opensource Chime SMA Translator Library to give customers the best of both Amazon Connect and Amazon Chime SDK to help customers to build and execute new or modified  IVR workflows in a short time frame with very little code.  The resulting IVR workflows can be used immediately with existing call center solutions and continue to be relevant when migrating fully to Amazon Connect.  The ease of building IVR workflows using the Amazon Connect Flow Builder GUI, combined with the tekVizion SMA Translator Library, results in rich, efficient, and effective workflows backed by the power and flexibility of the Amazon Chime SDK API’s..
  
 <br>Tekvizion Chime SMA Translator Library is easy to use with low code and the ability to build Lex-powered IVR workflow and integrate to existing contact center solutions. The library is primarily focused on IVR primitives and not routing to Agent.
 
 
-# Setup and Environment for using tekVizion's Contact Flow parser Library
+# Setup and Environment for using tekVizion's Chime SMA Translator Library
 
 - **Step-1 Amazon Connect Instance creation**
 <br>1. Create an instance in the Amazon Connect and define a Contact Flow. For more information on creating an instance in the Amazon Connect you may refer to the https://docs.aws.amazon.com/connect/latest/adminguide/amazon-connect-instances.html .         
    
-- **Step-2 Downloading of tekVizion's Contact Flow parser Library**
-<br>1.	Download the nodejs.zip file from the tekVizion's Git Hub repositry from the location(aws-projects/sma-contact-flow/sma-contact-flow-parser/nodejs.zip)
-<br>2.	Upload the nodejs.zip folder into  your AWS S3 Bucket. 
-<br>3.	In AWS Lambda, choose Layers service. 
-<br>4.	After choosing Layers, create a new layer and name it as you want. Copy the URL of the nodejs.zip location from S3 bucket and paste it in the Amazon S3 link URLs in layers.
+- **Step-2 Downloading of tekVizion's Chime SMA Translator Library and adding it in Lambda layers**
+<br>1.	Download the "nodejs.zip" (Chime SMA Translator Library) file from the tekVizion's Git Hub repositry from the location(aws-projects/sma-contact-flow/sma-contact-flow-parser/nodejs.zip), the Library directory structure should be in the format of (nodejs -> node_modules -> sma-contact-flow-parser -> dist, package.json & package-lock.json) ,the library root directory has to be named as "nodejs", because the SMA Lambda function is built on JavaScript code.
+<br>2.	Upload the "nodejs.zip" folder into  your AWS S3 Bucket location. 
+<br>3.	In "Lambda" service, choose "Layers" section. 
+<br>4.	After choosing "Layers", create a new layer and name it as you want. Copy the URL of the "nodejs.zip"  (Chime SMA Translator Library) location from S3 bucket and paste it in the "Amazon S3 link URLs" section in "layers".
 <br>5.	Choose the compatible architectures as x86_64 and compatible runtimes as Node.js 12.x, Node.js 14.x, Noe.js 16.x. 
-<br>6.	In the Lambda function > click Layers. The Layers section appears.
-<br>7.	Click the Add a layer button. The Add layer screen appears.
-<br>8.	Under Choose a layer, choose the Custom layers option.
+
+<br>6.	In the "Lambda" choose "function" section and click Layers. The "Layers" section appears.
+<br>7.	Click the "Add a layer" button. The Add layer screen appears.
+<br>8.	Under "Choose a layer", choose the "Custom layers" option.
 <br>9.	From the Custom layers drop-down, select the layer that you created.
 
 - **Step-3 Lambda function creation**
