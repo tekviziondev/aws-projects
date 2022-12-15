@@ -12,6 +12,8 @@
 <br>1. Create an instance in the Amazon Connect and define a Contact Flow. For more information on creating an instance in the Amazon Connect you may refer to the https://docs.aws.amazon.com/connect/latest/adminguide/amazon-connect-instances.html .         
    
 - **Step-2 Using tekVizion's Chime SMA Translator Library and adding it in Lambda layers**
+
+### Directory Structure
 ```
 ├── nodejs
 │   |
@@ -25,7 +27,7 @@
      
 ```
 - **Option 1 - Downloading (Chime SMA Translator Library) from Git Hub Repositry**
-<br>1.	Download the "nodejs.zip" (Chime SMA Translator Library) file from the tekVizion's Git Hub repositry from the location(aws-projects/sma-contact-flow/sma-contact-flow-parser/nodejs.zip), the Library directory structure should be in the format of (nodejs -> node_modules -> sma-contact-flow-parser -> dist, package.json & package-lock.json) ,the library root directory has to be named as "nodejs", because the SMA Lambda function is built on JavaScript code.
+<br>1.	Download the "nodejs.zip" (Chime SMA Translator Library) file from the tekVizion's Git Hub repositry from the location(aws-projects\sma-contact-flow\sma-contact-flow-parser\nodejs.zip), the Library directory structure should be in the format of (nodejs -> node_modules -> sma-contact-flow-parser -> dist, package.json & package-lock.json) ,the library root directory has to be named as "nodejs", because the SMA Lambda function is built on JavaScript code.
 
 - **Option 2 - Building the (Chime SMA Translator Library) by cloning the Repositry**
 <br>1.  Clone this Git Hub reposirty to your local machine.
@@ -37,7 +39,7 @@
 <br>7.  copy the "dist" folder, pacakge.json and package-lock.json files and paste it inside this newly created folder location (nodejs\node_modules\sma-contact-flow-parser)
 <br>8.  Zip the root folder "nodejs".
 
--**Adding the library in Lambda Layers**
+-**Adding the tekVizion's Chime SMA Translator Library in Lambda Layers**
 <br>1.	Upload the "nodejs.zip" folder into  your AWS S3 Bucket location. 
 <br>2.	In "Lambda" service, choose "Layers" section. 
 <br>3.	After choosing "Layers", create a new layer and name it as you want. Copy the URL of the "nodejs.zip"  (Chime SMA Translator Library) location from S3 bucket and paste it in the "Amazon S3 link URLs" section in "layers".
@@ -53,7 +55,7 @@
 
 for more information on creating the Lambda Layers refer https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html
 
-- **Step-3 Lambda function creation**
+- **Step-3 SMA Lambda function creation**
 <br>1. Create a Lambda Function with the template JavaScript file whichever is available as a part of tekVizion's Library. You may refer https://docs.aws.amazon.com/lambda/latest/dg/getting-started.html for information on  getting started with Lambda, creating a Lambda function, invoking it and so on
 <br>2. In the Lambda Function > on the Configuration tab > click Permissions. The Execution role screen appears.
 <br>3. Click the link under Role name.The Identity and Access Management (IAM) screen along with the role name appears. 
@@ -153,15 +155,15 @@ exports.handler = async (event, context, callback) => {
 <br>1. Click the Rules tab to create a rule for the SMA and to assign the DID number (Contact Centre Number) to invoke the SMA.
   ![image](https://user-images.githubusercontent.com/88785130/205267206-6b77380c-486a-408a-9b1e-95b0096eec3b.png)
         
-  <br>2. Click Create to create a rule. The Create a SIP rule dialog appears.
-  <br>3. Enter name of the rule, choose the To phone number from the Trigger type drop-down, select the provisioned phone number from the Phone number drop-down, and click Next. The Create a SIP rule dialog appears.
-  <br>4. Click Create. The rule gets created and appears under the created SIP media Application.
+<br>2. Click Create to create a rule. The Create a SIP rule dialog appears.
+<br>3. Enter name of the rule, choose the To phone number from the Trigger type drop-down, select the provisioned phone number from the Phone number drop-down, and click Next. The Create a SIP rule dialog appears.
+<br>4. Click Create. The rule gets created and appears under the created SIP media Application.
 
 <br>Now your setup is ready for using the tekVizion's Library to invoking the SMA's IVR functions.
 <br> Use a “Web client” application for Dialing out to the SMA's DID number </br>
 ![image](https://user-images.githubusercontent.com/88785130/205262606-0682cee6-864b-40e3-ae21-458ba2c310a4.png)
 
-<h2>Addition info on</h2>
+<h2>Additional info on</h2>
 
 - **Defining Amazon Lex Bot service and External Lambda function in Contact Flow** 
 <br>1. Use an Amazon lex bot and the external Lambda Function in Amazon Connect Contact flow.
@@ -211,7 +213,7 @@ exports.handler = async (event, context, callback) => {
   ![image](https://user-images.githubusercontent.com/88785130/205488173-d46f498f-318e-43e2-8975-24486de8d63e.png)
 
 <br> </br>
-<h2>Supported Actions by tekvizion's Library</h2>
+<h2>Supported Actions by tekvizion's Chime SMA Translator Library</h2>
 - <table>
   <tr>
     <th>S.No.</th>
@@ -313,7 +315,7 @@ exports.handler = async (event, context, callback) => {
 </table>
 
 <br> </br>
-<h2>Input parameters user need to give for using tekvizion's Library </h2>
+<h2>Input parameters user need to give for using tekvizion's Chime SMA Translator Library</h2>
 <table>
   <tr>
     <th>Parameter </th>
