@@ -39,7 +39,7 @@
 <br>7.  copy the "dist" folder, pacakge.json and package-lock.json files and paste it inside this newly created folder location (nodejs\node_modules\sma-contact-flow-parser)
 <br>8.  Zip the root folder "nodejs".
 
--**Adding the tekVizion's Chime SMA Translator Library in Lambda Layers**
+**Adding the tekVizion's Chime SMA Translator Library in Lambda Layers**
 <br>1.	Upload the "nodejs.zip" folder into  your AWS S3 Bucket location. 
 <br>2.	In "Lambda" service, choose "Layers" section. 
 <br>3.	After choosing "Layers", create a new layer and name it as you want. Copy the URL of the "nodejs.zip"  (Chime SMA Translator Library) location from S3 bucket and paste it in the "Amazon S3 link URLs" section in "layers".
