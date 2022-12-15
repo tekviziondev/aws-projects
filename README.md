@@ -17,11 +17,16 @@
 <br>3.	In "Lambda" service, choose "Layers" section. 
 <br>4.	After choosing "Layers", create a new layer and name it as you want. Copy the URL of the "nodejs.zip"  (Chime SMA Translator Library) location from S3 bucket and paste it in the "Amazon S3 link URLs" section in "layers".
 <br>5.	Choose the compatible architectures as x86_64 and compatible runtimes as Node.js 12.x, Node.js 14.x, Noe.js 16.x. 
-
-<br>6.	In the "Lambda" choose "function" section and click Layers. The "Layers" section appears.
+<img width="439" alt="image" src="https://user-images.githubusercontent.com/88785130/207815848-60c1eb54-fcfd-43ee-986a-298efb164c4a.png">
+<br>6.	In the "Lambda" choose "function" section and click "Layers". The Layers section appears.
+<img width="880" alt="image" src="https://user-images.githubusercontent.com/88785130/207816542-3a22b0b9-fbb2-412e-a0d5-6206997a702e.png">
 <br>7.	Click the "Add a layer" button. The Add layer screen appears.
+<img width="876" alt="image" src="https://user-images.githubusercontent.com/88785130/207816798-c363b59b-0b94-4ee2-9e24-39e49561f421.png">
 <br>8.	Under "Choose a layer", choose the "Custom layers" option.
 <br>9.	From the Custom layers drop-down, select the layer that you created.
+<img width="557" alt="image" src="https://user-images.githubusercontent.com/88785130/207817313-820852d9-49aa-41c6-9bec-66daa8cab0e9.png">
+
+
 
 - **Step-3 Lambda function creation**
 <br>1. Create a Lambda Function with the template JavaScript file whichever is available as a part of tekVizion's Library. You may refer https://docs.aws.amazon.com/lambda/latest/dg/getting-started.html for information on  getting started with Lambda, creating a Lambda function, invoking it and so on
