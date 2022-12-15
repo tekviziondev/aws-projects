@@ -12,7 +12,7 @@
 <br>1. Create an instance in the Amazon Connect and define a Contact Flow. For more information on creating an instance in the Amazon Connect you may refer to the https://docs.aws.amazon.com/connect/latest/adminguide/amazon-connect-instances.html .         
    
 - **Step-2 Using tekVizion's Chime SMA Translator Library and adding it in Lambda layers**
-- ```
+```
 ├── nodejs
 │   |
 │   └── node_modules
