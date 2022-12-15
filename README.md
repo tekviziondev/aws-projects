@@ -51,6 +51,7 @@
 <br>8.	From the Custom layers drop-down, select the layer that you created.
 <img width="557" alt="image" src="https://user-images.githubusercontent.com/88785130/207817313-820852d9-49aa-41c6-9bec-66daa8cab0e9.png">
 
+for more information on creating the Lambda Layers refer https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html
 
 - **Step-3 Lambda function creation**
 <br>1. Create a Lambda Function with the template JavaScript file whichever is available as a part of tekVizion's Library. You may refer https://docs.aws.amazon.com/lambda/latest/dg/getting-started.html for information on  getting started with Lambda, creating a Lambda function, invoking it and so on
