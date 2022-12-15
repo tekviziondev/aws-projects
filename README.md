@@ -12,6 +12,18 @@
 <br>1. Create an instance in the Amazon Connect and define a Contact Flow. For more information on creating an instance in the Amazon Connect you may refer to the https://docs.aws.amazon.com/connect/latest/adminguide/amazon-connect-instances.html .         
    
 - **Step-2 Using tekVizion's Chime SMA Translator Library and adding it in Lambda layers**
+- ```
+├── nodejs
+│   |
+│   └── node_modules
+|          |
+|	   └──sma-contact-flow-parser
+|                  |
+|		   └──dist
+|		      package.json
+|                     package-lock.json
+     
+```
 - **Option 1 - Downloading (Chime SMA Translator Library) from Git Hub Repositry**
 <br>1.	Download the "nodejs.zip" (Chime SMA Translator Library) file from the tekVizion's Git Hub repositry from the location(aws-projects/sma-contact-flow/sma-contact-flow-parser/nodejs.zip), the Library directory structure should be in the format of (nodejs -> node_modules -> sma-contact-flow-parser -> dist, package.json & package-lock.json) ,the library root directory has to be named as "nodejs", because the SMA Lambda function is built on JavaScript code.
 
