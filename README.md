@@ -19,7 +19,7 @@
 <br>1.  Clone this Git Hub reposirty to your local machine.
 <br>2.  Go to the folder (aws-projects\sma-contact-flow\sma-contact-flow-parser).
 <br>3.  Open the folder "sma-contact-flow-parser" in the terminal.
-<br>4.  Compile the files inside the folder using "tsc-w" command.
+<br>4.  Install node_modules by "npm i" command and Compile the files inside the "sma-contact-flow-parser" folder using "tsc-w" command.
 <br>5.  "dist" folder will be created after compilation.
 <br>6.  Now create a seperate folder "nodejs" in the different location and inside "nodejs" create "node_modules" and inside create "sma-contact-flow-parser" folder.
 <br>7.  copy the "dist" folder, pacakge.json and package-lock.json files and paste it inside this newly created folder location (nodejs\node_modules\sma-contact-flow-parser)
