@@ -20,8 +20,8 @@
 |	   └──sma-contact-flow-parser
 |                  |
 |		   └──dist
-|		      package.json
-|                     package-lock.json
+|		   └──package.json
+|                  └──package-lock.json
      
 ```
 - **Option 1 - Downloading (Chime SMA Translator Library) from Git Hub Repositry**
