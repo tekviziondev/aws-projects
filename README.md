@@ -13,16 +13,15 @@
    ![image](https://user-images.githubusercontent.com/88785130/205262411-044949de-39d7-4fe8-b9ab-7a3b3e35eba5.png)
    
 - **Step-2 Downloading of tekVizion's Contact Flow parser Library**
-<br>1.	Create "nodejs" folder with having "node_modules" into it and download the tekVizion Library from GitHub.
-<br>2.	Copy the tekvizion's library into the node_modules and zip the "nodejs" folder.
-<br>3.	Upload the nodejs.zip folder into AWS S3 Bucket. 
-<br>4.	In AWS Lambda, choose Layers service. 
-<br>5.	After choosing Layers, create a new layer and name it. Copy the URL of the nodejs.zip location from S3 bucket and paste it in the Amazon S3 link URLs.
-<br>6.	Choose the compatible architectures as x86_64 and compatible runtimes as Node.js 12.x, Node.js 14.x, Noe.js 16.x. 
-<br>8.	In the SMA Lambda function > click Layers. The Layers section appears.
-<br>9.	Click the Add a layer button. The Add layer screen appears.
-<br>10.	Under Choose a layer, choose the Custom layers option.
-<br>11.	From the Custom layers drop-down, select the layer that you created.
+<br>1.	Download the nodejs.zip file from the tekVizion's Git Hub repositry from the location(aws-projects/sma-contact-flow/sma-contact-flow-parser/nodejs.zip)
+<br>2.	Upload the nodejs.zip folder into  your AWS S3 Bucket. 
+<br>3.	In AWS Lambda, choose Layers service. 
+<br>4.	After choosing Layers, create a new layer and name it. Copy the URL of the nodejs.zip location from S3 bucket and paste it in the Amazon S3 link URLs in layers.
+<br>5.	Choose the compatible architectures as x86_64 and compatible runtimes as Node.js 12.x, Node.js 14.x, Noe.js 16.x. 
+<br>6.	In the Lambda function > click Layers. The Layers section appears.
+<br>7.	Click the Add a layer button. The Add layer screen appears.
+<br>8.	Under Choose a layer, choose the Custom layers option.
+<br>9.	From the Custom layers drop-down, select the layer that you created.
 
 - **Step-3 Lambda function creation**
 <br>1. Create a Lambda Function with the template JavaScript file whichever is available as a part of tekVizion's Library. You may refer https://docs.aws.amazon.com/lambda/latest/dg/getting-started.html for information on  getting started with Lambda, creating a Lambda function, invoking it and so on
