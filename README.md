@@ -43,12 +43,11 @@
 
 <code>const sma_contact_flow_parser_1 = require("sma-contact-flow-parser");</code>   //tekVizion SMA-Contact-Flow-Parser Library
 
-<code>const amazonConnectInstanceID = "";</code>  //Amazon Connect Instance ID
+<code>const amazonConnectInstanceID = "";</code>  //Amazon Connect Instance ARN (Service-> Amazon connect-> Instance alias(Name of the Instance) -> Distribution settings -> Instance ARN)
 
-<code>const amazonConnectFlowID = "";</code>  //Amazon Connect Contact Flow ID
+<code>const amazonConnectFlowID = "";</code>  //Amazon Connect Contact Flow ARN  (Amazon connect Instance -> Contact Flow -> Show additional flow information -> ARN)
 
-<code>const s3BucketName = "";  </code>  //Bucket Name to Store the Contact flow Response cache
-```
+<code>const s3BucketName = "";  </code>  //Bucket Name to Store the Contact flow Response cache (Service -> Amazon S3 -> Buckets -> (Bucket Name))
 exports.handler = async (event, context, callback) => {
     let call_Id = event.CallDetails.Participants[0].CallId;
     console.log("CallID :" + call_Id + '| Event recieved from SMA : ' + JSON.stringify(event));
