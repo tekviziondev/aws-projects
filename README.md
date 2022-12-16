@@ -1,50 +1,74 @@
 # Chime SMA Translator Library
 
 # About
-<br>Tekvizion has built an opensource Chime SMA Translator Library to give customers the best of both Amazon Connect and Amazon Chime SDK to help customers to build and execute new or modified  IVR workflows in a short time frame with very little code.  The resulting IVR workflows can be used immediately with existing call center solutions and continue to be relevant when migrating fully to Amazon Connect.  The ease of building IVR workflows using the Amazon Connect Flow Builder GUI, combined with the tekVizion SMA Translator Library, results in rich, efficient, and effective workflows backed by the power and flexibility of the Amazon Chime SDK API’s..
+<br>tekVizion has built an opensource Chime SMA Translator Library to give customers the best of both Amazon Connect and Amazon Chime SDK to help customers to build and execute new or modified IVR workflows in a short time frame with very little code.  The resulting IVR workflows can be used immediately with existing call center solutions and continue to be relevant when migrating fully to Amazon Connect.  The ease of building IVR workflows using the Amazon Connect Flow Builder GUI, combined with the tekVizion Chime SMA Translator Library, results in rich, efficient, and effective workflows backed by the power and flexibility of the Amazon Chime SDK API’s..
  
-<br>Tekvizion Chime SMA Translator Library is easy to use with low code and the ability to build Lex-powered IVR workflow and integrate to existing contact center solutions. The library is primarily focused on IVR primitives and not routing to Agent.
+
+# Configuring the environment to use the tekVizion Chime SMA Translator Library requires the following steps
+
+	1. Create an Amazon Connect Instance
+	2. Create a Lambda Layer to package the tekVizion library to be used with your Lambda Functions
+	3. Create a Lambda Function
+	4. Create a SIP Media Application (SMA)
+	5. Assign the Lambda Function to the SMA
+	6. Configure SIP Rule for the SMA
 
 
-# Setup and Environment for using tekVizion's Chime SMA Translator Library
+- **Step-1 Create an Amazon Connect Instance**
+    <br> For more information on creating an Amazon Connect instance refer to the https://docs.aws.amazon.com/connect/latest/adminguide/amazon-connect-instances.html .     
+     <br>* After Creating the  Amazon Connect instance copy the "Instance ARN" from the location (Service -> Amazon Connect -> Click the Name of the Instance -> Distribution settings -> copy Instance ARN), refer the below image.
+     ![image](https://user-images.githubusercontent.com/88785130/208022345-99570aa4-2b1e-4564-ba84-dcf35b6fca6c.png)
 
-- **Step-1 Amazon Connect Instance creation**
-<br>1. Create an instance in the Amazon Connect and define a Contact Flow. For more information on creating an instance in the Amazon Connect you may refer to the https://docs.aws.amazon.com/connect/latest/adminguide/amazon-connect-instances.html .         
+     <br>* Copy the "Contact Flow ARN" which you defined in the Amazon Connect from the location (Service -> Amazon Connect -> Click the Access url of the Instance -> click Contact Flows -> Show additional flow information -> Copy ARN), refer the below image.
+     <img width="958" alt="image" src="https://user-images.githubusercontent.com/88785130/208022955-f4e852de-4435-48d0-8889-fd1f7dfd6b60.png">
+
+      
+    
    
-- **Step-2 Using tekVizion's Chime SMA Translator Library and adding it in Lambda layers**
+- **Step-2 Create a Lambda Layer to package the tekVizion library to be used with your Lambda Functions**
+ <br> 1. Acquire the tekVizion Chime SMA Translator Library,You may choose to use the tekVizion Chime SMA Translator Library as is, or you may choose to clone the github repository, modify, build, and repackage the library yourself
 
-### Directory Structure
-```
-├── nodejs
-│   |
-│   └── node_modules
-|          |
-|	   └──sma-contact-flow-parser
-|                  |
-|		   └──dist
-|		   └──package.json
-|                  └──package-lock.json
-     
-```
-- **Option 1 - Downloading (Chime SMA Translator Library) from Git Hub Repositry**
-<br>1.	Download the "nodejs.zip" (Chime SMA Translator Library) file from the tekVizion's Git Hub repositry from the location(aws-projects\sma-contact-flow\sma-contact-flow-parser\nodejs.zip), the Library directory structure should be in the format of (nodejs -> node_modules -> sma-contact-flow-parser -> dist, package.json & package-lock.json) ,the library root directory has to be named as "nodejs", because the SMA Lambda function is built on JavaScript code.
+- **Option 1 - Use the tekVizion Chime SMA Translator Library as is**
+<br>Download nodejs.zip from the following location https://github.com/tekviziondev/aws-projects/blob/main/sma-contact-flow/sma-contact-flow-parser/nodejs.zip to your local machine.
 
-- **Option 2 - Building the (Chime SMA Translator Library) by cloning the Repositry**
-<br>1.  Clone this Git Hub reposirty to your local machine.
-<br>2.  Go to the folder (aws-projects\sma-contact-flow\sma-contact-flow-parser).
-<br>3.  Open the folder "sma-contact-flow-parser" in the terminal.
-<br>4.  Install node_modules by "npm i" command and Compile the files inside the "sma-contact-flow-parser" folder using "tsc-w" command.
-<br>5.  "dist" folder will be created after compilation.
-<br>6.  Now create a seperate folder "nodejs" in the different location and inside "nodejs" create "node_modules" and inside create "sma-contact-flow-parser" folder.
-<br>7.  copy the "dist" folder, pacakge.json and package-lock.json files and paste it inside this newly created folder location (nodejs\node_modules\sma-contact-flow-parser)
-<br>8.  Zip the root folder "nodejs".
+- **Option 2 - Clone, Build, and Package the tekVizion Chime SMA Translator Library****
+ <br> Note : Nodejs has to be installed in your Local Machine
+<br>1.  Clone this Git Hub repository to your local machine.
+<br>2.  Navigate to the (aws-projects\sma-contact-flow\sma-contact-flow-parser) in the local file system.
+<br>3.  Execute the following command to install node_modules "npm i" command 
+<br>4.  Execute the following command to compile the library files: tsc-w
+<br>5.  Create nested folders named exactly as follows: >>mkdir nodejs\node_modules\sma-contact-flow-parser
+<br>6.  Copy the newly created **"dist**" folder, the package.json file, and the package-lock.json into  nodejs\node_modules\sma-contact-flow-parser.
+<br>7.  Zip the folder "nodejs" to create nodejs.zip where nodejs is the root folder of the zip archive. 
 
-**Adding the tekVizion's Chime SMA Translator Library in Lambda Layers**
-<br>1.	Upload the "nodejs.zip" folder into  your AWS S3 Bucket location. 
-<br>2.	In "Lambda" service, choose "Layers" section. 
-<br>3.	After choosing "Layers", create a new layer and name it as you want. Copy the URL of the "nodejs.zip"  (Chime SMA Translator Library) location from S3 bucket and paste it in the "Amazon S3 link URLs" section in "layers".
-<br>4.	Choose the compatible architectures as x86_64 and compatible runtimes as Node.js 12.x, Node.js 14.x, Noe.js 16.x. 
+
+	### Directory Structure for (Chime SMA Translator Library)
+		```
+		├── nodejs
+		│   |
+		│   └── node_modules
+		|          |
+		|	   └──sma-contact-flow-parser
+		|                  |
+		|		   └──dist
+		|		   └──package.json
+		|                  └──package-lock.json
+
+		```
+
+**Add the tekVizion Chime SMA Translator Library in and Lambda Layer**
+<br>1.	Upload the "nodejs.zip" folder into  your "Amazon S3" Bucket location and copy the name of the Bucket froom location (Service -> Amazon S3 -> Buckets -> Copy Bucket Name).(Amazon S3 is a service offered by Amazon Web Services that provides object storage through a web service interface), for more information about "Amazon S3" and "Buckets" refer https://docs.aws.amazon.com/AmazonS3/latest/userguide/creating-bucket.html . 
+<br>2.	In AWS console choose "Lambda" service and click "Layers" section  (AWS Lambda is a serverless compute service for running code without having to provision or manage servers and Lambda layers provide a convenient way to package libraries and other dependencies that you can use with your Lambda functions) for more information about lambda and layers refer (https://aws.amazon.com/lambda/ , https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html )
+<br>3.	After choosing "Layers", create a new layer and name it as you want. Copy the URL of the "nodejs.zip" (Chime SMA Translator Library) location from S3 bucket and paste it in the "Amazon S3 link URLs" section in "layers".
+<br>4.	Choose the compatible architectures as x86_64 and compatible runtimes as Node.js 12.x, Node.js 14.x, Noe.js 16.x and select "creaate" option create the Layer. 
 <img width="439" alt="image" src="https://user-images.githubusercontent.com/88785130/207815848-60c1eb54-fcfd-43ee-986a-298efb164c4a.png">
+
+- **Step-3 Create a Lambda function **
+<br>1. Create a Lambda Function with the SMA Lambda Function code below.This JavaScript file is also available in the github repository. You may refer to https://docs.aws.amazon.com/lambda/latest/dg/getting-started.html for information getting on started with Lambda, creating a Lambda function and invoking it.
+<br>2. In the Lambda Function > on the Configuration tab > click Permissions. The Execution role screen appears.
+<br>3. Click the link under Role name.The Identity and Access Management (IAM) screen along with the role name appears. 
+<br>4. Click the Add permissions button, select Attach policies, and then select the policies as shown in the image and assign them to the role.
+   ![image](https://user-images.githubusercontent.com/88785130/205117815-63ea13a3-c6d0-43fd-ac50-e1f6c7cd6734.png)
 <br>5.	In the "Lambda" choose "function" section and click "Layers". The Layers section appears.
 <img width="880" alt="image" src="https://user-images.githubusercontent.com/88785130/207816542-3a22b0b9-fbb2-412e-a0d5-6206997a702e.png">
 <br>6.	Click the "Add a layer" button. The Add layer screen appears.
@@ -53,15 +77,6 @@
 <br>8.	From the Custom layers drop-down, select the layer that you created.
 <img width="557" alt="image" src="https://user-images.githubusercontent.com/88785130/207817313-820852d9-49aa-41c6-9bec-66daa8cab0e9.png">
 
-for more information on creating the Lambda Layers refer https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html
-
-- **Step-3 SMA Lambda function creation**
-<br>1. Create a Lambda Function with the template JavaScript file whichever is available as a part of tekVizion's Library. You may refer https://docs.aws.amazon.com/lambda/latest/dg/getting-started.html for information on  getting started with Lambda, creating a Lambda function, invoking it and so on
-<br>2. In the Lambda Function > on the Configuration tab > click Permissions. The Execution role screen appears.
-<br>3. Click the link under Role name.The Identity and Access Management (IAM) screen along with the role name appears. 
-<br>4. Click the Add permissions button, select Attach policies, and then select the policies as shown in the image and assign them to the role.
-   ![image](https://user-images.githubusercontent.com/88785130/205117815-63ea13a3-c6d0-43fd-ac50-e1f6c7cd6734.png)
-   
 <h2>SMA Lambda Function code</h2>
 <code>
 "use strict";</code>
@@ -70,11 +85,11 @@ for more information on creating the Lambda Layers refer https://docs.aws.amazon
 
 <code>const sma_contact_flow_parser_1 = require("sma-contact-flow-parser");</code>   //tekVizion SMA-Contact-Flow-Parser Library
 
-<code>const amazonConnectInstanceID = "";</code>  //Amazon Connect Instance ARN  location (Service -> Amazon Connect -> Click the Name of the Instance -> Distribution settings -> copy Instance ARN)
+<code>const amazonConnectInstanceID = "";</code>  //Amazon Connect Instance ARN  location 
 
-<code>const amazonConnectFlowID = "";</code>  //Amazon Connect Contact Flow ARN  location (Service -> Amazon Connect -> Click the Access url of the Instance -> click Contact Flows -> Show additional flow information -> Copy ARN)
+<code>const amazonConnectFlowID = "";</code>  //Amazon Connect Contact Flow ARN  location
 
-<code>const s3BucketName = "";  </code>  //Bucket Name to Store the Contact flow Response cache (Service -> Amazon S3 -> Buckets -> Copy Bucket Name)
+<code>const s3BucketName = "";  </code>  //Bucket Name to Store the Contact flow Response cache 
 ```js
 exports.handler = async (event, context, callback) => {
     let call_Id = event.CallDetails.Participants[0].CallId;
@@ -134,8 +149,9 @@ exports.handler = async (event, context, callback) => {
 
 ```
 
-- **Step-4 Creation of SIP Media Application (SMA)**
-<br>1.	Create a SIP media application (SMA) and assign the created Lambda Function to it.
+- **Step-4 Create a SIP Media Application (SMA)** AND 
+- **Step-5 Assign the Lambda Function to the SMA**
+
 <br>2.	Access the Amazon Chime Service. Under Calling > click SIP media applications.The SIP media application screen appears.
 <br>3.	Under Calling > click the Phone number management.The Phone number management screen appears.
 <br>4.	Click the Pending tab to provision the phone numbers.
@@ -151,7 +167,7 @@ exports.handler = async (event, context, callback) => {
 
   ![image](https://user-images.githubusercontent.com/88785130/205266463-a806306d-275b-4531-9284-a0e0f49a6ec1.png)
 
-- **Step -5 SIP Rule assigning for SIP Media Application (SMA)**
+- **Step -6 Configure SIP Rule for the SMA**
 <br>1. Click the Rules tab to create a rule for the SMA and to assign the DID number (Contact Centre Number) to invoke the SMA.
   ![image](https://user-images.githubusercontent.com/88785130/205267206-6b77380c-486a-408a-9b1e-95b0096eec3b.png)
         
@@ -159,7 +175,7 @@ exports.handler = async (event, context, callback) => {
 <br>3. Enter name of the rule, choose the To phone number from the Trigger type drop-down, select the provisioned phone number from the Phone number drop-down, and click Next. The Create a SIP rule dialog appears.
 <br>4. Click Create. The rule gets created and appears under the created SIP media Application.
 
-<br>Now your setup is ready for using the tekVizion's Library to invoking the SMA's IVR functions.
+<br>Now your setup is ready to use the tekVizion Library to invoke the SMA's IVR functions.
 <br> Use a “Web client” application for Dialing out to the SMA's DID number </br>
 ![image](https://user-images.githubusercontent.com/88785130/205262606-0682cee6-864b-40e3-ae21-458ba2c310a4.png)
 
@@ -172,7 +188,7 @@ exports.handler = async (event, context, callback) => {
 <br>4. Click the Contact flows under Overview on the left side. The Contact flows screen appears.
 <br>5. Under Amazon Lex section, select the region of your Amazon Lex bot from Region drop-down, select the bot that you created from the Bot drop-down, select the alias name from the drop-down, and click Add Amazon Lex Bot to use the Lex Bot in the contact flow.
 <br>6. Under Aws Lambda section, select the Lambda Function that you created in your account and click Add Lambda Function button to use the Lambda Function in the contact flow. 
-<br>7. After that you can able to use the created Lex Bot or External Lambda Function in the Contact Flow blocks of "Invoke AWS Lambda function" and "Amazon Lex" in "Getparticipant Input."
+<br>7. After this, you can use the created Lex Bot or External Lambda Function in the Contact Flow blocks of "Invoke AWS Lambda function" and "Amazon Lex" in "Getparticipant Input."
 
 - **Giving Permissions for the UpdateContactRecordingBehavior Action**
 <br>For the “UpdateContactRecordingBehavior” action, need to give permission for the S3 bucket, where you want to store our SAM Call Recordings.
@@ -191,6 +207,7 @@ exports.handler = async (event, context, callback) => {
   ![image](https://user-images.githubusercontent.com/88785130/205297737-808d0e6b-13c2-4263-bc53-068694210183.png)
 
 <br>5. Add the policy that follows in the Existing policy
+```
 {
 			"Sid": "SIP media applicationRead",
 			"Effect": "Allow",
@@ -208,7 +225,7 @@ exports.handler = async (event, context, callback) => {
 				}
 			}
 		}
-
+```
 <br>6. Click “Save changes”.
   ![image](https://user-images.githubusercontent.com/88785130/205488173-d46f498f-318e-43e2-8975-24486de8d63e.png)
 
