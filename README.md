@@ -42,20 +42,6 @@
 <br>7.  Zip the folder "nodejs" to create nodejs.zip where nodejs is the root folder of the zip archive. 
 
 
-	### Directory Structure for (Chime SMA Translator Library)
-		```
-		├── nodejs
-		│   |
-		│   └── node_modules
-		|          |
-		|	   └──sma-contact-flow-parser
-		|                  |
-		|		   └──dist
-		|		   └──package.json
-		|                  └──package-lock.json
-
-		```
-
 **Add the tekVizion Chime SMA Translator Library in and Lambda Layer**
 <br>1.	Upload the "nodejs.zip" folder into  your "Amazon S3" Bucket location and copy the name of the Bucket froom location (Service -> Amazon S3 -> Buckets -> Copy Bucket Name).(Amazon S3 is a service offered by Amazon Web Services that provides object storage through a web service interface), for more information about "Amazon S3" and "Buckets" refer https://docs.aws.amazon.com/AmazonS3/latest/userguide/creating-bucket.html . 
 <br>2.	In AWS console choose "Lambda" service and click "Layers" section  (AWS Lambda is a serverless compute service for running code without having to provision or manage servers and Lambda layers provide a convenient way to package libraries and other dependencies that you can use with your Lambda functions) for more information about lambda and layers refer (https://aws.amazon.com/lambda/ , https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html )
@@ -63,7 +49,7 @@
 <br>4.	Choose the compatible architectures as x86_64 and compatible runtimes as Node.js 12.x, Node.js 14.x, Noe.js 16.x and select "creaate" option create the Layer. 
 <img width="439" alt="image" src="https://user-images.githubusercontent.com/88785130/207815848-60c1eb54-fcfd-43ee-986a-298efb164c4a.png">
 
-- **Step-3 Create a Lambda function **
+- **Step-3 Create a Lambda function**
 <br>1. Create a Lambda Function with the SMA Lambda Function code below.This JavaScript file is also available in the github repository. You may refer to https://docs.aws.amazon.com/lambda/latest/dg/getting-started.html for information getting on started with Lambda, creating a Lambda function and invoking it.
 <br>2. In the Lambda Function > on the Configuration tab > click Permissions. The Execution role screen appears.
 <br>3. Click the link under Role name.The Identity and Access Management (IAM) screen along with the role name appears. 
@@ -152,18 +138,18 @@ exports.handler = async (event, context, callback) => {
 - **Step-4 Create a SIP Media Application (SMA)** AND 
 - **Step-5 Assign the Lambda Function to the SMA**
 
-<br>2.	Access the Amazon Chime Service. Under Calling > click SIP media applications.The SIP media application screen appears.
-<br>3.	Under Calling > click the Phone number management.The Phone number management screen appears.
-<br>4.	Click the Pending tab to provision the phone numbers.
-<br>5.	Click the Provision phone numbers tab.The Provision phone numbers screen appears.
-<br>6.	Select the SIP Media Application Dial-In option and click Next.
-<br>7.	Select the relevant country from the Country drop-down, select the Toll-free option from the dropdown, select the toll-free area code from the drop-down,and click the Search icon.The list of available toll-free numbers appears.
-<br>8.	Select any one of the numbers and click the Provision button.The DID number gets provisioned successfully.
-<br>9.	Click Create to create a SIP media application.The Create a SIP media application dialog appears.
-<br>10.	Enter Name, select the relevant AWS region from the drop-down.
-<br>11.	Copy the ARN of the Lambda Function and enter in Lambda Function ARN.
-<br>12.	Click Create to create the SIP media application. The created SIP media application appears under the SIP media applications.
-<br>13.	Click the created SIP media application.
+<br>1.	Access the Amazon Chime Service. Under Calling > click SIP media applications.The SIP media application screen appears.
+<br>2.	Under Calling > click the Phone number management.The Phone number management screen appears.
+<br>3.	Click the Pending tab to provision the phone numbers.
+<br>4.	Click the Provision phone numbers tab.The Provision phone numbers screen appears.
+<br>5.	Select the SIP Media Application Dial-In option and click Next.
+<br>6.	Select the relevant country from the Country drop-down, select the Toll-free option from the dropdown, select the toll-free area code from the drop-down,and click the Search icon.The list of available toll-free numbers appears.
+<br>7.	Select any one of the numbers and click the Provision button.The DID number gets provisioned successfully.
+<br>8.	Click Create to create a SIP media application.The Create a SIP media application dialog appears.
+<br>9.	Enter Name, select the relevant AWS region from the drop-down.
+<br>10.	Copy the ARN of the Lambda Function and enter in Lambda Function ARN.
+<br>11.	Click Create to create the SIP media application. The created SIP media application appears under the SIP media applications.
+<br>12.	Click the created SIP media application.
 
   ![image](https://user-images.githubusercontent.com/88785130/205266463-a806306d-275b-4531-9284-a0e0f49a6ec1.png)
 
@@ -177,6 +163,7 @@ exports.handler = async (event, context, callback) => {
 
 <br>Now your setup is ready to use the tekVizion Library to invoke the SMA's IVR functions.
 <br> Use a “Web client” application for Dialing out to the SMA's DID number </br>
+
 ![image](https://user-images.githubusercontent.com/88785130/205262606-0682cee6-864b-40e3-ae21-458ba2c310a4.png)
 
 <h2>Additional info on</h2>
