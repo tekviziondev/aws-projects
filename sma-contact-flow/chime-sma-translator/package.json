@@ -1,7 +1,7 @@
 {
   "name": "chime-sma-translator",
-  "version": "0.0.1",
-  "description": "Parses Amazon Connect contact flows for use in SMA",
+  "version": "1.0.2",
+  "description": "Chime SMA Translator",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -13,8 +13,7 @@
   },
   "dependencies": {
     "aws-sdk": "^2.1183.0",
-    "dotenv-json": "^1.0.0",
-    "chime-sma-translator": "^0.0.1"
+    "dotenv-json": "^1.0.0"
   },
   "devDependencies": {
     "@types/node": "^18.6.1"
