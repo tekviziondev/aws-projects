@@ -29,16 +29,16 @@
  <br> 1. Acquire the tekVizion Chime SMA Translator Library,You may choose to use the tekVizion Chime SMA Translator Library as is, or you may choose to clone the github repository, modify, build, and repackage the library yourself
 
 - **Option 1 - Use the tekVizion Chime SMA Translator Library as is**
-<br>Download nodejs.zip from the following location https://github.com/tekviziondev/aws-projects/blob/main/sma-contact-flow/sma-contact-flow-parser/nodejs.zip to your local machine.
+<br>Download nodejs.zip from the following location https://github.com/tekviziondev/aws-projects/blob/main/sma-contact-flow/chime-sma-translator/nodejs.zip to your local machine.
 
 - **Option 2 - Clone, Build, and Package the tekVizion Chime SMA Translator Library****
  <br> Note : Nodejs has to be installed in your Local Machine
 <br>1.  Clone this Git Hub repository to your local machine.
-<br>2.  Navigate to the (aws-projects\sma-contact-flow\sma-contact-flow-parser) in the local file system and open the terminal to execute the commands mentioned in the 4th and 5th steps.
+<br>2.  Navigate to the (aws-projects\sma-contact-flow\chime-sma-translator) in the local file system and open the terminal to execute the commands mentioned in the 4th and 5th steps.
 <br>3.  Execute the following command to install node_modules "npm i" command 
 <br>4.  Execute the following command to compile the library files: "tsc-w"
-<br>5.  Create nested folders named exactly as follows: >>mkdir nodejs\node_modules\sma-contact-flow-parser
-<br>6.  Copy the newly created **"dist**" folder, the package.json file, and the package-lock.json into  nodejs\node_modules\sma-contact-flow-parser.
+<br>5.  Create nested folders named exactly as follows: >>mkdir nodejs\node_modules\chime-sma-translator
+<br>6.  Copy the newly created **"dist**" folder, the package.json file, and the package-lock.json into  nodejs\node_modules\chime-sma-translator.
 <br>7.  Zip the folder "nodejs" to create nodejs.zip where nodejs is the root folder of the zip archive. 
 
 
@@ -72,13 +72,13 @@
 
 <code>Object.defineProperty(exports, "__esModule", { value: true });</code>
 
-<code>const sma_contact_flow_parser_1 = require("sma-contact-flow-parser");</code>   //tekVizion SMA-Contact-Flow-Parser Library
+<code>const sma_contact_flow_parser_1 = require("chime-sma-translator");</code>   //tekVizion SMA-Contact-Flow-Parser Library
 
-<code>const amazonConnectInstanceID = "";</code>  //Amazon Connect Instance ARN  location 
+<code>const amazonConnectInstanceID = process.env.CONNECT_INSTANCE_ID;</code>  //Amazon Connect Instance ARN  location 
 
-<code>const amazonConnectFlowID = "";</code>  //Amazon Connect Contact Flow ARN  location
+<code>const amazonConnectFlowID = process.env.CONTACT_FLOW_ID;</code>  //Amazon Connect Contact Flow ARN  location
 
-<code>const s3BucketName = "";  </code>  //Bucket Name to Store the Contact flow Response cache 
+<code>const s3BucketName = process.env.BUCKET_NAME;  </code>  //Bucket Name to Store the Contact flow Response cache 
 ```js
 exports.handler = async (event, context, callback) => {
     let call_Id = event.CallDetails.Participants[0].CallId;
@@ -353,9 +353,28 @@ https://docs.aws.amazon.com/connect/latest/adminguide/amazon-lex.html (for amzon
     <td>DESTINATION_LOCATION</td>
     <td>(mention your Bucket name, where you need to store the call Recording)</td>
   </tr>
+  <tr>
+    <td>CONNECT_INSTANCE_ID</td>
+    <td>(mention your Amazon Connect Instance ARN)</td>
+  </tr>
+  <tr>
+    <td>CONTACT_FLOW_ID</td>
+    <td>(mention your contact flow ARN)</td>
+  </tr>
+  <tr>
+    <td>BUCKET_NAME</td>
+    <td>(mention your Bucket name, where you need to contact flow JSON response)</td>
+  </tr>
 </table>
 
 - **Configure the Parameter's Key and the Value in Lambda function's configuration section as mentioned in the below image.**
 
-<img width="931" alt="image" src="https://user-images.githubusercontent.com/88785130/207535457-0f207e49-87e5-43e9-a6eb-4da8e0147fdf.png">
+<img width="852" alt="image" src="https://user-images.githubusercontent.com/88785130/208437427-35be13ce-f421-4cf3-9b7a-fb79f33158ef.png">
 
+
+<h2>Downloading chime-sma-translato package from npm </h2>
+
+```
+npm i chime-sma-translator
+
+```
