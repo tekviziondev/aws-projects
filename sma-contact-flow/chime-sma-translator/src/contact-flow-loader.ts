@@ -61,8 +61,12 @@ export async function loadContactFlow(amazonConnectInstanceID: string, amazonCon
       }
       else {
         // using the connect API to get the Contact Flow details
+        console.log("Start Connect Flow Loading Time "+ new Date().getMilliseconds())
         const contactFlowResponse = await connect.describeContactFlow(describeContactFlowParams).promise();
+        console.log("End Connect Flow Loading Time "+ new Date().getMilliseconds())
+        console.log("Start Parsing Time "+ new Date().getMilliseconds())
         rv = JSON.parse(contactFlowResponse.ContactFlow.Content) as any;
+        console.log("End Parsing Time "+ new Date().getMilliseconds())
         await writeFlowCache(rv, amazonConnectInstanceID, amazonConnectContactFlowID, smaEvent);
       }
 
@@ -94,6 +98,7 @@ async function writeFlowCache(flow: any, amazonConnectInstanceID: string, amazon
     if (!callId)
       callId = smaEvent.ActionData.Parameters.CallId;
     console.log(defaultLogger + callId + " Writing Contact flow Details to S3 Bucket ");
+    console.log("Start Writing S3  Time "+ new Date().getMilliseconds())
     let flowBinary = Buffer.from(JSON.stringify(flow), 'binary');
     const s3Params = {
       Bucket: s3Bucket,
@@ -103,6 +108,7 @@ async function writeFlowCache(flow: any, amazonConnectInstanceID: string, amazon
     // using S3 bucket api for storing the Contact Flow/Module Data
     const s3 = new S3();
     await s3.putObject(s3Params).promise();
+    console.log(" End Writing S3  Time "+ new Date().getMilliseconds())
   } catch (error) {
     console.error(defaultLogger + callId + " There is an Error in execution of Writing Connect flow to S3 Bucket " + error.message);
     return null;
@@ -135,8 +141,12 @@ async function checkFlowCache(amazonConnectInstanceID: string, amazonConnectCont
     console.log(defaultLogger + callId + " Delta Time of Last updated Flow Cache: " + deltaTimeInMs);
     if (deltaTimeInMs < cacheTimeInMilliseconds) {
       console.log(defaultLogger + callId + " Loading Contact Flow from Flow cache");
+      console.log("Start S3 Data Loading Time "+ new Date().getMilliseconds())
       let s3Result = await s3.getObject(s3Params).promise();
+      console.log("End S3 Data Loading Time "+ new Date().getMilliseconds())
+      console.log("Start S3 Parsing Time "+ new Date().getMilliseconds())
       rv = JSON.parse(s3Result.Body.toString());
+      console.log("End S3 Parsing Time "+ new Date().getMilliseconds())
     }
   }
   catch (error) {

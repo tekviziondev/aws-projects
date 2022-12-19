@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 //tekVizion SMA-Contact-Flow-Parser Library
-const sma_contact_flow_parser_1 = require("sma-contact-flow-parser");
+const sma_contact_flow_parser_1 = require("chime-sma-translator");
 //Amazon Connect Instance ID
 const amazonConnectInstanceID = "";
 //Amazon Connect Contact Flow ID
