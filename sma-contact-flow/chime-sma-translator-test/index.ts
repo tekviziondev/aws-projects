@@ -1,4 +1,4 @@
-import {loadContactFlow } from '../sma-contact-flow-parser'
+import {loadContactFlow } from '../chime-sma-translator'
 import smaEvent from './sma-event.json';
 
 const amazonConnectInstanceID = "arn:aws:connect:us-east-1:664887287655:instance/a2ad01f9-0df4-4e52-b49f-cc4eb9b72704";

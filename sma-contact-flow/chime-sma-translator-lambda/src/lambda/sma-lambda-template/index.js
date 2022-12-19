@@ -1,13 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 //tekVizion SMA-Contact-Flow-Parser Library
-const sma_contact_flow_parser_1 = require("chime-sma-translator");
+const sma_contact_flow_parser_1 = require("sma-contact-flow-parser");
 //Amazon Connect Instance ID
-const amazonConnectInstanceID = "";
+const amazonConnectInstanceID = process.env.CONNECT_INSTANCE_ID;
 //Amazon Connect Contact Flow ID
-const amazonConnectFlowID = "";
+const amazonConnectFlowID = process.env.CONTACT_FLOW_ID;
 // Bucket Name to Store the Contact flow Response cache
-const s3BucketName = "";
+const s3BucketName = process.env.BUCKET_NAME;
 
 exports.handler = async (event, context, callback) => {
     let call_Id = event.CallDetails.Participants[0].CallId;

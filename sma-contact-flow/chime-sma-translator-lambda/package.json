@@ -1,5 +1,5 @@
 {
-  "name": "sma-contact-flow-lambda",
+  "name": "chime-sma-translator-lambda",
   "version": "0.1.0",
   "lib": {
     "sma-contact-flow-lembda": "lib/cdk-starter-flow-stack.js"
@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "aws-cdk-lib": "2.26.0",
+    "chime-sma-translator": "^1.0.2",
     "constructs": "^10.0.0",
     "sma-contact-flow-parser": "^1.0.0",
     "source-map-support": "^0.5.21"
