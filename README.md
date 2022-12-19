@@ -372,7 +372,7 @@ https://docs.aws.amazon.com/connect/latest/adminguide/amazon-lex.html (for amzon
 <img width="852" alt="image" src="https://user-images.githubusercontent.com/88785130/208437427-35be13ce-f421-4cf3-9b7a-fb79f33158ef.png">
 
 
-<h2>Downloading chime-sma-translato package from npm </h2>
+<h2>Downloading chime-sma-translator package from npm </h2>
 
 ```
 npm i chime-sma-translator
