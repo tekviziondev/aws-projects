@@ -36,10 +36,12 @@
         contact_flow_id = // Contact Flow ARN
 	
    <br>3. Open the folder "chime-sma-translator-cdk" in the terminal and run the "npm install" command to install required node_modules.
-   <br>4. After installing required node_modules, run the command "cdk-deploy" to deploy the "ChimeSMATranslatorCdkStack" stack in the CloudFormation of your AWS account, user can refer the SMA Lambda Function ARN in the outputs section of the terminal and bind the ARN while creating the Sip Media Application.
-   <br>5. Under the "ChimeSMATranslatorCdkStack" the following resources will be created,
+   <br>4. After installing required node_modules, run the command "cdk-deploy" to deploy the "ChimeSMATranslatorCdkStack" stack in the CloudFormation of your AWS account.
+   <br>5. After deploying, in the terminal "outputs:" section user can find the **a). SMA Lambda Function's** ARN and Name, which they can use it for binding with SIP Media application, **b). S3 Bucket's** ARN and Name and **c). Layer's** ARN and Name.
+   	<br> 
+   <br>6. Under the "ChimeSMATranslatorCdkStack" the following resources will be created,
  
-	* Layer (chime-sma-translator Library)
+	* Layer (chime-sma-translator Library) 
 	* SMA Lambda function with required access roles and environment variables in the configuration
 	* S3 Bucket with Access roles for storing contact flow cache and call recordings.
 
