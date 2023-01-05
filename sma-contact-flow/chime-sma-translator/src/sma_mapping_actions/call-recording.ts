@@ -37,9 +37,7 @@ export class CallRecording {
                 };
 
             } else {
-                let destinationLocation = "";
-                if (Attributes.destinationLocation)
-                    destinationLocation = Attributes.destinationLocation;
+                let destinationLocation = process.env.S3_BUCKET;
                 console.log("Destination location  for Call Recording is " + destinationLocation)
                 smaAction = {
                     Type: ChimeActions.START_CALL_RECORDING,

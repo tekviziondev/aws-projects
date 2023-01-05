@@ -7,7 +7,7 @@ const amazonConnectInstanceID = process.env.CONNECT_INSTANCE_ID;
 //Amazon Connect Contact Flow ID
 const amazonConnectFlowID = process.env.CONTACT_FLOW_ID;
 // Bucket Name to Store the Contact flow Response cache
-const s3BucketName = process.env.FLOW_CACHE_S3_BUCKET;
+const s3BucketName = process.env.S3_BUCKET;
 
 exports.handler = async (event, context, callback) => {
     let call_Id = event.CallDetails.Participants[0].CallId;

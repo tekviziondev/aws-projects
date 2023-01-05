@@ -4,6 +4,8 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as dotenv from 'dotenv';
 import {Attributes} from '../resource/env-variables-intialization'
+import * as fs from 'fs';
+import { Bucket } from 'aws-cdk-lib/aws-s3/lib';
 dotenv.config();
 
 export class ChimeSMATranslatorCdkStack extends cdk.Stack {
@@ -40,12 +42,10 @@ export class ChimeSMATranslatorCdkStack extends cdk.Stack {
         }),
       },
     });
-    
-    //Checking if the FLOW_CACHE_S3_BUCKET and CALL_RECORDINGS_S3_BUCKET are same or not
-    if(Attributes.FLOW_CACHE_S3_BUCKET==Attributes.CALL_RECORDINGS_S3_BUCKET){
+  
       const bucket1 = new S3.Bucket(this, 'ChimeSMATranslatorBuckets', {
         removalPolicy: cdk.RemovalPolicy.DESTROY,
-        bucketName: Attributes.FLOW_CACHE_S3_BUCKET,
+        bucketName: Attributes.S3_BUCKET,
         
       });
       //Adding Chime resource policy to the S3 Bucket
@@ -64,42 +64,32 @@ export class ChimeSMATranslatorCdkStack extends cdk.Stack {
           sid: "SIP media applicationRead",
           effect: iam.Effect.ALLOW,
           principals: [new iam.ServicePrincipal("voiceconnector.chime.amazonaws.com")],
-          actions: ['s3:PutObject'],
+          actions: ['s3:PutObject','s3:GetObject'],
           resources: [`${bucket1.bucketArn}/*`],
         }),
       );
-    }
-    else{
-      const bucket1 = new S3.Bucket(this, 'ChimeSMATranslatorBuckets', {
-        removalPolicy: cdk.RemovalPolicy.DESTROY,
-        bucketName: Attributes.FLOW_CACHE_S3_BUCKET,
-      });
-      const bucket2 = new S3.Bucket(this, 'ChimeSMATranslatorBuckets', {
-        removalPolicy: cdk.RemovalPolicy.DESTROY,
-        bucketName: Attributes.CALL_RECORDINGS_S3_BUCKET,
-      });
-      //Adding Chime resource policy to the S3 Bucket
-      bucket1.addToResourcePolicy(
-        new iam.PolicyStatement({
-          sid: "AmazonChimeAclCheck20170405",
-          effect: iam.Effect.ALLOW,
-          principals: [new iam.ServicePrincipal("chime.amazonaws.com")],
-          actions: ['s3:GetObject','s3:PutObject'],
-          resources: [`${bucket1.bucketArn}/*`],
-        }),
-      );
-      //Adding Voiceconnector resource policy to the S3 Bucket
-      bucket2.addToResourcePolicy(
-        new iam.PolicyStatement({
-          sid: "SIP media applicationRead",
-          effect: iam.Effect.ALLOW,
-          principals: [new iam.ServicePrincipal("voiceconnector.chime.amazonaws.com")],
-          actions: ['s3:PutObject'],
-          resources: [`${bucket2.bucketArn}/*`],
-        }),
-      );
-    }
+     
+    //adding failure_audio in S3 Bucket
+    var AWS = require('aws-sdk'),
+    fs = require('fs');
 
+// Read in the file, convert it to base64, store to S3
+fs.readFile('./audioFile/FailureAudio.wav', function (err:any, data:any) {
+  if (err) { throw err; }
+  var base64data = new Buffer(data, 'binary');
+  var s3 = new AWS.S3();
+  s3.putObject({
+    Bucket: 'chime-sma-traslator',
+    Key: 'FailureAudio.wav',
+    Body: base64data,
+    ContentType: 'audio/wav',
+    ACL: 'public-read'
+  },function (resp:any) {
+    console.log(arguments);
+    console.log('Successfully uploaded package.');
+  });
+
+});
     //creating tekvizion's chime-sma-traslator Layer for SMA Lambda function
     const layer=new lambda.LayerVersion(this, 'ChimeSMATranslatorLayer', {
       code: lambda.Code.fromAsset('layers'),
@@ -118,6 +108,10 @@ export class ChimeSMATranslatorCdkStack extends cdk.Stack {
      smaRole.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSLambdaBasicExecutionRole"));
      new cdk.CfnOutput(this, 'SMA-LambdaFunctionARN', { value: chimeTranslator.functionArn },);
      new cdk.CfnOutput(this, 'SMA-LambdaFunctionName', { value: chimeTranslator.functionName },);
+     new cdk.CfnOutput(this, 'S3 Bucket ARN', { value: bucket1.bucketArn },);
+     new cdk.CfnOutput(this, 'S3 Bucket Name', { value: bucket1.bucketName },);
+     new cdk.CfnOutput(this, 'Layer ARN', { value: layer.layerVersionArn },);
+     new cdk.CfnOutput(this, 'Layer Name', { value: 'ChimeSMATranslatorLayer' },);
     }
   
    
