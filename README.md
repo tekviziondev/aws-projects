@@ -22,18 +22,22 @@
      <img width="958" alt="image" src="https://user-images.githubusercontent.com/88785130/208022955-f4e852de-4435-48d0-8889-fd1f7dfd6b60.png">
    
 - **Step-2 Create a Lambda Layer and Lambda Function and required S3 Buckets  with acsess roles through AWS CDK script**
+
+<br>**Prerequisites**
  <br>1. Node latest version has to be installed in the local machine.
  <br>2. AWS CLI has to be installed and the following parameters has to be configured (security credentials, the default output format, and the default AWS Region)
- <br>3. Download the "aws-project" github repository and open the .env file.
- <br>4. Configure the required inputs in the .env file 
+
+<br>**Steps for Running the CDK Script**
+ <br>1. Download the "aws-project" github repository and open the .env file.
+ <br>2. Configure the required inputs in the .env file 
 
 	    region = //the default AWS Region
         connect_instance_id = // Amazon Connect Instance ARN
         contact_flow_id = // Contact Flow ARN
 	
-   <br>5. Open the folder "chime-sma-translator-cdk" in the terminal and run the "npm install" command to install required node_modules.
-   <br>6. After installing required node_modules, run the command "cdk-deploy" to deploy the "ChimeSMATranslatorCdkStack" stack in the CloudFormation of your AWS account, user can refer the SMA Lambda Function ARN in the outputs section of the terminal and bind the ARN while creating the Sip Media Application.
-   <br>7. Under the "ChimeSMATranslatorCdkStack" the following resources will be created,
+   <br>3. Open the folder "chime-sma-translator-cdk" in the terminal and run the "npm install" command to install required node_modules.
+   <br>4. After installing required node_modules, run the command "cdk-deploy" to deploy the "ChimeSMATranslatorCdkStack" stack in the CloudFormation of your AWS account, user can refer the SMA Lambda Function ARN in the outputs section of the terminal and bind the ARN while creating the Sip Media Application.
+   <br>5. Under the "ChimeSMATranslatorCdkStack" the following resources will be created,
  
 	* Layer (chime-sma-translator Library)
 	* SMA Lambda function with required access roles and environment variables in the configuration
