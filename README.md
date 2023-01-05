@@ -38,7 +38,16 @@
    <br>3. Open the folder "chime-sma-translator-cdk" in the terminal and run the "npm install" command to install required node_modules.
    <br>4. After installing required node_modules, run the command "cdk-deploy" to deploy the "ChimeSMATranslatorCdkStack" stack in the CloudFormation of your AWS account.
    <br>5. After deploying, in the terminal "outputs:" section user can find the **a). SMA Lambda Function's** ARN and Name, which they can use it for binding with SIP Media application, **b). S3 Bucket's** ARN and Name and **c). Layer's** ARN and Name.
-   	<br> 
+  
+  <br> **Sample Outputs from terminal**
+	
+	Outputs:
+	ChimeSMATranslatorCdkStack.LayerARN = arn:aws:lambda:us-east-1:664887287655:layer:ChimeSMATranslatorLayer4A123E47:4
+	ChimeSMATranslatorCdkStack.LayerName = ChimeSMATranslatorLayer
+	ChimeSMATranslatorCdkStack.S3BucketARN = arn:aws:s3:::chime-sma-traslator
+	ChimeSMATranslatorCdkStack.S3BucketName = chime-sma-traslator
+	ChimeSMATranslatorCdkStack.SMALambdaFunctionARN = arn:aws:lambda:us-east-1:664887287655:function:ChimeSMATranslatorCdkStac-ChimeSMATranslatorLambda-jB8Gzu8ZACBR
+	ChimeSMATranslatorCdkStack.SMALambdaFunctionName = ChimeSMATranslatorCdkStac-ChimeSMATranslatorLambda-jB8Gzu8ZACBR
    <br>6. Under the "ChimeSMATranslatorCdkStack" the following resources will be created,
  
 	* Layer (chime-sma-translator Library) 
@@ -46,7 +55,7 @@
 	* S3 Bucket with Access roles for storing contact flow cache and call recordings.
 
  
-- **Step-3 Create a SIP Media Application (SMA)** AND - **Step-4 Assign the Lambda Function to the SMA**
+- **Step-3 Create a SIP Media Application (SMA) and Assign the Lambda Function**
 <br> Refer( https://docs.aws.amazon.com/chime-sdk/latest/ag/create-sip-app.html ) on creating SIP Media application and (https://docs.aws.amazon.com/chime/latest/ag/provision-phone.html) for provisioning the phone number
 <br>1.	Access the Amazon Chime Service. Under Calling > click SIP media applications.The SIP media application screen appears.
 <br>2.	Under Calling > click the Phone number management.The Phone number management screen appears.
@@ -57,7 +66,7 @@
 <br>7.	Select any one of the numbers and click the Provision button.The DID number gets provisioned successfully.
 <br>8.	Click Create to create a SIP media application.The Create a SIP media application dialog appears.
 <br>9.	Enter Name, select the relevant AWS region from the drop-down.
-<br>10.	Copy the ARN of the Lambda Function from (Services -> Lambda -> Function -> Select the Function -> Description -> Function ARN) and enter into Lambda Function ARN section .
+<br>10.	Copy the value of **ChimeSMATranslatorCdkStack.SMALambdaFunctionARN** from the output terminal after running the CDK script and enter into Lambda Function ARN section .
 <img width="459" alt="image" src="https://user-images.githubusercontent.com/88785130/208073349-041b915d-17ae-44af-9901-8092ef4995fb.png">
 
  <br>11. Click Create to create the SIP media application. The created SIP media application appears under the SIP media applications.
