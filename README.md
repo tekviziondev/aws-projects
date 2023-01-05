@@ -27,11 +27,7 @@
  <br>3. Download the "aws-project" github repository and open the .env file.
  <br>4. Configure the required inputs in the .env file 
 
-	    region = //the default AWS Region.
-        Failure_Speech_SSML = // Failure speech text in SSML format
-        Failure_Audio_Location = // ARN of the failure Audio file Location
-        callrecordings_s3_bucket = // Name of the Bucket to Store the Call Recording files
-        flow_cache_s3_bucket = // Name of the Bucket to Contact flow cache details
+	    region = //the default AWS Region
         connect_instance_id = // Amazon Connect Instance ARN
         contact_flow_id = // Contact Flow ARN
 	
