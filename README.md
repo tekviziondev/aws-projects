@@ -7,9 +7,8 @@
 # Configuring the environment to use the tekVizion Chime SMA Translator Library requires the following steps
 <br>1. Create an Amazon Connect Instance
 <br>2. Create a Lambda Layer and Lambda Function and required S3 Buckets  with acsess roles through AWS CDK script
-<br>3. Create a SIP Media Application (SMA)
-<br>4. Assign the Lambda Function to the SMA
-<br>5. Configure SIP Rule for the SMA
+<br>3. Create a SIP Media Application (SMA) and Assign the Lambda Function
+<br>4. Configure SIP Rule for the SMA
 
 
 
@@ -21,13 +20,15 @@
      <br>* Copy the "Contact Flow ARN" which you defined in the Amazon Connect from the location (Services -> Amazon Connect -> Click the Access url of the Instance -> click Contact Flows -> Show additional flow information -> Copy ARN) for metioning in the SMA Lambda Function code. Rfer the below image.
      <img width="958" alt="image" src="https://user-images.githubusercontent.com/88785130/208022955-f4e852de-4435-48d0-8889-fd1f7dfd6b60.png">
    
+   
+   
 - **Step-2 Create a Lambda Layer and Lambda Function and required S3 Buckets  with acsess roles through AWS CDK script**
 
-<br>**Prerequisites**
+    <br>**Prerequisites**
  <br>1. Node latest version has to be installed in the local machine.
  <br>2. AWS CLI has to be installed and the following parameters has to be configured (security credentials, the default output format, and the default AWS Region)
 
-<br>**Steps for Running the CDK Script**
+    <br>**Steps for Running the CDK Script**
  <br>1. Download the "aws-project" github repository and open the .env file.
  <br>2. Configure the required inputs in the .env file 
 
@@ -41,13 +42,13 @@
   
   <br> **Sample Outputs from terminal**
 	
-	Outputs:
-	ChimeSMATranslatorCdkStack.LayerARN = arn:aws:lambda:us-east-1:664887287655:layer:ChimeSMATranslatorLayer4A123E47:4
-	ChimeSMATranslatorCdkStack.LayerName = ChimeSMATranslatorLayer
-	ChimeSMATranslatorCdkStack.S3BucketARN = arn:aws:s3:::chime-sma-traslator
-	ChimeSMATranslatorCdkStack.S3BucketName = chime-sma-traslator
-	ChimeSMATranslatorCdkStack.SMALambdaFunctionARN = arn:aws:lambda:us-east-1:664887287655:function:ChimeSMATranslatorCdkStac-ChimeSMATranslatorLambda-jB8Gzu8ZACBR
-	ChimeSMATranslatorCdkStack.SMALambdaFunctionName = ChimeSMATranslatorCdkStac-ChimeSMATranslatorLambda-jB8Gzu8ZACBR
+		Outputs:
+		ChimeSMATranslatorCdkStack.LayerARN = arn:aws:lambda:us-east-1:664887287655:layer:ChimeSMATranslatorLayer4A123E47:4
+		ChimeSMATranslatorCdkStack.LayerName = ChimeSMATranslatorLayer
+		ChimeSMATranslatorCdkStack.S3BucketARN = arn:aws:s3:::chime-sma-traslator
+		ChimeSMATranslatorCdkStack.S3BucketName = chime-sma-traslator
+		ChimeSMATranslatorCdkStack.SMALambdaFunctionARN = arn:aws:lambda:us-east-1:664887287655:function:ChimeSMATranslatorCdkStac-ChimeSMATranslatorLambda-jB8Gzu8ZACBR
+		ChimeSMATranslatorCdkStack.SMALambdaFunctionName = ChimeSMATranslatorCdkStac-ChimeSMATranslatorLambda-jB8Gzu8ZACBR
    <br>6. Under the "ChimeSMATranslatorCdkStack" the following resources will be created,
  
 	* Layer (chime-sma-translator Library) 
@@ -74,7 +75,7 @@
 
 ![image](https://user-images.githubusercontent.com/88785130/205266463-a806306d-275b-4531-9284-a0e0f49a6ec1.png)
 
-- **Step -5 Configure SIP Rule for the SMA**
+- **Step -4 Configure SIP Rule for the SMA**
  <br>1. Click the Rules tab to create a rule for the SMA and to assign the DID number (Contact Centre Number) to invoke the SMA.
   ![image](https://user-images.githubusercontent.com/88785130/205267206-6b77380c-486a-408a-9b1e-95b0096eec3b.png)
         
