@@ -55,19 +55,22 @@
 	* SMA Lambda function with required access roles and environment variables in the configuration
 	* S3 Bucket with Access roles for storing contact flow cache and call recordings.
 
+<br>
+
  
 - **Step-3 Create a SIP Media Application (SMA) and Assign the Lambda Function**
-<br> Refer( https://docs.aws.amazon.com/chime-sdk/latest/ag/create-sip-app.html ) on creating SIP Media application and (https://docs.aws.amazon.com/chime/latest/ag/provision-phone.html) for provisioning the phone number
-<br>1.	Access the Amazon Chime Service. Under Calling > click SIP media applications.The SIP media application screen appears.
-<br>2.	Under Calling > click the Phone number management.The Phone number management screen appears.
-<br>3.	Click the Pending tab to provision the phone numbers.
-<br>4.	Click the Provision phone numbers tab.The Provision phone numbers screen appears.
-<br>5.	Select the SIP Media Application Dial-In option and click Next.
-<br>6.	Select the relevant country from the Country drop-down, select the Toll-free option from the dropdown, select the toll-free area code from the drop-down,and click the Search icon.The list of available toll-free numbers appears.
-<br>7.	Select any one of the numbers and click the Provision button.The DID number gets provisioned successfully.
-<br>8.	Click Create to create a SIP media application.The Create a SIP media application dialog appears.
-<br>9.	Enter Name, select the relevant AWS region from the drop-down.
-<br>10.	Copy the value of **ChimeSMATranslatorCdkStack.SMALambdaFunctionARN** from the output terminal after running the CDK script and enter into Lambda Function ARN section .
+
+   <br> Refer( https://docs.aws.amazon.com/chime-sdk/latest/ag/create-sip-app.html ) on creating SIP Media application and   (https://docs.aws.amazon.com/chime/latest/ag/provision-phone.html) for provisioning the phone number
+  <br>1. Access the Amazon Chime Service. Under Calling > click SIP media applications.The SIP media application screen appears.
+  <br>2. Under Calling > click the Phone number management.The Phone number management screen appears.
+  <br>3. Click the Pending tab to provision the phone numbers.
+  <br>4. Click the Provision phone numbers tab.The Provision phone numbers screen appears.
+  <br>5. Select the SIP Media Application Dial-In option and click Next.
+  <br>6. Select the relevant country from the Country drop-down, select the Toll-free option from the dropdown, select the toll-free area code from the drop-down,and click the Search icon.The list of available toll-free numbers appears.
+  <br>7. Select any one of the numbers and click the Provision button.The DID number gets provisioned successfully.
+  <br>8. Click Create to create a SIP media application.The Create a SIP media application dialog appears.
+  <br>9. Enter Name, select the relevant AWS region from the drop-down.
+  <br>10. Copy the value of **ChimeSMATranslatorCdkStack.SMALambdaFunctionARN** from the output terminal after running the CDK script and enter into Lambda Function ARN section.</br>
 <img width="459" alt="image" src="https://user-images.githubusercontent.com/88785130/208073349-041b915d-17ae-44af-9901-8092ef4995fb.png">
 
  <br>11. Click Create to create the SIP media application. The created SIP media application appears under the SIP media applications.
