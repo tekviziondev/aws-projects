@@ -45,9 +45,9 @@ Looking at the existing issues is a great way to find something to contribute on
 
 
 ## Code of Conduct
-This project's Code of Conduct is adapted from the [Contributor Covenant][homepage],
-version 2.0, available at
-https://www.contributor-covenant.org/version/2/0/code_of_conduct.html.
+This project's Code of Conduct is adapted from the Contributor Covenant,
+version 2.1, available at
+https://www.contributor-covenant.org/version/2/1/code_of_conduct.html.
 For more information contact opensource-codeofconduct@tekvizion.com with any additional questions or comments.
 
 ## Licensing
