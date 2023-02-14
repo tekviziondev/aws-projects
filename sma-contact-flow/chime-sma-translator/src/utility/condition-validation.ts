@@ -46,9 +46,12 @@ export class ConditionValidationUtil {
         let nextAction: any;
         let nextAction_id: any;
         let callId: string;
+        
         try {
             let currentAction = contactFlow.Actions.find((action: any) => action.Identifier === actionObj.Identifier);
             const condition = currentAction.Transitions.Conditions;
+            const defaultActionID=currentAction.Transitions.NextAction;
+
             // getting the CallID of the Active call from the SMA Event
             let callDetails = new CallDetailsUtil();
             const legA = callDetails.getLegACallDetails(smaEvent) as any;
@@ -83,6 +86,14 @@ export class ConditionValidationUtil {
                     return await new TerminatingFlowUtil().terminatingFlowAction(smaEvent, actionType)
                 }
                 return await processFlowAction(smaEvent, nextAction, contactFlow.Actions, amazonConnectInstanceID, bucketName, contextStore);
+            }
+            else{
+                const defaultAction=callDetails.findActionObjectByID(contactFlow.Actions, defaultActionID) as any;
+                let actionType = defaultAction.Type;
+                if (!Object.values(AmazonConnectActions).includes(actionType)) {
+                    return await new TerminatingFlowUtil().terminatingFlowAction(smaEvent, actionType)
+                }
+                return await processFlowAction(smaEvent, defaultAction, contactFlow.Actions, amazonConnectInstanceID, bucketName, contextStore);
             }
         } catch (error) {
             console.error(Attributes.DEFAULT_LOGGER + callId + " There is an error in execution of validating the Recieved Digits " + error.message);

@@ -60,6 +60,7 @@ const connectContextStore: string = "ConnectContextStore";
 export async function processFlow(smaEvent: any, amazonConnectInstanceID: string, amazonConnectFlowID: string, bucketName: string) {
     let callId: string;
     let contextStore: any;
+    
     try {
         let type = "Contact_Flow";
         const transactionAttributes = smaEvent.CallDetails.TransactionAttributes;
@@ -130,7 +131,7 @@ export async function processFlow(smaEvent: any, amazonConnectInstanceID: string
         console.log(Attributes.DEFAULT_LOGGER + callId + " ConnectInstanceId:" + amazonConnectInstanceID + " Loaded Contact Flow" + contactFlow);
         if (transactionAttributes && transactionAttributes.currentFlowBlock) {
             console.log(Attributes.DEFAULT_LOGGER + callId + " InvocationEventType:" + smaEvent.InvocationEventType);
-            if (smaEvent.InvocationEventType === EventTypes.ACTION_SUCCESSFUL || smaEvent.InvocationEventType === EventTypes.CALL_ANSWERED) {
+            if (smaEvent.InvocationEventType === EventTypes.ACTION_SUCCESSFUL || smaEvent.InvocationEventType === EventTypes.CALL_ANSWERED || smaEvent.InvocationEventType === EventTypes.RINGING) {
                 if (smaEvent.ActionData.ReceivedDigits != null) {
                     const recieved_digits = smaEvent.ActionData.ReceivedDigits;
                     return await new ConditionValidationUtil().processFlowConditionValidation(smaEvent, transactionAttributes.currentFlowBlock, contactFlow, recieved_digits, amazonConnectInstanceID, bucketName, contextStore);
@@ -334,10 +335,25 @@ async function processFlowActionSuccess(smaEvent: any, action: any, contactFlow:
         if (!callId)
             callId = smaEvent.ActionData.Parameters.CallId;
         let transactionAttributes = smaEvent.CallDetails.TransactionAttributes;
+        if(smaEvent.ActionData.Type == "CallAndBridge"){
+            return {
+                "SchemaVersion": Attributes.SCHEMA_VERSION,
+                "Actions": []
+            }
+
+         }
         if (action.Parameters && action.Parameters.StoreInput == "True") {
             smaEvent.CallDetails.TransactionAttributes = updateConnectContextStore(transactionAttributes, "StoredCustomerInput", smaEvent.ActionData.ReceivedDigits);
         }
         if (smaEvent.ActionData.IntentResult) {
+            if(smaEvent.ActionData.IntentResult.SessionState.SessionAttributes){
+                let x=smaEvent.ActionData.IntentResult.SessionState.SessionAttributes
+                const keys = Object.keys(x);
+                keys.forEach((key, index) => {
+                    contextStore[ContextStore.CONTEXT_ATTRIBUTES]["$.External." + key] = x[key];
+                    contextStore[ContextStore.TMP_MAP][key] = x[key];
+                });
+            }
             let intentName = smaEvent.ActionData.IntentResult.SessionState.Intent.Name;
             return await new ConditionValidationUtil().processFlowConditionValidation(smaEvent, transactionAttributes.currentFlowBlock, contactFlow, intentName, amazonConnectInstanceID, bucketName, contextStore);
         }

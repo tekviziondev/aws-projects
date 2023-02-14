@@ -40,6 +40,7 @@ export class TransferTOThirdParty {
     async processFlowActionTransferParticipantToThirdParty(smaEvent: any, action: any, contextStore: IContextStore) {
         let callId: string;
         let smaAction1: any;
+        let contextAttributes = contextStore[ContextStore.CONTEXT_ATTRIBUTES];
         // creating cloud watch metric parameter and updating the metric details in cloud watch
         let metric = new CloudWatchMetric();
         let params = metric.createParams(contextStore, smaEvent);
@@ -54,6 +55,18 @@ export class TransferTOThirdParty {
             if (action.Parameters.hasOwnProperty("CallerId")) {
                 fromNumber = action.Parameters.CallerId.Number;
             }
+            let thirdPartyNumber=action.Parameters.ThirdPartyPhoneNumber;
+            let x: Number;
+            const keys = Object.keys(contextAttributes);
+            console.log("Keys: " + keys);
+            keys.forEach((key, index) => {
+              if (thirdPartyNumber.includes(key)) {
+                x = this.count(thirdPartyNumber, key) as any;
+                for (let index = 0; index < x; index++) {
+                    thirdPartyNumber = thirdPartyNumber.replace(key, contextAttributes[key]);
+                }
+              }
+            });
             console.log(Attributes.DEFAULT_LOGGER + callId + " Transfering call to Third Party Number");
             let smaAction = {
                 Type: ChimeActions.CALL_AND_BRIDGE,
@@ -63,7 +76,7 @@ export class TransferTOThirdParty {
                     "Endpoints": [
                         {
                             "BridgeEndpointType": Attributes.BRDIGE_ENDPOINT_TYPE, //Mandatory
-                            "Uri": action.Parameters.ThirdPartyPhoneNumber //Mandatory
+                            "Uri":  thirdPartyNumber
                         }
                     ]
                 }
@@ -106,4 +119,13 @@ export class TransferTOThirdParty {
         }
 
     }
+    /**
+  * This method will count the number of occurences of the string in the speech text 
+  * @param str 
+  * @param find
+  * @returns count
+  */
+  count(str, find) {
+    return (str.split(find)).length - 1;
+  } 
 }

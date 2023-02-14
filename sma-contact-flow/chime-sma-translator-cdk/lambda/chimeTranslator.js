@@ -35,7 +35,9 @@ exports.handler = async (event, context, callback) => {
     let call_Id = event.CallDetails.Participants[0].CallId;
     console.log("CallID :" + call_Id + '| Event recieved from SMA : ' + JSON.stringify(event));
     switch (event.InvocationEventType) {
-        case "NEW_INBOUND_CALL":
+        case  "NEW_INBOUND_CALL":
+        case  "RINGING" :
+        case  "CALL_ANSWERED":
             try {
                 /*
                  * New incoming call event received from Amazon PSTN audio service and tekVizion SMA-Contact-Flow-Parser Library invoked to get the first corresponding SMA action object from the amazon connect contact flow to execute.
@@ -77,8 +79,11 @@ exports.handler = async (event, context, callback) => {
             break;
 
         case 'HANGUP':
-            
             console.log("CallID :" + call_Id + +" | The call is Hanged Up");
+            return {
+                "SchemaVersion": "1.0",
+                "Actions": []
+            }
             break;
         default:
             return null;
