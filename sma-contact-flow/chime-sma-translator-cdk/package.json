@@ -1,30 +1,24 @@
 {
-  "name": "chime-sma-translator-cdk",
-  "version": "0.1.0",
-  "bin": {
-    "hello-cdk": "bin/chime-sma-translator-cdk.js"
-  },
+  "name": "amazon-chime-sdk-sma-parser",
   "scripts": {
-    "build": "tsc",
-    "watch": "tsc -w",
-    "test": "jest",
-    "start": "cdk-deploy"
+    "build":"npm install",
+    "prestart": "npm install -g aws-cdk@latest",
+    "start": "cdk deploy"
   },
   "devDependencies": {
-    "@types/jest": "^26.0.10",
-    "@types/node": "10.17.27",
-    "aws-cdk-lib": "^2.10.0",
-    "constructs": "^10.0.51",
-    "jest": "^26.4.2",
-    "ts-jest": "^26.2.0",
-    "ts-node": "^9.0.0",
-    "typescript": "~3.9.7"
+    "@types/jest": "^29.2.4",
+    "@types/node": "^14",
+    "aws-cdk": "^2.59.0",
+    "esbuild": "^0.16.5",
+    "npm-check-updates": "^16",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.9.4"
   },
   "dependencies": {
-    "aws-cdk-lib": "^2.10.0",
-    "aws-sdk": "^2.1183.0",
-    "cdk-amazon-chime-resources": "^0.1.184",
-    "constructs": "^10.0.51",
-    "dotenv": "^16.0.3"
+    "aws-cdk-lib": "^2.59.0",
+    "cdk-amazon-chime-resources": "latest",
+    "chime-sma-translator": "^1.0.4",
+    "constructs": "^10.0.5",
+    "dotenv":"^16.0.3"
   }
 }

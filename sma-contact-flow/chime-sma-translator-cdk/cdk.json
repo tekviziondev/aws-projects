@@ -1,6 +1,5 @@
 {
-  "app": "npx ts-node --prefer-ts-exts bin/chime-sma-translator-cdk.ts",
-  "context": {
-    
+  "app": "npx ts-node -P tsconfig.json --prefer-ts-exts src/chimeSMATranslator.ts",
+  "output": "cdk.out"
   }
-}
+  
