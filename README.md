@@ -25,9 +25,9 @@
  <br>1. Download the "aws-project" github repository and open the .env file.
  <br>2. Configure the required inputs in the .env file 
 
-	    Connect_arn = //the ARN of the IVR Contact flow defined on the Amazon Connect instance
-        Country = // the country where the Chime PhoneNumber has to be provisioned
-        Area_code = // the Area code to provision the Chime PhoneNumber
+	    Connect_arn = //mention the ARN of the IVR Contact flow defined on the Amazon Connect instance
+        Country = //mention the country where the Chime PhoneNumber has to be provisioned
+        Area_code = //mention the Area code to provision the Chime PhoneNumber
 	
    <br>3. Open the folder "chime-sma-translator-cdk" in the terminal and run the "npm install" command to install required node_modules and run the "npm install -g aws-cdk@latest" to enable the CDK deployment of resorces from the local machine.
    <br>4. After installing required node_modules, run the command "cdk deploy", this will provisions the resources like Chime SMA Translator Library as a (Lambda Layer), SMA Lambda function and S3 Bucket with required roles and policies, Chime SIP Media Application, Chime PSTN Phone Numer and Chime SIP rule in the AWS account under the Cloudformation of "chimeSMATranslator" stack.
