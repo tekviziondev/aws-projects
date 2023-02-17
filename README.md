@@ -6,23 +6,16 @@
 
 # Configuring the environment to use the tekVizion Chime SMA Translator Library requires the following steps
 <br>1. Create an Amazon Connect Instance
-<br>2. Create a Lambda Layer and Lambda Function and required S3 Buckets  with acsess roles through AWS CDK script
-<br>3. Create a SIP Media Application (SMA) and Assign the Lambda Function
-<br>4. Configure SIP Rule for the SMA
-
-
+<br>2. Create the required resources for using the Chime SMA Translator Library using the AWS CDK script
 
 - **Step-1 Create an Amazon Connect Instance**
     <br> For more information on creating an Amazon Connect instance refer to the https://docs.aws.amazon.com/connect/latest/adminguide/amazon-connect-instances.html .     
-     <br>* After Creating the  Amazon Connect instance copy the "Instance ARN" from the location (Services -> Amazon Connect -> Click the Name of the Instance -> Distribution settings -> copy Instance ARN) for metioning in the SMA Lambda Function code. Refer the below image.
-     ![image](https://user-images.githubusercontent.com/88785130/208022345-99570aa4-2b1e-4564-ba84-dcf35b6fca6c.png)
-
-     <br>* Copy the "Contact Flow ARN" which you defined in the Amazon Connect from the location (Services -> Amazon Connect -> Click the Access url of the Instance -> click Contact Flows -> Show additional flow information -> Copy ARN) for metioning in the SMA Lambda Function code. Rfer the below image.
+     <br>* Copy the "Connect_arn" which you defined in the Amazon Connect from the location (Services -> Amazon Connect -> Click the Access url of the Instance -> click Contact Flows -> Show additional flow information -> Copy ARN) for metioning in the CDK script ".env" file. Refer the below image.
      <img width="958" alt="image" src="https://user-images.githubusercontent.com/88785130/208022955-f4e852de-4435-48d0-8889-fd1f7dfd6b60.png">
    
    
    
-- **Step-2 Create a Lambda Layer and Lambda Function and required S3 Buckets  with acsess roles through AWS CDK script**
+- **Step-2 Create the required resources for using the Chime SMA Translator Library using the AWS CDK script**
 
     <br>**Prerequisites**
  <br>1. Node latest version has to be installed in the local machine.
@@ -32,71 +25,35 @@
  <br>1. Download the "aws-project" github repository and open the .env file.
  <br>2. Configure the required inputs in the .env file 
 
-	    region = //the default AWS Region
-        connect_instance_id = // Amazon Connect Instance ARN
-        contact_flow_id = // Contact Flow ARN
+	    Connect_arn = //the ARN of the IVR Contact flow defined on the Amazon Connect instance
+        Country = // the country where the Chime PhoneNumber has to be provisioned
+        Area_code = // the Area code to provision the Chime PhoneNumber
 	
-   <br>3. Open the folder "chime-sma-translator-cdk" in the terminal and run the "npm install" command to install required node_modules.
-   <br>4. After installing required node_modules, run the command "cdk-deploy" to deploy the "ChimeSMATranslatorCdkStack" stack in the CloudFormation of your AWS account.
-   <br>5. After deploying, in the terminal "outputs:" section user can find the **a). SMA Lambda Function's** ARN and Name, which they can use it for binding with SIP Media application, **b). S3 Bucket's** ARN and Name and **c). Layer's** ARN and Name.
+   <br>3. Open the folder "chime-sma-translator-cdk" in the terminal and run the "npm install" command to install required node_modules and run the "npm install -g aws-cdk@latest to enable the CDK deployment from the local machine.
+   <br>4. After installing required node_modules, run the command "cdk deploy", this will provisions the resources like Chime SMA Translator Library as a (Lambda Layer), SMA Lambda function and S3 Bucket with required roles and policies, Chime SIP Media Application, Chime PSTN Phone Numer and Chime SIP rule in the AWS account under the Cloudformation of "chimeSMATranslator" stack.
+   <br>5. In the terminal, "outputs:" section user can find the following outputs
+   <br>
+   <br>**a). chimeSMATranslator.pstnPhoneNumber** you can wait for 5 minutes for complete provisioning of phone number in AWS account and then dial out The PSTN phone number from your phone to perform the IVR flows that defined on the Amazon connect contact flow  
+   <br>**b). Stack ARN** You can find the created resource details in the following Cloudformation location
   
   <br> **Sample Outputs from terminal**
 	
 		Outputs:
-		ChimeSMATranslatorCdkStack.LayerARN = arn:aws:lambda:us-east-1:664887287655:layer:ChimeSMATranslatorLayer4A123E47:4
-		ChimeSMATranslatorCdkStack.LayerName = ChimeSMATranslatorLayer
-		ChimeSMATranslatorCdkStack.S3BucketARN = arn:aws:s3:::chime-sma-traslator
-		ChimeSMATranslatorCdkStack.S3BucketName = chime-sma-traslator
-		ChimeSMATranslatorCdkStack.SMALambdaFunctionARN = arn:aws:lambda:us-east-1:664887287655:function:ChimeSMATranslatorCdkStac-ChimeSMATranslatorLambda-jB8Gzu8ZACBR
-		ChimeSMATranslatorCdkStack.SMALambdaFunctionName = ChimeSMATranslatorCdkStac-ChimeSMATranslatorLambda-jB8Gzu8ZACBR
-   <br>6. Under the "ChimeSMATranslatorCdkStack" the following resources will be created,
- 
-	* Layer (chime-sma-translator Library) 
-	* SMA Lambda function with required access roles and environment variables in the configuration
-	* S3 Bucket with Access roles for storing contact flow cache and call recordings.
-
+		chimeSMATranslator.pstnPhoneNumber = +1234567890 (E.g)
+		Stack ARN: arn:aws:cloudformation:us-east-1:664887287655:stack/chimeSMATranslator/a1b67c20-aeb8-11ed-967d-120b28ff0187
+   
+<h2>Constant Values Used in the Chime SMA Translator Library </h2>
+ 	 <br> <b>a). S3_BUCKET</b> , has the default name ("chime-sma-traslator")but user can change in Environment variables of SMA Lambda     
+	 <br>
+	 <br> <b>b). FAILURE_AUDIO_FILE_LOCATION</b>,  has the default wav file in S3 bucket ("s3://chime-sma-traslator/FailureAudio.wav")  but user can change the wav file in S3 bucket  Environment variables of SMA Lambda      
+	 <br>
+	 <br> <b>c). FAILURE_SPEECH_SSML</b> , has the default SSML value ("<speak> We're sorry. We didn't get that. Please try again. <break time=\"200ms\"/></speak>") but user can change in Environment variables of SMA Lambda Function
+	 <br>
+	 <br> <b>d). CONNECT_ARN</b> , user has to give the Amzon Connnect Flow ARN in Environment variables of SMA Lambda, if they want to execute another Flow they need to change the ARN      
+	 <br>
+	 <br> <b>e). Cache Time In Milliseconds</b> for caching the Contact flow data from Amazon Connect , default value is 5000 ms, user cannot change the value
 <br>
-
- 
-- **Step-3 Create a SIP Media Application (SMA) and Assign the Lambda Function**
-
-   <br> Refer( https://docs.aws.amazon.com/chime-sdk/latest/ag/create-sip-app.html ) on creating SIP Media application and   (https://docs.aws.amazon.com/chime/latest/ag/provision-phone.html) for provisioning the phone number
-  <br>1. Access the Amazon Chime Service. Under Calling > click SIP media applications.The SIP media application screen appears.
-  <br>2. Under Calling > click the Phone number management.The Phone number management screen appears.
-  <br>3. Click the Pending tab to provision the phone numbers.
-  <br>4. Click the Provision phone numbers tab.The Provision phone numbers screen appears.
-  <br>5. Select the SIP Media Application Dial-In option and click Next.
-  <br>6. Select the relevant country from the Country drop-down, select the Toll-free option from the dropdown, select the toll-free area code from the drop-down,and click the Search icon.The list of available toll-free numbers appears.
-  <br>7. Select any one of the numbers and click the Provision button.The DID number gets provisioned successfully.
-  <br>8. Click Create to create a SIP media application.The Create a SIP media application dialog appears.
-  <br>9. Enter Name, select the relevant AWS region from the drop-down.
-  <br>10. Copy the value of **ChimeSMATranslatorCdkStack.SMALambdaFunctionARN** from the output terminal after running the CDK script and enter into Lambda Function ARN section.</br>
-<img width="459" alt="image" src="https://user-images.githubusercontent.com/88785130/208073349-041b915d-17ae-44af-9901-8092ef4995fb.png">
-
- <br>11. Click Create to create the SIP media application. The created SIP media application appears under the SIP media applications.
- <br>12. Click the created SIP media application.
-
-![image](https://user-images.githubusercontent.com/88785130/205266463-a806306d-275b-4531-9284-a0e0f49a6ec1.png)
-
-- **Step -4 Configure SIP Rule for the SMA**
- <br>1. Click the Rules tab to create a rule for the SMA and to assign the DID number (Contact Centre Number) to invoke the SMA.
-  ![image](https://user-images.githubusercontent.com/88785130/205267206-6b77380c-486a-408a-9b1e-95b0096eec3b.png)
-        
-  <br>2. Click Create to create a rule. The Create a SIP rule dialog appears.
-  <br>3. Enter name of the rule, choose the To phone number from the Trigger type drop-down, select the provisioned phone number from the Phone number drop-down, and click Next. The Create a SIP rule dialog appears.
-  <br>4. Click Create. The rule gets created and appears under the created SIP media Application.
-
-  <br>Now your setup is ready to use the tekVizion Library to invoke the SMA's IVR functions.
-  
-  <br> Click the Contact control panel from Amazon Connect as metioned in the below image, the Web client application will appear.
-  
-  <img width="959" alt="image" src="https://user-images.githubusercontent.com/88785130/208077005-3027eb18-35cf-4163-af93-26b7f6e2421c.png">
-
-  <br> Use a Web client application from Amazon Connect for Dialing out to the SMA's DID number </br>
-  
-
-  ![image](https://user-images.githubusercontent.com/88785130/205262606-0682cee6-864b-40e3-ae21-458ba2c310a4.png)
-
+<br>
 <h2>Additional info on</h2>
 
 - **Defining Amazon Lex Bot service and External Lambda function in Contact Flow** 
