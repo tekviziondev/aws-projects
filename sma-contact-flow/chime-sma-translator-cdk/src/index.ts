@@ -20,10 +20,5 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-module.exports = {
-  roots: ['<rootDir>/test'],
-  testMatch: ['**/*.test.ts'],
-  transform: {
-    '^.+\\.tsx?$': 'ts-jest'
-  }
-};
+export * from './pstnAudio';
+export * from './s3';

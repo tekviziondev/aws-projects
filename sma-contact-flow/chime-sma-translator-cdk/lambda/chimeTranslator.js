@@ -23,13 +23,15 @@ SOFTWARE.
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 //tekVizion chime-sma-translator Library
+const connectArn = process.env.CONNECT_ARN;
 const sma_contact_flow_parser_1 = require("chime-sma-translator");
 //Amazon Connect Instance ID
-const amazonConnectInstanceID = process.env.CONNECT_INSTANCE_ID;
+const amazonConnectInstanceID = connectArn.split('/')[1];
 //Amazon Connect Contact Flow ID
-const amazonConnectFlowID = process.env.CONTACT_FLOW_ID;
+const amazonConnectFlowID = connectArn.split('/')[3];
 // Bucket Name to Store the Contact flow Response cache
 const s3BucketName = process.env.S3_BUCKET;
+
 
 exports.handler = async (event, context, callback) => {
     let call_Id = event.CallDetails.Participants[0].CallId;
