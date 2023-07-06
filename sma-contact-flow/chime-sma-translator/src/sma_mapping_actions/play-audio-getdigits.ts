@@ -59,8 +59,8 @@ export class PlayAudioAndGetDigits extends AudioParameter {
                     "CallId": callId, //Optional
                     "AudioSource": audio_parameters, //Mandatory
                     "FailureAudioSource": failure_audio, //Mandatory
-                    "MinNumberOfDigits": 5, //Optional
-                    "Repeat": 3 //Optional
+                    "MinNumberOfDigits": 1, //Optional
+                    "Repeat": Attributes.NO_OF_TIMES_REPEAT//Optional
                 }
             };
             if (action.Parameters?.InputValidation) {

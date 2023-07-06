@@ -25,7 +25,7 @@ import { ErrorTypes } from "../const/error-types";
 import { processFlowAction } from "../contact-flow-processor";
 import { Operators } from "../const/comparison-operators";
 import { NextActionValidationUtil } from "../utility/next-action-error-handler";
-import { Attributes } from "../const/constant-values";
+import { Attributes,ContextStore } from "../const/constant-values";
 import { IContextStore } from "../const/context-store";
 import { CloudWatchMetric } from "../utility/metric-updation"
 /**
@@ -53,7 +53,7 @@ export class CompareAttribute {
             if (!callId)
                 callId = smaEvent.ActionData.Parameters.CallId;
             let comparVariable = action.Parameters.ComparisonValue;
-            let ComparisonValue = contextStore[Attributes.CONNECT_CONTEXT_STORE][comparVariable];
+            let ComparisonValue = contextStore[ContextStore.CONTEXT_ATTRIBUTES][comparVariable];
             const condition = action.Transitions.Conditions;
             // iterating the specified conditional statements by the user
             for (let index = 0; index < condition.length; index++) {

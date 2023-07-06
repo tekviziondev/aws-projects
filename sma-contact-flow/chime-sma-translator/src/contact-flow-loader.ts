@@ -29,7 +29,7 @@ import { Attributes } from "./const/constant-values";
 
 
 let s3Bucket: string;
-const cacheTimeInMilliseconds: number = 5000;
+const cacheTimeInMilliseconds: number = 50000;
 const defaultLogger = "SMA-Contact-Flow-Parser | Call ID - "
 
 /**
@@ -163,13 +163,8 @@ async function checkFlowCache(amazonConnectInstanceID: string, amazonConnectCont
     var deltaTimeInMs = new Date().getTime() - s3Head.LastModified.getTime();
     console.log(defaultLogger + callId + " Delta Time of Last updated Flow Cache: " + deltaTimeInMs);
     if (deltaTimeInMs < cacheTimeInMilliseconds) {
-      console.log(defaultLogger + callId + " Loading Contact Flow from Flow cache");
-      console.log("Start S3 Data Loading Time "+ new Date().getMilliseconds())
       let s3Result = await s3.getObject(s3Params).promise();
-      console.log("End S3 Data Loading Time "+ new Date().getMilliseconds())
-      console.log("Start S3 Parsing Time "+ new Date().getMilliseconds())
       rv = JSON.parse(s3Result.Body.toString());
-      console.log("End S3 Parsing Time "+ new Date().getMilliseconds())
     }
   }
   catch (error) {

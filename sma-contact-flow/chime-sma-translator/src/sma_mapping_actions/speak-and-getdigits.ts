@@ -59,7 +59,7 @@ export class SpeakAndGetDigits extends SpeechParameter {
           "SpeechParameters": speech_parameter,
           "FailureSpeechParameters": failure_parameter,
           "MinNumberOfDigits": 1,
-          "Repeat": 3,
+          "Repeat": Attributes.NO_OF_TIMES_REPEAT,
         }
       };
       let text = smaAction.Parameters.SpeechParameters.Text

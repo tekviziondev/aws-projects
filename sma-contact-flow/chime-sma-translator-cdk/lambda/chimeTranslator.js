@@ -81,10 +81,16 @@ exports.handler = async (event, context, callback) => {
             break;
 
         case 'HANGUP':
-            console.log("CallID :" + call_Id + +" | The call is Hanged Up");
-            return {
-                "SchemaVersion": "1.0",
-                "Actions": []
+            try {
+                /*
+                 * HANGUP event received from Amazon PSTN audio service and tekVizion SMA-Contact-Flow-Parser Library invoked to get the first corresponding SMA action object from the amazon connect contact flow to execute.
+                 */
+                const actionObj = await sma_contact_flow_parser_1.processFlow(event, amazonConnectInstanceID, amazonConnectFlowID, s3BucketName);
+                console.log("CallID :" + call_Id + "| Action Object : " + JSON.stringify(actionObj) + " is going to execute");
+                return actionObj;
+            }
+            catch (e) {
+                console.log(e);
             }
             break;
         default:

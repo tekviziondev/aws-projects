@@ -48,6 +48,7 @@ export class CallRecording {
             const legA = callDetails.getLegACallDetails(smaEvent) as any;
             callId = legA.CallId;
             let smaAction: any;
+            let track =Attributes.TRACK
             if (!callId)
                 callId = smaEvent.ActionData.Parameters.CallId;
             if (action.Parameters.RecordingBehavior.RecordedParticipants.length < 1) {
@@ -58,14 +59,24 @@ export class CallRecording {
                     }
                 };
 
-            } else {
+            }
+             else {
+                if(action.Parameters.RecordingBehavior.RecordedParticipants.length == 1){
+                    if(action.Parameters.RecordingBehavior.RecordedParticipants[0] =="Customer"){
+                        track="INCOMING";
+                    } 
+                    else{
+                        track="OUTGOING";
+                    }             
+    
+                }
                 let destinationLocation = process.env.S3_BUCKET;
                 console.log("Destination location  for Call Recording is " + destinationLocation)
                 smaAction = {
                     Type: ChimeActions.START_CALL_RECORDING,
                     Parameters: {
                         "CallId": legA.CallId, //Mandatory
-                        "Track": Attributes.TRACK, //Mandatory
+                        "Track": track, //Mandatory
                         Destination: {
                             "Type": Attributes.DESTINATION_TYPE, //Mandatory
                             "Location": destinationLocation
