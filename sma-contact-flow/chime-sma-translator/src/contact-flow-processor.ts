@@ -131,7 +131,12 @@ export async function processFlow(smaEvent: any, amazonConnectInstanceID: string
         console.log(Attributes.DEFAULT_LOGGER + callId + " ConnectInstanceId:" + amazonConnectInstanceID + " Loaded Contact Flow" + contactFlow);
         if (transactionAttributes && transactionAttributes.currentFlowBlock) {
             console.log(Attributes.DEFAULT_LOGGER + callId + " InvocationEventType:" + smaEvent.InvocationEventType);
-            if (smaEvent.InvocationEventType === EventTypes.ACTION_SUCCESSFUL || smaEvent.InvocationEventType === EventTypes.CALL_ANSWERED || smaEvent.InvocationEventType === EventTypes.RINGING) {
+            if(smaEvent.InvocationEventType === EventTypes.HANGUP  && transactionAttributes.currentFlowBlock.Type == "TransferParticipantToThirdParty" ){
+                let disconnect = new DisconnectParticipant();
+                return await disconnect.processFlowActionDisconnectBothParticipant(smaEvent, contextStore);
+
+            }
+           else if (smaEvent.InvocationEventType === EventTypes.ACTION_SUCCESSFUL || smaEvent.InvocationEventType === EventTypes.CALL_ANSWERED || smaEvent.InvocationEventType === EventTypes.RINGING) {
                 if (smaEvent.ActionData.ReceivedDigits != null) {
                     const recieved_digits = smaEvent.ActionData.ReceivedDigits;
                     return await new ConditionValidationUtil().processFlowConditionValidation(smaEvent, transactionAttributes.currentFlowBlock, contactFlow, recieved_digits, amazonConnectInstanceID, bucketName, contextStore);
@@ -143,6 +148,7 @@ export async function processFlow(smaEvent: any, amazonConnectInstanceID: string
             } else {
                 let disconnect = new DisconnectParticipant();
                 return await disconnect.processFlowActionDisconnectParticipant(smaEvent, contextStore)
+
             }
         }
         else {
@@ -280,7 +286,7 @@ export async function processFlowAction(smaEvent: any, action: any, actions: any
             return await loop.processFlowActionLoop(smaEvent, action, actions, amazonConnectInstanceID, bucketName, contextStore)
         case AmazonConnectActions.TRANSFER_PARTICIPANT_TO_THIRD_PARTY:
             let transferThirdParty = new TransferTOThirdParty();
-            return await transferThirdParty.processFlowActionTransferParticipantToThirdParty(smaEvent, action, contextStore)
+            return await transferThirdParty.execute(smaEvent, action, contextStore)
         case AmazonConnectActions.CONNECT_PARTICIPANT_WITH_LEX_BOT:
             let lexbot = new LexBot();
             return await lexbot.processFlowActionConnectParticipantWithLexBot(smaEvent, action, contextStore)
@@ -342,6 +348,7 @@ async function processFlowActionSuccess(smaEvent: any, action: any, contactFlow:
             }
 
          }
+        
         if (action.Parameters && action.Parameters.StoreInput == "True") {
             smaEvent.CallDetails.TransactionAttributes = updateConnectContextStore(transactionAttributes, "StoredCustomerInput", smaEvent.ActionData.ReceivedDigits);
         }

@@ -25,7 +25,9 @@ import { Attributes, ContextStore } from "../const/constant-values"
 import { ChimeActions } from "../const/chime-action-types";
 import { TerminatingFlowUtil } from "../utility/default-termination-action";
 import { IContextStore } from "../const/context-store";
-import { CloudWatchMetric } from "../utility/metric-updation"
+import { CloudWatchMetric } from "../utility/metric-updation";
+import { AudioParameter } from "./audio-parameters";
+
 
 
 /**
@@ -36,8 +38,8 @@ import { CloudWatchMetric } from "../utility/metric-updation"
   * @returns SMA action
   */
 
-export class TransferTOThirdParty {
-    async processFlowActionTransferParticipantToThirdParty(smaEvent: any, action: any, contextStore: IContextStore) {
+export class TransferTOThirdParty extends AudioParameter {
+    async execute(smaEvent: any, action: any, contextStore: IContextStore) {
         let callId: string;
         let smaAction1: any;
         let contextAttributes = contextStore[ContextStore.CONTEXT_ATTRIBUTES];
@@ -55,28 +57,48 @@ export class TransferTOThirdParty {
             if (action.Parameters.hasOwnProperty("CallerId")) {
                 fromNumber = action.Parameters.CallerId.Number;
             }
-            let thirdPartyNumber=action.Parameters.ThirdPartyPhoneNumber;
+            let thirdPartyNumber = action.Parameters.ThirdPartyPhoneNumber;
             let x: Number;
             const keys = Object.keys(contextAttributes);
             console.log("Keys: " + keys);
             keys.forEach((key, index) => {
-              if (thirdPartyNumber.includes(key)) {
-                x = this.count(thirdPartyNumber, key) as any;
-                for (let index = 0; index < x; index++) {
-                    thirdPartyNumber = thirdPartyNumber.replace(key, contextAttributes[key]);
+                if (thirdPartyNumber.includes(key)) {
+                    x = this.count(thirdPartyNumber, key) as any;
+                    for (let index = 0; index < x; index++) {
+                        thirdPartyNumber = thirdPartyNumber.replace(key, contextAttributes[key]);
+                    }
                 }
-              }
             });
             console.log(Attributes.DEFAULT_LOGGER + callId + " Transfering call to Third Party Number");
+            let bucketName: string;
+            let type: string;
+            let uri: string;
+            let uriObj: string[];
+            let key: string;
+            let ringBack = {};
+            if (Attributes.Ring_Back_Audio) {
+                uri = Attributes.Ring_Back_Audio;
+                uriObj = uri.split("/");
+                bucketName = uriObj[2];
+                key = uriObj[3];
+               // type = action.Parameters.Media.SourceType;
+                ringBack = {
+                    Type: "S3", //Mandatory
+                    BucketName: bucketName, //Mandatory
+                    Key: key //Mandatory
+                }
+            }
+
             let smaAction = {
                 Type: ChimeActions.CALL_AND_BRIDGE,
                 Parameters: {
                     "CallTimeoutSeconds": action.Parameters.ThirdPartyConnectionTimeLimitSeconds, //Optional
                     "CallerIdNumber": fromNumber, //Mandatory
+                    "RingbackTone": ringBack,
                     "Endpoints": [
                         {
                             "BridgeEndpointType": Attributes.BRDIGE_ENDPOINT_TYPE, //Mandatory
-                            "Uri":  thirdPartyNumber
+                            "Uri": thirdPartyNumber
                         }
                     ]
                 }
@@ -125,7 +147,7 @@ export class TransferTOThirdParty {
   * @param find
   * @returns count
   */
-  count(str, find) {
-    return (str.split(find)).length - 1;
-  } 
+    count(str, find) {
+        return (str.split(find)).length - 1;
+    }
 }

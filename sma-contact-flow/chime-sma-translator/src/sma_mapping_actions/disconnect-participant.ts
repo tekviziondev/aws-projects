@@ -82,4 +82,59 @@ export class DisconnectParticipant {
         }
 
     }
+    async processFlowActionDisconnectBothParticipant(smaEvent: any, contextStore: IContextStore) {
+        let callId: string;
+        let callId1: string;
+
+        let actionList: any[] = [];
+        // creating cloud watch metric parameter and updating the metric details in cloud watch
+        let metric = new CloudWatchMetric();
+        let params = metric.createParams(contextStore, smaEvent);
+        try {
+            // getting the CallID of the Active call from the SMA Event
+            let callDetails = new CallDetailsUtil();
+            const legA = callDetails.getLegACallDetails(smaEvent) as any;
+            const legB = callDetails.getLegBCallDetails(smaEvent) as any;
+            callId = legA.CallId;
+            callId1 = legB.CallId;  
+            if (callId && legA.Status === "Connected") {
+                let smaAction = {
+                    Type: ChimeActions.HANGUP,
+                    Parameters: {
+                        "SipResponseCode": "0", //Mandatory
+                        "CallId": callId //Mandatory
+                    }
+                };
+                actionList.push(smaAction)
+                console.log(Attributes.DEFAULT_LOGGER + callId + "| is going to Hang up" + JSON.stringify(legA));
+            }
+
+            if (callId1 && legB.Status === "Connected") {
+
+                let smaAction1 = {
+                    Type: ChimeActions.HANGUP,
+                    Parameters: {
+                        "SipResponseCode": "0", //Mandatory
+                        "CallId": callId1 //Mandatory
+                    }
+                };
+                actionList.push(smaAction1)
+                console.log(Attributes.DEFAULT_LOGGER + callId1 + "| is going to Hang up"+JSON.stringify(legB));
+            }
+
+            params.MetricData[0].MetricName = "NO_OF_DISCONNECTED_CALLS"
+            metric.updateMetric(params);
+
+            return {
+                "SchemaVersion": Attributes.SCHEMA_VERSION,
+                "Actions": actionList,
+
+            }
+        } catch (error) {
+            console.log("There is an error in Disconnceting Participant for call ID" + callId + error.message)
+        }
+
+    }
+
+
 }

@@ -51,7 +51,8 @@ export abstract class AudioParameter {
             if (error && error.includes("FailureAudioParameters")) {
                 if (Attributes.Failure_Audio_Location)
                     uri = Attributes.Failure_Audio_Location;
-            } else {
+            } 
+            else {
                 uri = action.Parameters.Media.Uri;
             }
             if (action.Parameters.Media.SourceType) {

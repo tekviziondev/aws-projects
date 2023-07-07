@@ -95,6 +95,21 @@ export abstract class SpeechParameter {
           }
         });
       }
+      if (text.includes("$.External.") || text.includes("$.Attributes.") || text.includes("$.")) {
+        // checking for 2nd time if the text/SSML contains any attributes
+        let x: Number;
+        let callDetails = new CallDetailsUtil();
+        const keys = Object.keys(contextAttributes);
+        console.log("Keys: " + keys);
+        keys.forEach((key, index) => {
+          if (text.includes(key)) {
+            x = this.count(text, key) as any;
+            for (let index = 0; index < x; index++) {
+              text = text.replace(key, contextAttributes[key]);
+            }
+          }
+        });
+      }
       rv = {
         Text: text,
         TextType: type,
