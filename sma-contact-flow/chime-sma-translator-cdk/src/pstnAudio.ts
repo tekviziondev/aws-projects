@@ -55,6 +55,7 @@ export class PSTNAudio extends Construct {
   public connectARN=(process.env.Connect_arn as string);
   public areaCode=parseInt(process.env.Area_code as string);
   public repeat= (process.env.NO_OF_TIMES_REPEAT as string)
+  public cache_time= (process.env.CACHE_TIME as string)
   public country=(process.env.Country as any);
   public Country:PhoneCountry= isValid(this.country);
  
@@ -113,6 +114,7 @@ export class PSTNAudio extends Construct {
             CONNECT_ARN: this.connectARN,
             NO_OF_TIMES_REPEAT : this.repeat,
             RINBACK_AUDIO_LOCATION :  `s3://${props.smaBucket.bucketName}/RingBack.wav`,
+            CACHE_TIME: this.cache_time
 
           },
       role: smaLambdaRole

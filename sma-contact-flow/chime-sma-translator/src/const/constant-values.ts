@@ -26,7 +26,8 @@ const {
   FAILURE_AUDIO_FILE_LOCATION,
   CALL_RECORDINGS_S3_BUCKET,
   NO_OF_TIMES_REPEAT,
-  RINBACK_AUDIO_LOCATION
+  RINBACK_AUDIO_LOCATION,
+  CACHE_TIME
 } = process.env;
 
 type Data = {
@@ -53,7 +54,8 @@ type Data = {
   CURRENT_FLOW_BLOCK: string,
   METRIC_ERROR: string,
   NO_OF_TIMES_REPEAT : number,
-  Ring_Back_Audio: string
+  Ring_Back_Audio: string,
+  CACHE_TIME :number,
 };
  
 export class ContextStore {
@@ -156,7 +158,8 @@ export const Attributes: Data = {
   CURRENT_FLOW_BLOCK: "currentFlowBlock",
   METRIC_ERROR: " There is an Error in creating the Metric Params ",
   NO_OF_TIMES_REPEAT : parseInt(NO_OF_TIMES_REPEAT),
-  Ring_Back_Audio : RINBACK_AUDIO_LOCATION
+  Ring_Back_Audio : RINBACK_AUDIO_LOCATION,
+  CACHE_TIME :parseInt(CACHE_TIME)
   
 }
 

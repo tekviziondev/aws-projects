@@ -29,7 +29,7 @@ import { Attributes } from "./const/constant-values";
 
 
 let s3Bucket: string;
-const cacheTimeInMilliseconds: number = 50000;
+const cacheTimeInMilliseconds: number = Attributes.CACHE_TIME;
 const defaultLogger = "SMA-Contact-Flow-Parser | Call ID - "
 
 /**
