@@ -51,6 +51,9 @@ export class EndModule {
         callId = smaEvent.ActionData.Parameters.CallId;
       let nextaction_id = contextStore[ContextStore.INVOKATION_MODULE_NEXT_ACTION]
       let contactFlow_id = contextStore[ContextStore.ACTUAL_FLOW_ARN]
+
+      if(contextStore[ContextStore.TRANSFER_FLOW_ARN])
+        contactFlow_id =contextStore[ContextStore.TRANSFER_FLOW_ARN];
       contextStore[ContextStore.INVOKATION_MODULE_NEXT_ACTION] = "";
       contextStore[ContextStore.INVOKE_MODULE_ARN] = "";
       // Loads the orginal Contact Flow Details

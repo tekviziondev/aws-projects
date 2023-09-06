@@ -55,6 +55,8 @@ export class LexBot {
         smaAction = {
           Type: ChimeActions.START_BOT_CONVERSATION,
           Parameters: {
+            CallId:callId,
+            ParticipantTag: "LEG-A",
             BotAliasArn: action.Parameters.LexV2Bot.AliasArn,
             LocaleId: 'en_US',
             Configuration: {
@@ -78,6 +80,8 @@ export class LexBot {
         smaAction = {
           Type: ChimeActions.START_BOT_CONVERSATION,
           Parameters: {
+            CallId:callId,
+            ParticipantTag: "LEG-A",
             BotAliasArn: action.Parameters.LexV2Bot.AliasArn,
             LocaleId: 'en_US',
             Configuration: {
