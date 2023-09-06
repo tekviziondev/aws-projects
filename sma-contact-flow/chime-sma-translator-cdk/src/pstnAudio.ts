@@ -21,6 +21,7 @@ SOFTWARE.
 */
 
 import {  Stack } from 'aws-cdk-lib';
+import * as cdk from 'aws-cdk-lib';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import {
   ServicePrincipal,
@@ -101,10 +102,11 @@ export class PSTNAudio extends Construct {
     //creating a SMA Lambda function
     const chimeTranslator = new lambda.Function(this, 'ChimeSMATranslatorLambda', {
       runtime: lambda.Runtime.NODEJS_16_X,
-      
+      timeout: cdk.Duration.seconds(900),
       code: lambda.Code.fromAsset('lambda'),
       handler: 'chimeTranslator.handler',
       insightsVersion: lambda.LambdaInsightsVersion.fromInsightVersionArn(layer.layerVersionArn),
+      
       environment: {
             REGION: Stack.of(this).region,
             FAILURE_SPEECH_SSML:

@@ -85,7 +85,6 @@ export class InvokeLambda {
             const keys = Object.keys(x);
             keys.forEach((key, index) => {
                 contextStore[ContextStore.CONTEXT_ATTRIBUTES]["$.External." + key] = x[key];
-                contextStore[ContextStore.TMP_MAP][key] = x[key];
             });
             // getting the next action object to execute
             let nextAction = callDetails.findActionObjectByID(actions, action.Transitions.NextAction);

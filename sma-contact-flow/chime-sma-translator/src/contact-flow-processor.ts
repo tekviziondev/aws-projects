@@ -131,9 +131,13 @@ export async function processFlow(smaEvent: any, amazonConnectInstanceID: string
         console.log(Attributes.DEFAULT_LOGGER + callId + " ConnectInstanceId:" + amazonConnectInstanceID + " Loaded Contact Flow" + contactFlow);
         if (transactionAttributes && transactionAttributes.currentFlowBlock) {
             console.log(Attributes.DEFAULT_LOGGER + callId + " InvocationEventType:" + smaEvent.InvocationEventType);
-            if(smaEvent.InvocationEventType === EventTypes.HANGUP  && transactionAttributes.currentFlowBlock.Type == "TransferParticipantToThirdParty" ){
+            if(smaEvent.InvocationEventType === EventTypes.HANGUP  && transactionAttributes.currentFlowBlock.Type == "TransferParticipantToThirdParty" && smaEvent.ActionData.Parameters.ParticipantTag =="LEG-A" ){
                 let disconnect = new DisconnectParticipant();
                 return await disconnect.processFlowActionDisconnectBothParticipant(smaEvent, contextStore);
+
+            }
+            else if(smaEvent.InvocationEventType === EventTypes.HANGUP  && transactionAttributes.currentFlowBlock.Type == "TransferParticipantToThirdParty" && smaEvent.ActionData.Parameters.ParticipantTag =="LEG-B" ){
+                return await processFlowActionSuccess(smaEvent, transactionAttributes.currentFlowBlock, contactFlow, amazonConnectInstanceID, bucketName, contextStore);
 
             }
            else if (smaEvent.InvocationEventType === EventTypes.ACTION_SUCCESSFUL || smaEvent.InvocationEventType === EventTypes.CALL_ANSWERED || smaEvent.InvocationEventType === EventTypes.RINGING) {
@@ -358,7 +362,6 @@ async function processFlowActionSuccess(smaEvent: any, action: any, contactFlow:
                 const keys = Object.keys(x);
                 keys.forEach((key, index) => {
                     contextStore[ContextStore.CONTEXT_ATTRIBUTES]["$.External." + key] = x[key];
-                    contextStore[ContextStore.TMP_MAP][key] = x[key];
                 });
             }
             let intentName = smaEvent.ActionData.IntentResult.SessionState.Intent.Name;
